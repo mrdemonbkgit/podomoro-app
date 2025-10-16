@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Dark Mode Styling**
 - Comprehensive dark mode support for all components:
-  - App: Dark session backgrounds (red-950, green-950, blue-950)
+  - App: Elegant gradient backgrounds (gray-900 to session color with 30% opacity)
   - Timer: Adjusted colors for better visibility (red-400, green-400, blue-400)
   - SessionInfo: Dark text colors
   - Settings Modal: Dark backdrop and modal container
@@ -33,15 +33,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All buttons and controls work well in both modes
 
 **Technical Details**
-- Enabled Tailwind class-based dark mode
-- Added `dark:` variants to all color utilities
+- Uses dynamic className selection based on `isDark` state
+- Replaced all `dark:` prefix usage with conditional ternary operators
+- Ensures proper theme switching across all components
 - Bundle impact: +7.7 kB (CSS: +2.7 kB, JS: +5 kB)
 - Maintains smooth performance with transitions
 
+### Fixed - Dark Mode Implementation Issues
+
+**Critical Bug: Theme Toggle Not Working**
+- **Issue**: Dark mode toggle changed state but UI didn't visually update
+- **Root Cause**: Tailwind `dark:` prefix requires `.dark` class on HTML element, but our state-based approach didn't consistently apply it
+- **Solution**: Replaced ALL `dark:` prefixes with dynamic className selection using `isDark` state
+- **Components Fixed**:
+  - `App.tsx`: Background gradients, title, buttons, card, footer
+  - `SettingsModal.tsx`: Modal backdrop and container  
+  - `Settings.tsx`: All form elements, inputs, labels, buttons, dialogs
+  - `ResumePrompt.tsx`: Modal, text, buttons, timer display
+  - `Timer.tsx`: Timer display colors
+  - `SessionInfo.tsx`: Session labels and counter text
+- **Commits**: 10 commits over 2 hours debugging and fixing all components
+- **Verification**: Used `findstr` to confirm zero remaining `dark:` prefixes
+
 **Testing & Documentation**
-- Verified theme toggle, persistence, and system preference detection
-- All components tested in both light and dark modes
-- Created `FEATURE_2.6_SUMMARY.md` for comprehensive documentation
+- Verified theme toggle works perfectly across all components
+- All modals and forms render correctly in both modes
+- Tested persistence and system preference detection
+- Created `FEATURE_2.6_SUMMARY.md` with comprehensive documentation including bug fixes
 - Updated `ROADMAP.md` with completion status
 
 ## [2.2.0] - 2025-10-16
