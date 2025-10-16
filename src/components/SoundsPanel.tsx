@@ -8,7 +8,7 @@ import {
   getCategoryEmoji,
   getSoundsByCategory
 } from '../data/ambientSounds';
-import { ambientAudioEngine } from '../utils/ambientAudio';
+import { ambientAudioEngineV2 } from '../utils/ambientAudioV2';
 import { useAmbientSounds } from '../hooks/useAmbientSounds';
 
 interface SoundsPanelProps {
@@ -28,8 +28,8 @@ export const SoundsPanel = ({ isOpen, onClose, isDark }: SoundsPanelProps) => {
     if (isOpen && soundSettings.activeSounds.length > 0) {
       soundSettings.activeSounds.forEach(({ id, volume }) => {
         const sound = AMBIENT_SOUNDS.find(s => s.id === id);
-        if (sound && !ambientAudioEngine.isPlaying(id)) {
-          ambientAudioEngine.startSound(sound, volume);
+        if (sound && !ambientAudioEngineV2.isPlaying(id)) {
+          ambientAudioEngineV2.startSound(sound, volume);
         }
       });
     }
@@ -38,10 +38,10 @@ export const SoundsPanel = ({ isOpen, onClose, isDark }: SoundsPanelProps) => {
   // Sync with audio engine
   useEffect(() => {
     const interval = setInterval(() => {
-      const active = ambientAudioEngine.getActiveSounds();
+      const active = ambientAudioEngineV2.getActiveSounds();
       const newMap = new Map<string, number>();
       active.forEach(id => {
-        newMap.set(id, ambientAudioEngine.getVolume(id));
+        newMap.set(id, ambientAudioEngineV2.getVolume(id));
       });
       setActiveSounds(newMap);
     }, 100);
@@ -54,16 +54,16 @@ export const SoundsPanel = ({ isOpen, onClose, isDark }: SoundsPanelProps) => {
     if (!sound) return;
 
     if (activeSounds.has(soundId)) {
-      ambientAudioEngine.stopSound(soundId);
+      ambientAudioEngineV2.stopSound(soundId);
       removeSound(soundId);
     } else {
-      ambientAudioEngine.startSound(sound, 50);
+      ambientAudioEngineV2.startSound(sound, 50);
       setSound(soundId, 50);
     }
   };
 
   const handleVolumeChange = (soundId: string, volume: number) => {
-    ambientAudioEngine.setVolume(soundId, volume);
+    ambientAudioEngineV2.setVolume(soundId, volume);
     setSound(soundId, volume);
   };
 
@@ -74,7 +74,7 @@ export const SoundsPanel = ({ isOpen, onClose, isDark }: SoundsPanelProps) => {
     setIsAnimating(true);
     
     // Stop all current sounds
-    ambientAudioEngine.stopAll();
+    ambientAudioEngineV2.stopAll();
     clearAll();
 
     // Start preset sounds after a short delay
@@ -82,7 +82,7 @@ export const SoundsPanel = ({ isOpen, onClose, isDark }: SoundsPanelProps) => {
       preset.sounds.forEach(({ soundId, volume }) => {
         const sound = AMBIENT_SOUNDS.find(s => s.id === soundId);
         if (sound) {
-          ambientAudioEngine.startSound(sound, volume);
+          ambientAudioEngineV2.startSound(sound, volume);
         }
       });
       // Map soundId to id for persistence
@@ -92,7 +92,7 @@ export const SoundsPanel = ({ isOpen, onClose, isDark }: SoundsPanelProps) => {
   };
 
   const handleStopAll = () => {
-    ambientAudioEngine.stopAll();
+    ambientAudioEngineV2.stopAll();
     clearAll();
   };
 
