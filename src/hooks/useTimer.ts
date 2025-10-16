@@ -7,6 +7,7 @@ import {
 } from '../types/timer';
 import { Settings } from '../types/settings';
 import { playNotification } from '../utils/audio';
+import { notifySessionComplete } from '../utils/notifications';
 import { usePersistedState, clearPersistedState, hasPersistedState } from './usePersistedState';
 
 interface UseTimerReturn {
@@ -187,6 +188,11 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
   const switchToNextSession = useCallback(() => {
     playNotification();
     
+    // Show desktop notification if enabled
+    if (settings.notificationsEnabled) {
+      notifySessionComplete(sessionType);
+    }
+    
     setState(prev => {
       if (prev.sessionType === 'work') {
         const newCompletedSessions = prev.completedSessions + 1;
@@ -227,7 +233,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     // Clear persisted state when timer completes (optional - keeps history)
     // Uncomment if you want to clear state on session completion:
     // clearPersistedState(TIMER_STATE_KEY);
-  }, [setState, workDuration, shortBreakDuration, longBreakDuration, sessionsUntilLongBreak]);
+  }, [setState, workDuration, shortBreakDuration, longBreakDuration, sessionsUntilLongBreak, settings.notificationsEnabled, sessionType]);
 
   // Handle session switch if timer completed while away
   useEffect(() => {

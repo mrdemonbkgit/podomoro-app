@@ -3,6 +3,7 @@ export interface Settings {
   shortBreakDuration: number; // in minutes
   longBreakDuration: number; // in minutes
   sessionsUntilLongBreak: number;
+  notificationsEnabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -10,6 +11,7 @@ export const DEFAULT_SETTINGS: Settings = {
   shortBreakDuration: 5,
   longBreakDuration: 15,
   sessionsUntilLongBreak: 4,
+  notificationsEnabled: true,
 };
 
 export const SETTINGS_KEY = 'pomodoro-settings';

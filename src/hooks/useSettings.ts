@@ -18,6 +18,7 @@ const validateSettings = (value: unknown): value is Settings => {
     typeof settings.shortBreakDuration === 'number' &&
     typeof settings.longBreakDuration === 'number' &&
     typeof settings.sessionsUntilLongBreak === 'number' &&
+    typeof settings.notificationsEnabled === 'boolean' &&
     settings.workDuration >= MIN_DURATION &&
     settings.workDuration <= MAX_DURATION &&
     settings.shortBreakDuration >= MIN_DURATION &&

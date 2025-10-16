@@ -17,7 +17,7 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
     if (name === 'sessionsUntilLongBreak') {
       if (value < MIN_SESSIONS) return `Minimum ${MIN_SESSIONS} sessions`;
       if (value > MAX_SESSIONS) return `Maximum ${MAX_SESSIONS} sessions`;
-    } else {
+    } else if (name !== 'notificationsEnabled') {
       if (value < MIN_DURATION) return `Minimum ${MIN_DURATION} minute`;
       if (value > MAX_DURATION) return `Maximum ${MAX_DURATION} minutes`;
     }
@@ -40,13 +40,23 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
     }));
   };
 
+  const handleToggleNotifications = () => {
+    setLocalSettings(prev => ({
+      ...prev,
+      notificationsEnabled: !prev.notificationsEnabled,
+    }));
+  };
+
   const handleSave = () => {
-    // Validate all fields
+    // Validate all fields (skip boolean fields)
     const newErrors: Record<string, string> = {};
     let hasErrors = false;
 
     (Object.keys(localSettings) as Array<keyof SettingsType>).forEach(key => {
-      const error = validateField(key, localSettings[key]);
+      // Skip boolean fields (like notificationsEnabled)
+      if (typeof localSettings[key] === 'boolean') return;
+      
+      const error = validateField(key, localSettings[key] as number);
       if (error) {
         newErrors[key] = error;
         hasErrors = true;
@@ -219,6 +229,37 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
           {errors.sessionsUntilLongBreak && (
             <p className="mt-1 text-sm text-red-600">{errors.sessionsUntilLongBreak}</p>
           )}
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200"></div>
+
+        {/* Desktop Notifications Toggle */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <label htmlFor="notificationsEnabled" className="block text-sm font-medium text-gray-700 mb-1">
+                Desktop Notifications 🔔
+              </label>
+              <p className="text-xs text-gray-500">
+                Get notified when timer completes (works in background)
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleNotifications}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${
+                localSettings.notificationsEnabled ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+              aria-label="Toggle notifications"
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  localSettings.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Info Box */}
