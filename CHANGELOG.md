@@ -17,13 +17,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "Start Fresh" button to clear saved state and start over
   - State validation to prevent corruption
   - Cleared state on timer completion and reset
+  - **Background timer continuation** - Calculates elapsed time when tab is closed
+    - Shows "While you were away, Xs elapsed" message
+    - Updates timer to reflect where it would be
+    - Handles timer completion while away
+    - Transparent time calculation displayed to user
+
+### Fixed
+- Fixed bug where resume prompt appeared when pausing a timer that was already running after page refresh
+- Added logic to dismiss resume prompt if timer was active on page load
 
 ### Technical Details
 - New hook: `src/hooks/usePersistedState.ts` - Generic localStorage persistence
-- New component: `src/components/ResumePrompt.tsx` - Resume modal UI
-- Updated: `src/hooks/useTimer.ts` - Integrated persistence with timer logic
+- New component: `src/components/ResumePrompt.tsx` - Resume modal UI with elapsed time display
+- Updated: `src/hooks/useTimer.ts` - Integrated persistence with timer logic and elapsed time calculation
 - Updated: `src/types/timer.ts` - Added `PersistedTimerState` interface
 - State includes: time, isActive, sessionType, completedSessions, timestamp
+- Elapsed time calculation: `elapsed = now - savedTimestamp`, `newTime = savedTime - elapsed`
 
 See [ROADMAP.md](ROADMAP.md) for planned features.
 
