@@ -247,13 +247,22 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     let interval: number | undefined;
 
     if (isActive && time > 0) {
+      // Use timestamp-based calculation to handle browser throttling
+      // This ensures timer accuracy even when tab is in background/minimized
+      const startTime = Date.now();
+      const startTimerValue = time;
+
       interval = window.setInterval(() => {
+        const now = Date.now();
+        const elapsedSeconds = Math.floor((now - startTime) / 1000);
+        const newTime = Math.max(0, startTimerValue - elapsedSeconds);
+
         setState(prev => ({
           ...prev,
-          time: prev.time - 1,
-          timestamp: Date.now(),
+          time: newTime,
+          timestamp: now,
         }));
-      }, 1000);
+      }, 100); // Update every 100ms for smooth display, but calculate based on real time
     } else if (time === 0) {
       switchToNextSession();
     }

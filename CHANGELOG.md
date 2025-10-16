@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2025-10-16
+
+### Fixed
+- **[P1] Fixed timer running slower when Chrome is minimized**
+  - Issue: Browser timer throttling caused countdown to appear frozen or very slow when minimized
+  - Root cause: `setInterval` gets throttled from 1s to up to 60s when browser is inactive
+  - Solution: Changed to timestamp-based calculation instead of counting intervals
+  - Result: Perfect timer accuracy regardless of browser state (active/background/minimized)
+  - Technical: Timer now calculates elapsed time from real timestamps, not interval fire counts
+  - Impact: Timer now works reliably when browser is minimized or in background ✅
+
 ## [2.1.1] - 2025-10-16
 
 ### Fixed
