@@ -74,13 +74,13 @@ export const Settings = ({ settings, onSave, onReset, onClose, isDark }: Setting
   };
 
   const handleSave = () => {
-    // Validate all fields (skip boolean fields)
+    // Validate all fields (skip boolean and string fields)
     const newErrors: Record<string, string> = {};
     let hasErrors = false;
 
     (Object.keys(localSettings) as Array<keyof SettingsType>).forEach(key => {
-      // Skip boolean fields (like notificationsEnabled)
-      if (typeof localSettings[key] === 'boolean') return;
+      // Skip boolean fields (like notificationsEnabled) and string fields (like soundType)
+      if (typeof localSettings[key] === 'boolean' || typeof localSettings[key] === 'string') return;
       
       const error = validateField(key, localSettings[key] as number);
       if (error) {
