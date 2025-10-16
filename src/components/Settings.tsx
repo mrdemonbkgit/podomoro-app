@@ -6,9 +6,10 @@ interface SettingsProps {
   onSave: (settings: SettingsType) => void;
   onReset: () => void;
   onClose: () => void;
+  isDark: boolean;
 }
 
-export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) => {
+export const Settings = ({ settings, onSave, onReset, onClose, isDark }: SettingsProps) => {
   const [localSettings, setLocalSettings] = useState<SettingsType>(settings);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -92,20 +93,20 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
       {showResetConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
-            className="absolute inset-0 bg-black/50 dark:bg-black/70"
+            className={`absolute inset-0 ${isDark ? 'bg-black/70' : 'bg-black/50'}`}
             onClick={cancelReset}
           />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-sm mx-4 transition-colors duration-200">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2 transition-colors duration-200">
+          <div className={`relative ${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 max-w-sm mx-4 transition-colors duration-200`}>
+            <h3 className={`text-lg font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'} mb-2 transition-colors duration-200`}>
               Reset to Defaults?
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 transition-colors duration-200">
+            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mb-6 transition-colors duration-200`}>
               This will reset all timer durations and session settings to their default values (25/5/15/4).
             </p>
             <div className="flex gap-3">
               <button
                 onClick={cancelReset}
-                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                className={`flex-1 px-4 py-2 ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} rounded-lg transition-colors font-medium`}
               >
                 Cancel
               </button>
@@ -123,10 +124,10 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
       <div className="p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 transition-colors duration-200">Settings</h2>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'} transition-colors duration-200`}>Settings</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors text-2xl leading-none"
+            className={`${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'} transition-colors text-2xl leading-none`}
             aria-label="Close settings"
           >
             ×
@@ -137,7 +138,7 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
       <div className="space-y-6">
         {/* Work Duration */}
         <div>
-          <label htmlFor="workDuration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+          <label htmlFor="workDuration" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
             Work Duration
           </label>
           <div className="flex items-center gap-3">
@@ -149,19 +150,19 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
               value={localSettings.workDuration}
               onChange={(e) => handleChange('workDuration', e.target.value)}
               className={`flex-1 px-4 py-2 border ${
-                errors.workDuration ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              } rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200`}
+                errors.workDuration ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+              } rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
             />
-            <span className="text-gray-600 dark:text-gray-400 min-w-[60px] transition-colors duration-200">minutes</span>
+            <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>minutes</span>
           </div>
           {errors.workDuration && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.workDuration}</p>
+            <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.workDuration}</p>
           )}
         </div>
 
         {/* Short Break Duration */}
         <div>
-          <label htmlFor="shortBreakDuration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+          <label htmlFor="shortBreakDuration" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
             Short Break Duration
           </label>
           <div className="flex items-center gap-3">
@@ -173,19 +174,19 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
               value={localSettings.shortBreakDuration}
               onChange={(e) => handleChange('shortBreakDuration', e.target.value)}
               className={`flex-1 px-4 py-2 border ${
-                errors.shortBreakDuration ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200`}
+                errors.shortBreakDuration ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+              } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
             />
-            <span className="text-gray-600 dark:text-gray-400 min-w-[60px] transition-colors duration-200">minutes</span>
+            <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>minutes</span>
           </div>
           {errors.shortBreakDuration && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.shortBreakDuration}</p>
+            <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.shortBreakDuration}</p>
           )}
         </div>
 
         {/* Long Break Duration */}
         <div>
-          <label htmlFor="longBreakDuration" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+          <label htmlFor="longBreakDuration" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
             Long Break Duration
           </label>
           <div className="flex items-center gap-3">
@@ -197,19 +198,19 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
               value={localSettings.longBreakDuration}
               onChange={(e) => handleChange('longBreakDuration', e.target.value)}
               className={`flex-1 px-4 py-2 border ${
-                errors.longBreakDuration ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200`}
+                errors.longBreakDuration ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
             />
-            <span className="text-gray-600 dark:text-gray-400 min-w-[60px] transition-colors duration-200">minutes</span>
+            <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>minutes</span>
           </div>
           {errors.longBreakDuration && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.longBreakDuration}</p>
+            <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.longBreakDuration}</p>
           )}
         </div>
 
         {/* Sessions Until Long Break */}
         <div>
-          <label htmlFor="sessionsUntilLongBreak" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-200">
+          <label htmlFor="sessionsUntilLongBreak" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
             Sessions Until Long Break
           </label>
           <div className="flex items-center gap-3">
@@ -221,35 +222,35 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
               value={localSettings.sessionsUntilLongBreak}
               onChange={(e) => handleChange('sessionsUntilLongBreak', e.target.value)}
               className={`flex-1 px-4 py-2 border ${
-                errors.sessionsUntilLongBreak ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200`}
+                errors.sessionsUntilLongBreak ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+              } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
             />
-            <span className="text-gray-600 dark:text-gray-400 min-w-[60px] transition-colors duration-200">sessions</span>
+            <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>sessions</span>
           </div>
           {errors.sessionsUntilLongBreak && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.sessionsUntilLongBreak}</p>
+            <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.sessionsUntilLongBreak}</p>
           )}
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-200 dark:border-gray-700"></div>
+        <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}></div>
 
         {/* Desktop Notifications Toggle */}
         <div>
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <label htmlFor="notificationsEnabled" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors duration-200">
+              <label htmlFor="notificationsEnabled" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1 transition-colors duration-200`}>
                 Desktop Notifications 🔔
               </label>
-              <p className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-200">
+              <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'} transition-colors duration-200`}>
                 Get notified when timer completes (works in background)
               </p>
             </div>
             <button
               type="button"
               onClick={handleToggleNotifications}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 ${
-                localSettings.notificationsEnabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${isDark ? 'focus:ring-offset-gray-800' : ''} ${
+                localSettings.notificationsEnabled ? 'bg-green-500' : isDark ? 'bg-gray-600' : 'bg-gray-300'
               }`}
               aria-label="Toggle notifications"
             >
@@ -263,8 +264,8 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
         </div>
 
         {/* Info Box */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 transition-colors duration-200">
-          <p className="text-sm text-blue-800 dark:text-blue-300 transition-colors duration-200">
+        <div className={`${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4 transition-colors duration-200`}>
+          <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'} transition-colors duration-200`}>
             <strong>Note:</strong> If the timer hasn't started, settings apply immediately. Otherwise, they apply to the next session without interrupting the current one.
           </p>
         </div>
@@ -274,7 +275,7 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
       <div className="flex gap-3 mt-8">
         <button
           onClick={handleReset}
-          className="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+          className={`flex-1 px-6 py-3 ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} rounded-lg transition-colors font-medium`}
         >
           Reset to Defaults
         </button>
@@ -289,4 +290,3 @@ export const Settings = ({ settings, onSave, onReset, onClose }: SettingsProps) 
     </>
   );
 };
-

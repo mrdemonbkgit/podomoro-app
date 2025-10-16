@@ -167,6 +167,7 @@ function App() {
           onSave={updateSettings}
           onReset={resetSettings}
           onClose={() => setIsSettingsOpen(false)}
+          isDark={isDark}
         />
       </SettingsModal>
     </div>
