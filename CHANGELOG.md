@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2025-10-16
+
+### Added - Feature 2.4: Skip Session Button
+
+**Skip Break Functionality**
+- Added "Skip Break" button that appears only during break sessions (short break and long break)
+- Button allows users to immediately end their break and start the next work session
+- Positioned horizontally between Start/Pause and Reset buttons for easy access
+- No confirmation dialog required - immediate action for faster workflow
+
+**Button Design**
+- Orange color (`bg-orange-500`/`bg-orange-600` in dark mode) to distinguish from other actions
+- Suggests "skip ahead" with distinctive color
+- Matches existing button styling with consistent sizing (`min-w-[140px]`)
+- Fully supports dark mode with proper color variants
+
+**Behavior**
+- Only visible during break sessions (not during work time)
+- Immediately transitions to next work session on click
+- Maintains session counter correctly:
+  - After short break: Increments session count
+  - After long break: Resets session count to 0
+- Does NOT play notification sound (manual user action)
+- Timer pauses after skip (user can start when ready)
+
+**Technical Details**
+- Added `skipBreak()` function to `useTimer` hook
+- Updated `Controls` component to accept new props (`onSkip`, `sessionType`, `isDark`)
+- Modified `UseTimerReturn` interface to include `skipBreak`
+- Conditional rendering based on `sessionType !== 'work'`
+
+**Files Modified**
+- `src/hooks/useTimer.ts`: Added skipBreak function
+- `src/components/Controls.tsx`: Added Skip Break button with conditional visibility
+- `src/App.tsx`: Wired up skipBreak and passed required props
+
+**Testing**
+- Verified button appears during short break
+- Verified button disappears during work time
+- Confirmed session counter increments correctly after skipping short break
+- Tested in both light and dark modes
+- Confirmed button styling matches other controls
+
 ## [2.3.0] - 2025-10-16
 
 ### Added - Feature 2.6: Dark/Light Mode

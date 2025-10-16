@@ -21,6 +21,7 @@ interface UseTimerReturn {
   pause: () => void;
   reset: () => void;
   dismissResume: () => void;
+  skipBreak: () => void;
 }
 
 interface UseTimerProps {
@@ -189,6 +190,21 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     setState(getDefaultState(workDuration));
   }, [setState, workDuration]);
 
+  const skipBreak = useCallback(() => {
+    // Only allow skipping during break sessions
+    if (sessionType === 'work') return;
+    
+    // Manually transition to work session without notification
+    setState(prev => ({
+      ...prev,
+      sessionType: 'work',
+      time: workDuration,
+      completedSessions: prev.sessionType === 'longBreak' ? 0 : prev.completedSessions,
+      isActive: false,
+      timestamp: Date.now(),
+    }));
+  }, [sessionType, workDuration, setState]);
+
   const switchToNextSession = useCallback(() => {
     playNotification();
     
@@ -309,6 +325,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     pause,
     reset,
     dismissResume,
+    skipBreak,
   };
 };
 

@@ -16,7 +16,7 @@ function App() {
   const { isDark, toggleTheme } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  const { time, isActive, sessionType, completedSessions, hasResumableState, elapsedWhileAway, start, pause, reset, dismissResume } = useTimer({ settings });
+  const { time, isActive, sessionType, completedSessions, hasResumableState, elapsedWhileAway, start, pause, reset, dismissResume, skipBreak } = useTimer({ settings });
 
   const getBackgroundColor = () => {
     switch (sessionType) {
@@ -148,6 +148,9 @@ function App() {
               onStart={start}
               onPause={pause}
               onReset={reset}
+              onSkip={skipBreak}
+              sessionType={sessionType}
+              isDark={isDark}
             />
           </div>
           
