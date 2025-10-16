@@ -110,21 +110,16 @@ podomoro-app/
 └── tailwind.config.js
 ```
 
-## Future Versions
+## Roadmap & Changelog
 
-### V2.0 - Enhanced Experience
-- Customizable timer durations
-- Persistent state (survives page refresh)
-- Desktop notifications
-- Skip break functionality
-- Sound options
-- Dark/Light mode toggle
+### Future Features
+See **[ROADMAP.md](ROADMAP.md)** for detailed feature planning:
+- **V2.0** - Enhanced Experience (customization, persistence, themes)
+- **V3.0** - Productivity Suite (tasks, analytics, advanced features)
+- **Backlog** - Long-term ideas (mobile app, integrations, gamification)
 
-### V3.0 - Productivity Suite
-- Task management
-- Statistics dashboard
-- Advanced settings
-- Data export/import
+### Version History
+See **[CHANGELOG.md](CHANGELOG.md)** for detailed version history and changes.
 
 ## Testing with AI Assistant (MCP Integration)
 
