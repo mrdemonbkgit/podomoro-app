@@ -95,9 +95,12 @@ function App() {
             />
           </div>
           
-          <div className="mt-8 text-center text-gray-600">
+          <div className="mt-8 text-center text-gray-600 space-y-2">
             <p className="text-sm">
               Work: {settings.workDuration} min · Short Break: {settings.shortBreakDuration} min · Long Break: {settings.longBreakDuration} min
+            </p>
+            <p className="text-xs text-gray-500">
+              v2.2.0
             </p>
           </div>
         </div>
