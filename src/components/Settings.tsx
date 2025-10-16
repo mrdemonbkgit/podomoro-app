@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Settings as SettingsType, MIN_DURATION, MAX_DURATION, MIN_SESSIONS, MAX_SESSIONS } from '../types/settings';
+import { Settings as SettingsType, MIN_DURATION, MAX_DURATION, MIN_SESSIONS, MAX_SESSIONS, MIN_VOLUME, MAX_VOLUME } from '../types/settings';
+import { SOUND_OPTIONS, SoundType } from '../utils/sounds';
+import { playSound } from '../utils/sounds';
 
 interface SettingsProps {
   settings: SettingsType;
@@ -46,6 +48,29 @@ export const Settings = ({ settings, onSave, onReset, onClose, isDark }: Setting
       ...prev,
       notificationsEnabled: !prev.notificationsEnabled,
     }));
+  };
+
+  const handleSoundChange = (soundType: SoundType) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      soundType,
+    }));
+  };
+
+  const handleVolumeChange = (value: string) => {
+    const numValue = parseInt(value, 10);
+    if (isNaN(numValue)) return;
+    
+    const clampedValue = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, numValue));
+    setLocalSettings(prev => ({
+      ...prev,
+      volume: clampedValue,
+    }));
+  };
+
+  const handleTestSound = (soundType?: SoundType) => {
+    const sound = soundType || localSettings.soundType;
+    playSound(sound, localSettings.volume);
   };
 
   const handleSave = () => {
@@ -261,6 +286,99 @@ export const Settings = ({ settings, onSave, onReset, onClose, isDark }: Setting
               />
             </button>
           </div>
+        </div>
+
+        {/* Divider */}
+        <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}></div>
+
+        {/* Sound Selection */}
+        <div>
+          <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-3 transition-colors duration-200`}>
+            Notification Sound 🔊
+          </label>
+          <div className="grid grid-cols-1 gap-2">
+            {SOUND_OPTIONS.map((sound) => (
+              <button
+                key={sound.id}
+                type="button"
+                onClick={() => {
+                  handleSoundChange(sound.id);
+                  handleTestSound(sound.id);
+                }}
+                className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                  localSettings.soundType === sound.id
+                    ? isDark
+                      ? 'border-blue-500 bg-blue-900/30'
+                      : 'border-blue-500 bg-blue-50'
+                    : isDark
+                    ? 'border-gray-600 hover:border-gray-500 bg-gray-700/50'
+                    : 'border-gray-300 hover:border-gray-400 bg-white'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{sound.icon}</span>
+                  <div className="text-left">
+                    <div className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+                      {sound.name}
+                    </div>
+                    <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {sound.description}
+                    </div>
+                  </div>
+                </div>
+                {localSettings.soundType === sound.id && (
+                  <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Volume Control */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label htmlFor="volume" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} transition-colors duration-200`}>
+              Volume
+            </label>
+            <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {localSettings.volume}%
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              id="volume"
+              min={MIN_VOLUME}
+              max={MAX_VOLUME}
+              value={localSettings.volume}
+              onChange={(e) => handleVolumeChange(e.target.value)}
+              className="flex-1 h-2 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: isDark
+                  ? `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${localSettings.volume}%, #4b5563 ${localSettings.volume}%, #4b5563 100%)`
+                  : `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${localSettings.volume}%, #d1d5db ${localSettings.volume}%, #d1d5db 100%)`,
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => handleTestSound()}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                isDark
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }`}
+              disabled={localSettings.volume === 0}
+            >
+              Test
+            </button>
+          </div>
+          {localSettings.volume === 0 && (
+            <p className={`mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              🔇 Sound is muted (volume at 0%)
+            </p>
+          )}
         </div>
 
         {/* Info Box */}

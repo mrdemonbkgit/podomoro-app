@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2025-10-16
+
+### Added - Feature 2.5: Sound Options
+
+**5 Notification Sounds**
+- Implemented 5 distinct notification sounds using Web Audio API:
+  - 🔔 **Chime** (default): Two-tone pleasant chime (ding-dong sound)
+  - 🛎️ **Bell**: Classic bell ring with harmonics for a richer sound
+  - 📟 **Beep**: Simple digital beep (square wave at A5)
+  - 🎹 **Piano**: Soft piano notes playing a C major chord
+  - 🌊 **Gentle**: Calm ambient tone with slight detuning for depth
+- Each sound has unique characteristics and duration
+- All sounds are synthesized in real-time (no audio files required)
+
+**Interactive Sound Picker**
+- Card-based UI with icon, name, and description for each sound
+- Click any sound card to select and instantly preview it
+- Selected sound highlighted with blue border and checkmark
+- Hover effects for better interactivity
+- Fully responsive design
+
+**Volume Control**
+- Slider with range 0-100% for precise volume adjustment
+- Real-time volume percentage display
+- Visual feedback with gradient slider (blue fill shows current level)
+- "Test" button to preview current sound at current volume
+- Volume at 0% mutes sound and disables Test button
+- Shows mute indicator (🔇) when volume is 0%
+
+**Settings Integration**
+- Added `soundType` field to settings (default: 'chime')
+- Added `volume` field to settings (default: 100)
+- Settings persist to localStorage
+- Backward compatible with existing user settings
+- Timer uses selected sound and volume for session complete notifications
+
+**Dark Mode Support**
+- Sound picker cards adapt to light/dark themes
+- Volume slider styled for both modes
+- All text and borders properly themed
+
+**Files Modified**
+- `src/utils/sounds.ts` (new): Sound library with 5 generators
+- `src/utils/audio.ts`: Refactored to accept sound type and volume
+- `src/types/settings.ts`: Added soundType and volume fields
+- `src/components/Settings.tsx`: Added sound picker UI and volume slider
+- `src/hooks/useTimer.ts`: Pass sound settings to playNotification
+
+**Technical Details**
+- Used Web Audio API for all sound generation
+- Oscillators with ADSR envelopes for smooth sound
+- Multiple oscillators for harmonics (Bell, Piano)
+- Volume normalized from 0-100 to 0-1 for audio context
+- Type-safe with TypeScript interfaces
+
+**Testing**
+- Verified all 5 sounds play with distinct characteristics
+- Confirmed volume control affects sound level
+- Tested mute functionality (volume = 0)
+- Verified settings persistence across page refreshes
+- Confirmed dark mode styling
+- Tested in Chrome DevTools MCP
+
 ## [2.4.0] - 2025-10-16
 
 ### Added - Feature 2.4: Skip Session Button

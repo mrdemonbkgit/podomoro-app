@@ -206,7 +206,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
   }, [sessionType, workDuration, setState]);
 
   const switchToNextSession = useCallback(() => {
-    playNotification();
+    playNotification(settings.soundType, settings.volume);
     
     // Show desktop notification if enabled
     if (settings.notificationsEnabled) {
