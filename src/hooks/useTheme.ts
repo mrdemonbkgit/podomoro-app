@@ -81,17 +81,28 @@ export const useTheme = (): UseThemeReturn => {
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     
-    const handleChange = (e: MediaQueryListEvent) => {
+    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       const effectiveTheme = e.matches ? 'dark' : 'light';
       setIsDark(effectiveTheme === 'dark');
       applyTheme(effectiveTheme === 'dark');
     };
 
-    // Modern browsers
-    mediaQuery.addEventListener('change', handleChange);
+    // Feature detection: Safari ≤13 and some WebViews only support addListener
+    // Modern browsers support addEventListener
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+    } else {
+      // Fallback for older browsers (Safari ≤13)
+      mediaQuery.addListener(handleChange);
+    }
 
     return () => {
-      mediaQuery.removeEventListener('change', handleChange);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleChange);
+      } else {
+        // Fallback for older browsers (Safari ≤13)
+        mediaQuery.removeListener(handleChange);
+      }
     };
   }, [theme]);
 
