@@ -1,0 +1,14 @@
+export type SessionType = 'work' | 'shortBreak' | 'longBreak';
+
+export interface TimerState {
+  time: number;
+  isActive: boolean;
+  sessionType: SessionType;
+  completedSessions: number;
+}
+
+export const WORK_DURATION = 25 * 60; // 1500 seconds
+export const SHORT_BREAK_DURATION = 5 * 60; // 300 seconds
+export const LONG_BREAK_DURATION = 15 * 60; // 900 seconds
+export const SESSIONS_UNTIL_LONG_BREAK = 4;
+
