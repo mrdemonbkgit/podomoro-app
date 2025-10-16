@@ -73,6 +73,29 @@ useEffect(() => {
 3. **Browser throttles intervals:** When minimized, interval may fire once per 60 seconds
 4. **Countdown gets stuck:** If interval fires every 60s, timer only decrements by 1 second per minute!
 
+### First Attempt (Still Broken!)
+
+```typescript
+// ⚠️ PROBLEM: time in dependency array resets startTime every update!
+useEffect(() => {
+  if (isActive && time > 0) {
+    const startTime = Date.now();       // ❌ Resets every time time changes!
+    const startTimerValue = time;
+    
+    interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const newTime = startTimerValue - elapsed;
+      setState(prev => ({ ...prev, time: newTime }));
+    }, 100);
+  }
+}, [isActive, time, switchToNextSession, setState]); // ❌ time dependency!
+```
+
+**Why This Still Fails:**
+1. **time in dependencies:** Effect re-runs every time `time` updates (every 100ms)
+2. **startTime resets:** Each re-run creates new `startTime`, breaking the reference
+3. **Result:** Timer still runs slower (40s instead of 60s when minimized)
+
 **Example:**
 ```
 Start: 25:00 (1500 seconds)
@@ -90,41 +113,63 @@ After 10 real minutes (600 seconds):
 **File:** `src/hooks/useTimer.ts` (after fix)
 
 ```typescript
-// ✅ SOLUTION: Calculate time based on actual elapsed time
+// ✅ SOLUTION: Use useRef to persist start time across renders
+const timerStartTimeRef = useRef<number | null>(null);
+const timerStartValueRef = useRef<number | null>(null);
+
+// Initialize timer start reference when timer becomes active
+useEffect(() => {
+  if (isActive && timerStartTimeRef.current === null) {
+    // Timer just started - capture the reference point
+    timerStartTimeRef.current = Date.now();
+    timerStartValueRef.current = time;
+  } else if (!isActive) {
+    // Timer paused/stopped - clear reference
+    timerStartTimeRef.current = null;
+    timerStartValueRef.current = null;
+  }
+}, [isActive, time]);
+
+// Handle timer countdown with accurate timestamp-based calculation
 useEffect(() => {
   let interval: number | undefined;
 
   if (isActive && time > 0) {
-    // Capture start point
-    const startTime = Date.now();          // Real timestamp
-    const startTimerValue = time;          // Starting seconds
-
     interval = window.setInterval(() => {
-      // Calculate actual elapsed time
-      const now = Date.now();
-      const elapsedSeconds = Math.floor((now - startTime) / 1000);
-      
-      // Calculate remaining time based on real elapsed time
-      const newTime = Math.max(0, startTimerValue - elapsedSeconds);
+      if (timerStartTimeRef.current !== null && timerStartValueRef.current !== null) {
+        // Calculate from persistent reference (survives re-renders!)
+        const now = Date.now();
+        const elapsedSeconds = Math.floor((now - timerStartTimeRef.current) / 1000);
+        const newTime = Math.max(0, timerStartValueRef.current - elapsedSeconds);
 
-      setState(prev => ({
-        ...prev,
-        time: newTime,              // ✅ Accurate time
-        timestamp: now,
-      }));
+        setState(prev => ({
+          ...prev,
+          time: newTime,              // ✅ Accurate time
+          timestamp: now,
+        }));
+
+        if (newTime === 0) {
+          timerStartTimeRef.current = null;
+          timerStartValueRef.current = null;
+        }
+      }
     }, 100);  // Update frequently for smooth display
+  } else if (time === 0 && !isActive) {
+    switchToNextSession();
   }
-  // ...
+  
+  return () => clearInterval(interval);
 }, [isActive, time, switchToNextSession, setState]);
 ```
 
 ### How It Works
 
 **Key Changes:**
-1. **Capture start point:** `startTime = Date.now()` and `startTimerValue = time`
-2. **Calculate elapsed time:** `elapsedSeconds = (now - startTime) / 1000`
-3. **Derive remaining time:** `newTime = startTimerValue - elapsedSeconds`
-4. **Fast update interval:** `setInterval(100)` for smooth UI
+1. **Use useRef for persistence:** `timerStartTimeRef` survives across re-renders
+2. **Initialize only once:** Capture `startTime` when `isActive` becomes true
+3. **Calculate from persistent reference:** Always compute from original start time
+4. **Clear on pause:** Reset refs when timer is paused
+5. **Fast update interval:** `setInterval(100)` for smooth UI
 
 **Why This Works:**
 - **Independent of interval firing:** Time calculated from real clock, not interval counts

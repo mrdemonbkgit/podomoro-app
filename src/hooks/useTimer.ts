@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   SessionType,
   PersistedTimerState,
@@ -69,6 +69,10 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
   
   // Track if we need to switch session due to timer completion while away
   const [shouldSwitchSession, setShouldSwitchSession] = useState(false);
+  
+  // Track the start time for accurate timer calculation (persists across renders)
+  const timerStartTimeRef = useRef<number | null>(null);
+  const timerStartValueRef = useRef<number | null>(null);
   
   // Check if there's resumable state on mount (only show once)
   const [showResume, setShowResume] = useState(() => {
@@ -243,27 +247,46 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     }
   }, [shouldSwitchSession, switchToNextSession]);
 
+  // Initialize timer start reference when timer becomes active
+  useEffect(() => {
+    if (isActive && timerStartTimeRef.current === null) {
+      // Timer just started - capture the reference point
+      timerStartTimeRef.current = Date.now();
+      timerStartValueRef.current = time;
+    } else if (!isActive) {
+      // Timer paused/stopped - clear reference
+      timerStartTimeRef.current = null;
+      timerStartValueRef.current = null;
+    }
+  }, [isActive, time]);
+
+  // Handle timer countdown with accurate timestamp-based calculation
   useEffect(() => {
     let interval: number | undefined;
 
     if (isActive && time > 0) {
       // Use timestamp-based calculation to handle browser throttling
       // This ensures timer accuracy even when tab is in background/minimized
-      const startTime = Date.now();
-      const startTimerValue = time;
-
       interval = window.setInterval(() => {
-        const now = Date.now();
-        const elapsedSeconds = Math.floor((now - startTime) / 1000);
-        const newTime = Math.max(0, startTimerValue - elapsedSeconds);
+        if (timerStartTimeRef.current !== null && timerStartValueRef.current !== null) {
+          const now = Date.now();
+          const elapsedSeconds = Math.floor((now - timerStartTimeRef.current) / 1000);
+          const newTime = Math.max(0, timerStartValueRef.current - elapsedSeconds);
 
-        setState(prev => ({
-          ...prev,
-          time: newTime,
-          timestamp: now,
-        }));
+          setState(prev => ({
+            ...prev,
+            time: newTime,
+            timestamp: now,
+          }));
+
+          // Check if timer completed
+          if (newTime === 0) {
+            timerStartTimeRef.current = null;
+            timerStartValueRef.current = null;
+          }
+        }
       }, 100); // Update every 100ms for smooth display, but calculate based on real time
-    } else if (time === 0) {
+    } else if (time === 0 && !isActive) {
       switchToNextSession();
     }
 
