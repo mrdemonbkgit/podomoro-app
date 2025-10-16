@@ -1,9 +1,10 @@
 interface FloatingNavProps {
   onSettingsClick: () => void;
+  onSoundsClick: () => void;
   isDark: boolean;
 }
 
-export const FloatingNav = ({ onSettingsClick, isDark }: FloatingNavProps) => {
+export const FloatingNav = ({ onSettingsClick, onSoundsClick, isDark }: FloatingNavProps) => {
   return (
     <nav 
       className="fixed bottom-8 right-8 z-50 animate-slide-up"
@@ -54,15 +55,15 @@ export const FloatingNav = ({ onSettingsClick, isDark }: FloatingNavProps) => {
           </svg>
         </button>
 
-        {/* Future: Sounds Icon (Placeholder) */}
+        {/* Sounds Icon */}
         <button
-          className={`p-3 rounded-full hover:${isDark ? 'bg-white/10' : 'bg-gray-900/10'} transition-all hover:scale-110 opacity-50 cursor-not-allowed`}
-          aria-label="Sounds (coming soon)"
-          title="Sounds (coming soon)"
-          disabled
+          onClick={onSoundsClick}
+          className={`p-3 rounded-full hover:${isDark ? 'bg-white/10' : 'bg-gray-900/10'} transition-all hover:scale-110`}
+          aria-label="Ambient sounds"
+          title="Ambient sounds"
         >
           <span className="text-2xl" role="img" aria-label="Sounds">
-            💡
+            🎵
           </span>
         </button>
 

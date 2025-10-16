@@ -10,6 +10,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { Settings } from './components/Settings';
 import { MotivationalQuote } from './components/MotivationalQuote';
 import { FloatingNav } from './components/FloatingNav';
+import { SoundsPanel } from './components/SoundsPanel';
 import { getBuildNumberShort, getGitInfo } from './buildInfo';
 import './App.css';
 import './styles/glass.css';
@@ -18,6 +19,7 @@ function App() {
   const { settings, updateSettings, resetSettings } = useSettings();
   const { isDark, toggleTheme } = useTheme();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSoundsOpen, setIsSoundsOpen] = useState(false);
   
   const { time, isActive, sessionType, completedSessions, hasResumableState, elapsedWhileAway, start, pause, reset, dismissResume, skipBreak } = useTimer({ settings });
 
@@ -250,6 +252,14 @@ function App() {
       {/* Floating Navigation */}
       <FloatingNav 
         onSettingsClick={() => setIsSettingsOpen(true)}
+        onSoundsClick={() => setIsSoundsOpen(true)}
+        isDark={isDark}
+      />
+
+      {/* Sounds Panel */}
+      <SoundsPanel
+        isOpen={isSoundsOpen}
+        onClose={() => setIsSoundsOpen(false)}
         isDark={isDark}
       />
 
