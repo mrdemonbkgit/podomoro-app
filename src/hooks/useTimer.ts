@@ -61,6 +61,15 @@ export const useTimer = (): UseTimerReturn => {
     return hasSaved;
   });
   
+  // Dismiss resume prompt if timer was already active on load
+  // This prevents the prompt from appearing when user pauses an already-running timer
+  useEffect(() => {
+    if (showResume && isActive) {
+      setShowResume(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount - we want the initial isActive value
+  
   // Only show resume prompt if state exists, timer is not active, and not default state
   const hasResumableState = showResume && !isActive && (time !== WORK_DURATION || completedSessions !== 0);
 
