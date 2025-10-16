@@ -37,7 +37,7 @@ class AmbientAudioEngineV2 {
    */
   async preloadAudio(soundId: string): Promise<HTMLAudioElement | null> {
     const audioFile = getAudioFile(soundId);
-    if (!audioFile) return null;
+    if (!audioFile || !audioFile.url) return null;
 
     // Check if already preloaded
     if (this.preloadedAudio.has(soundId)) {
