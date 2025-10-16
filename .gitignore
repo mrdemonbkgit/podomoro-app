@@ -16,6 +16,7 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+.cursor
 .DS_Store
 *.suo
 *.ntvs*
@@ -23,11 +24,11 @@ dist-ssr
 *.sln
 *.sw?
 
-# Plan files
-*.plan.md
+# Test coverage
+coverage
+*.lcov
 
-# MCP and testing helpers (optional - can be committed if desired)
-# MCP_SETUP_GUIDE.md
-# launch-chrome-debug.ps1
-# launch-chrome-debug.bat
-
+# Environment files
+.env
+.env.local
+.env.*.local
