@@ -2,12 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   SessionType,
   PersistedTimerState,
-  WORK_DURATION,
-  SHORT_BREAK_DURATION,
-  LONG_BREAK_DURATION,
-  SESSIONS_UNTIL_LONG_BREAK,
   TIMER_STATE_KEY,
+  minutesToSeconds,
 } from '../types/timer';
+import { Settings } from '../types/settings';
 import { playNotification } from '../utils/audio';
 import { usePersistedState, clearPersistedState, hasPersistedState } from './usePersistedState';
 
@@ -24,8 +22,12 @@ interface UseTimerReturn {
   dismissResume: () => void;
 }
 
-const getDefaultState = (): PersistedTimerState => ({
-  time: WORK_DURATION,
+interface UseTimerProps {
+  settings: Settings;
+}
+
+const getDefaultState = (workDuration: number): PersistedTimerState => ({
+  time: workDuration,
   isActive: false,
   sessionType: 'work',
   completedSessions: 0,
@@ -46,10 +48,16 @@ const validateTimerState = (value: unknown): value is PersistedTimerState => {
   );
 };
 
-export const useTimer = (): UseTimerReturn => {
+export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
+  // Convert settings durations from minutes to seconds
+  const workDuration = minutesToSeconds(settings.workDuration);
+  const shortBreakDuration = minutesToSeconds(settings.shortBreakDuration);
+  const longBreakDuration = minutesToSeconds(settings.longBreakDuration);
+  const sessionsUntilLongBreak = settings.sessionsUntilLongBreak;
+
   const [state, setState] = usePersistedState<PersistedTimerState>(
     TIMER_STATE_KEY,
-    getDefaultState(),
+    getDefaultState(workDuration),
     { validator: validateTimerState }
   );
 
@@ -99,7 +107,51 @@ export const useTimer = (): UseTimerReturn => {
   }, []); // Only run once on mount
   
   // Only show resume prompt if state exists, timer is not active, and not default state
-  const hasResumableState = showResume && !isActive && (time !== WORK_DURATION || completedSessions !== 0);
+  const hasResumableState = showResume && !isActive && (time !== workDuration || completedSessions !== 0);
+
+  // Update timer immediately if settings change and timer is in initial state
+  useEffect(() => {
+    // Only run when workDuration changes (from settings update)
+    // Check if timer is in initial state: not active, work session, no completed sessions
+    // AND time is at full duration (meaning never started, not paused mid-session)
+    const isInitialState = 
+      !isActive && 
+      sessionType === 'work' && 
+      completedSessions === 0 &&
+      (time % 60 === 0); // Time is at a "round" minute (300s, 600s), not mid-session (256s)
+    
+    // Only update if in pristine initial state
+    if (isInitialState && time !== workDuration) {
+      setState(prev => ({
+        ...prev,
+        time: workDuration,
+        timestamp: Date.now(),
+      }));
+    }
+  }, [workDuration]); // Only depends on workDuration - runs when settings change
+
+  // Handle sessions until long break changes
+  useEffect(() => {
+    // Check if current completed sessions exceeds the new sessions limit
+    // This can happen when user reduces the sessions count
+    // For example: currently on session 3 of 4, but user changes to 2 sessions
+    
+    if (completedSessions > 0 && completedSessions % sessionsUntilLongBreak === 0) {
+      // Current session count is exactly at a long break point with new settings
+      // This is fine, don't need to adjust
+      return;
+    }
+    
+    // If we've completed more sessions than the new limit allows before long break,
+    // we should reset to avoid confusing states like "Session 3 of 2"
+    if (completedSessions >= sessionsUntilLongBreak && sessionType === 'work') {
+      setState(prev => ({
+        ...prev,
+        completedSessions: 0,
+        timestamp: Date.now(),
+      }));
+    }
+  }, [sessionsUntilLongBreak, completedSessions, sessionType, setState]);
 
   const start = useCallback(() => {
     setShowResume(false); // Dismiss resume prompt when starting
@@ -122,15 +174,15 @@ export const useTimer = (): UseTimerReturn => {
     setShowResume(false); // Dismiss resume prompt when resetting
     // Clear persisted state on reset
     clearPersistedState(TIMER_STATE_KEY);
-    setState(getDefaultState());
-  }, [setState]);
+    setState(getDefaultState(workDuration));
+  }, [setState, workDuration]);
 
   const dismissResume = useCallback(() => {
     setShowResume(false);
     // Start fresh - reset to default state
     clearPersistedState(TIMER_STATE_KEY);
-    setState(getDefaultState());
-  }, [setState]);
+    setState(getDefaultState(workDuration));
+  }, [setState, workDuration]);
 
   const switchToNextSession = useCallback(() => {
     playNotification();
@@ -139,11 +191,11 @@ export const useTimer = (): UseTimerReturn => {
       if (prev.sessionType === 'work') {
         const newCompletedSessions = prev.completedSessions + 1;
 
-        if (newCompletedSessions % SESSIONS_UNTIL_LONG_BREAK === 0) {
+        if (newCompletedSessions % sessionsUntilLongBreak === 0) {
           return {
             ...prev,
             sessionType: 'longBreak',
-            time: LONG_BREAK_DURATION,
+            time: longBreakDuration,
             completedSessions: newCompletedSessions,
             isActive: false,
             timestamp: Date.now(),
@@ -152,7 +204,7 @@ export const useTimer = (): UseTimerReturn => {
           return {
             ...prev,
             sessionType: 'shortBreak',
-            time: SHORT_BREAK_DURATION,
+            time: shortBreakDuration,
             completedSessions: newCompletedSessions,
             isActive: false,
             timestamp: Date.now(),
@@ -164,7 +216,7 @@ export const useTimer = (): UseTimerReturn => {
         return {
           ...prev,
           sessionType: 'work',
-          time: WORK_DURATION,
+          time: workDuration,
           completedSessions: prev.sessionType === 'longBreak' ? 0 : prev.completedSessions,
           isActive: false,
           timestamp: Date.now(),
@@ -175,7 +227,7 @@ export const useTimer = (): UseTimerReturn => {
     // Clear persisted state when timer completes (optional - keeps history)
     // Uncomment if you want to clear state on session completion:
     // clearPersistedState(TIMER_STATE_KEY);
-  }, [setState]);
+  }, [setState, workDuration, shortBreakDuration, longBreakDuration, sessionsUntilLongBreak]);
 
   // Handle session switch if timer completed while away
   useEffect(() => {

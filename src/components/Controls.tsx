@@ -11,21 +11,21 @@ export const Controls = ({ isActive, onStart, onPause, onReset }: ControlsProps)
       {isActive ? (
         <button
           onClick={onPause}
-          className="px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg text-xl transition-colors duration-200 shadow-lg"
+          className="px-8 py-4 min-w-[140px] bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg text-xl transition-colors duration-200 shadow-lg"
         >
           Pause
         </button>
       ) : (
         <button
           onClick={onStart}
-          className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg text-xl transition-colors duration-200 shadow-lg"
+          className="px-8 py-4 min-w-[140px] bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg text-xl transition-colors duration-200 shadow-lg"
         >
           Start
         </button>
       )}
       <button
         onClick={onReset}
-        className="px-8 py-4 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg text-xl transition-colors duration-200 shadow-lg"
+        className="px-8 py-4 min-w-[140px] bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg text-xl transition-colors duration-200 shadow-lg"
       >
         Reset
       </button>

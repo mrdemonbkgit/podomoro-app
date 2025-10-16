@@ -3,9 +3,10 @@ import { SessionType } from '../types/timer';
 interface SessionInfoProps {
   sessionType: SessionType;
   completedSessions: number;
+  sessionsUntilLongBreak: number;
 }
 
-export const SessionInfo = ({ sessionType, completedSessions }: SessionInfoProps) => {
+export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongBreak }: SessionInfoProps) => {
   const getSessionLabel = () => {
     switch (sessionType) {
       case 'work':
@@ -32,8 +33,10 @@ export const SessionInfo = ({ sessionType, completedSessions }: SessionInfoProps
     }
   };
 
-  // Show current session number (1-4) during work sessions
-  const currentSessionNumber = sessionType === 'work' ? (completedSessions % 4) + 1 : completedSessions % 4 || 4;
+  // Show current session number during work sessions
+  const currentSessionNumber = sessionType === 'work' 
+    ? (completedSessions % sessionsUntilLongBreak) + 1 
+    : completedSessions % sessionsUntilLongBreak || sessionsUntilLongBreak;
 
   return (
     <div className="text-center mb-8">
@@ -41,7 +44,7 @@ export const SessionInfo = ({ sessionType, completedSessions }: SessionInfoProps
         {getSessionLabel()}
       </h2>
       <p className="text-gray-600 text-lg">
-        Session {currentSessionNumber} of 4
+        Session {currentSessionNumber} of {sessionsUntilLongBreak}
       </p>
     </div>
   );

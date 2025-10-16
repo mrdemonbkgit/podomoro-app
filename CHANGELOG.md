@@ -8,6 +8,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Feature 2.1: Customizable Timer Durations** - Users can now customize timer durations
+  - **Enhancement:** Settings now apply instantly if timer hasn't been started
+  - **Enhancement:** Smart session count handling when changing sessions until long break
+  - Created `Settings` component with form inputs for work, short break, long break durations
+  - Created `SettingsModal` component with backdrop and modal wrapper
+  - Created `useSettings` hook for settings state management and localStorage persistence
+  - Added settings gear icon button to app header
+  - Input validation (1-60 minutes for durations, 2-8 for sessions until long break)
+  - Real-time validation feedback with error messages
+  - Save and reset to defaults functionality
+  - Settings persist across sessions using localStorage
+  - Settings apply to next session (current session not interrupted)
+  - **Smart application:** Settings apply instantly if timer is in initial state (not started)
+  - Dynamic footer displays current settings
+  - Added `sessionsUntilLongBreak` customization (2-8 sessions)
+  - Updated info box to explain instant vs. next-session application
+
+### Fixed
+- **Fixed inconsistent button sizes for Start/Pause buttons**
+  - Start and Pause buttons had slightly different widths due to text content
+  - Added `min-w-[140px]` to all control buttons (Start, Pause, Reset)
+  - All buttons now have consistent width for better visual alignment
+
+- **CRITICAL: Fixed pause button resetting timer instead of pausing**
+  - Issue: Clicking pause mid-session (e.g., at 04:16) would reset timer to full duration (05:00)
+  - Root cause: Settings `useEffect` had `isActive` in dependencies, triggering on pause
+  - Solution: Only run settings update effect when `workDuration` changes
+  - Added check for "round minute" (time % 60 === 0) to detect initial vs. paused state
+  - Now pause correctly maintains time: 04:16 stays at 04:16 ✅
+
+- **Replaced Chrome native confirm dialog with custom React confirmation modal**
+  - Removed `confirm()` call from Settings component
+  - Created custom confirmation dialog with backdrop
+  - Better UX with styled Cancel/Reset buttons
+  - Consistent design with rest of the app
+  - No more jarring browser dialogs
+
+- **Fixed Sessions Until Long Break setting not updating the session counter display**
+  - Session counter now properly displays "Session X of Y" based on current settings
+  - Smart handling: Resets session count if it exceeds new limit (prevents "Session 3 of 2")
+  - SessionInfo component now receives `sessionsUntilLongBreak` as a prop
+  - Immediate visual feedback when changing this setting
+  
 - **Feature 2.2: Persistent State** - Timer state now persists across page refreshes
   - Created `usePersistedState` generic hook for localStorage persistence with validation
   - Added `PersistedTimerState` interface with timestamp tracking
@@ -28,6 +71,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added logic to dismiss resume prompt if timer was active on page load
 
 ### Technical Details
+
+**Feature 2.1 Files:**
+- New file: `src/types/settings.ts` - Settings interface, defaults, and validation constants
+- New file: `src/hooks/useSettings.ts` - Settings state management with validation
+- New file: `src/components/Settings.tsx` - Settings form component
+- New file: `src/components/SettingsModal.tsx` - Modal wrapper component
+- Updated: `src/types/timer.ts` - Added `minutesToSeconds` helper
+- Updated: `src/hooks/useTimer.ts` - Now accepts settings prop and uses custom durations
+- Updated: `src/App.tsx` - Integrated settings button, modal, and dynamic display
+
+**Testing & Documentation:**
+- New file: `MCP_TESTING_WORKFLOW.md` - Automated browser testing workflow
+- New file: `TEST_REPORT_FEATURE_2.1.md` - Comprehensive test report with screenshots
+- New file: `FEATURE_2.1_SUMMARY.md` - Detailed implementation summary
+- Updated: `ROADMAP.md` - Marked Feature 2.1 complete, added MCP testing workflow
+- Updated: `README.md` - Added test reports section
+- **Test Status:** ✅ 7/7 tests passed using Chrome DevTools MCP
+
+**Feature 2.2 Files:**
 - New hook: `src/hooks/usePersistedState.ts` - Generic localStorage persistence
 - New component: `src/components/ResumePrompt.tsx` - Resume modal UI with elapsed time display
 - Updated: `src/hooks/useTimer.ts` - Integrated persistence with timer logic and elapsed time calculation
