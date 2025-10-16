@@ -47,6 +47,7 @@ function App() {
           elapsedWhileAway={elapsedWhileAway}
           onResume={start}
           onStartFresh={dismissResume}
+          isDark={isDark}
         />
       )}
 
