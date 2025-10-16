@@ -111,7 +111,9 @@ export const useTheme = (): UseThemeReturn => {
    * (Simplified toggle: light <-> dark, ignoring system)
    */
   const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    // Toggle based on current effective theme (isDark), not theme enum
+    // This works correctly even when theme is 'system'
+    setTheme(isDark ? 'light' : 'dark');
   };
 
   return {
