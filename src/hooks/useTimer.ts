@@ -17,6 +17,7 @@ interface UseTimerReturn {
   sessionType: SessionType;
   completedSessions: number;
   hasResumableState: boolean;
+  elapsedWhileAway: number; // Seconds elapsed while tab was closed
   start: () => void;
   pause: () => void;
   reset: () => void;
@@ -54,21 +55,48 @@ export const useTimer = (): UseTimerReturn => {
 
   const { time, isActive, sessionType, completedSessions } = state;
   
+  // Track elapsed time while tab was closed
+  const [elapsedWhileAway, setElapsedWhileAway] = useState(0);
+  
+  // Track if we need to switch session due to timer completion while away
+  const [shouldSwitchSession, setShouldSwitchSession] = useState(false);
+  
   // Check if there's resumable state on mount (only show once)
   const [showResume, setShowResume] = useState(() => {
     const hasSaved = hasPersistedState(TIMER_STATE_KEY);
-    // Show resume if there's saved state that's not the default initial state
     return hasSaved;
   });
   
-  // Dismiss resume prompt if timer was already active on load
-  // This prevents the prompt from appearing when user pauses an already-running timer
+  // Calculate elapsed time if timer was active when tab closed
   useEffect(() => {
-    if (showResume && isActive) {
-      setShowResume(false);
+    if (state.isActive && state.timestamp) {
+      const elapsed = Math.floor((Date.now() - state.timestamp) / 1000);
+      
+      // Only calculate if significant time passed (>2 seconds)
+      if (elapsed > 2) {
+        const newTime = state.time - elapsed;
+        
+        if (newTime <= 0) {
+          // Timer would have completed while away
+          console.log(`Timer completed while away (${Math.abs(newTime)}s ago)`);
+          setShouldSwitchSession(true);
+        } else {
+          // Update time to reflect elapsed duration
+          setElapsedWhileAway(elapsed);
+          setState(prev => ({
+            ...prev,
+            time: newTime,
+            isActive: false, // Pause it so user can see and resume
+            timestamp: Date.now(),
+          }));
+        }
+      } else if (isActive) {
+        // Timer was active but minimal time passed - dismiss resume prompt
+        setShowResume(false);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount - we want the initial isActive value
+  }, []); // Only run once on mount
   
   // Only show resume prompt if state exists, timer is not active, and not default state
   const hasResumableState = showResume && !isActive && (time !== WORK_DURATION || completedSessions !== 0);
@@ -149,6 +177,14 @@ export const useTimer = (): UseTimerReturn => {
     // clearPersistedState(TIMER_STATE_KEY);
   }, [setState]);
 
+  // Handle session switch if timer completed while away
+  useEffect(() => {
+    if (shouldSwitchSession) {
+      setShouldSwitchSession(false);
+      switchToNextSession();
+    }
+  }, [shouldSwitchSession, switchToNextSession]);
+
   useEffect(() => {
     let interval: number | undefined;
 
@@ -177,6 +213,7 @@ export const useTimer = (): UseTimerReturn => {
     sessionType,
     completedSessions,
     hasResumableState,
+    elapsedWhileAway,
     start,
     pause,
     reset,

@@ -6,7 +6,7 @@ import { ResumePrompt } from './components/ResumePrompt';
 import './App.css';
 
 function App() {
-  const { time, isActive, sessionType, completedSessions, hasResumableState, start, pause, reset, dismissResume } = useTimer();
+  const { time, isActive, sessionType, completedSessions, hasResumableState, elapsedWhileAway, start, pause, reset, dismissResume } = useTimer();
 
   const getBackgroundColor = () => {
     switch (sessionType) {
@@ -28,6 +28,7 @@ function App() {
         <ResumePrompt
           time={time}
           sessionType={sessionType}
+          elapsedWhileAway={elapsedWhileAway}
           onResume={start}
           onStartFresh={dismissResume}
         />

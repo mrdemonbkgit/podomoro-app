@@ -3,14 +3,20 @@ import { SessionType } from '../types/timer';
 interface ResumePromptProps {
   time: number;
   sessionType: SessionType;
+  elapsedWhileAway: number; // Seconds elapsed while tab was closed
   onResume: () => void;
   onStartFresh: () => void;
 }
 
-export const ResumePrompt = ({ time, sessionType, onResume, onStartFresh }: ResumePromptProps) => {
+export const ResumePrompt = ({ time, sessionType, elapsedWhileAway, onResume, onStartFresh }: ResumePromptProps) => {
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
   const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  
+  // Calculate elapsed time display
+  const elapsedMinutes = Math.floor(elapsedWhileAway / 60);
+  const elapsedSeconds = elapsedWhileAway % 60;
+  const hasElapsed = elapsedWhileAway > 0;
 
   const getSessionLabel = () => {
     switch (sessionType) {
@@ -45,9 +51,23 @@ export const ResumePrompt = ({ time, sessionType, onResume, onStartFresh }: Resu
           Welcome Back! 👋
         </h2>
         
-        <p className="text-gray-600 text-center mb-6">
-          You have a saved timer session. Would you like to resume where you left off?
-        </p>
+        {hasElapsed ? (
+          <div className="text-center mb-6">
+            <p className="text-gray-600 mb-2">
+              While you were away, <span className="font-semibold text-orange-600">
+                {elapsedMinutes > 0 && `${elapsedMinutes}m `}
+                {elapsedSeconds}s
+              </span> elapsed.
+            </p>
+            <p className="text-gray-600">
+              Continue from where the timer would be?
+            </p>
+          </div>
+        ) : (
+          <p className="text-gray-600 text-center mb-6">
+            You have a saved timer session. Would you like to resume where you left off?
+          </p>
+        )}
         
         <div className="bg-gray-50 rounded-lg p-6 mb-6 text-center">
           <div className={`text-lg font-semibold mb-2 ${getSessionColor()}`}>
@@ -56,6 +76,11 @@ export const ResumePrompt = ({ time, sessionType, onResume, onStartFresh }: Resu
           <div className="text-4xl font-bold text-gray-800">
             {formattedTime}
           </div>
+          {hasElapsed && (
+            <div className="mt-2 text-sm text-gray-500">
+              (Updated from pause time)
+            </div>
+          )}
         </div>
         
         <div className="flex gap-3">
