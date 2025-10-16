@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2025-10-16
+
+### Fixed
+- **[P0 CRITICAL] Fixed backward compatibility issue preventing data loss**
+  - Issue: New `notificationsEnabled` field caused existing user settings to be wiped
+  - Impact: Users upgrading from v2.0.0 would lose all custom timer durations
+  - Solution: Implemented graceful migration that merges old settings with new defaults
+  - Result: All existing user settings are preserved, new field defaults to enabled
+  - Added comprehensive test suite (12 new tests) for settings validation
+  - Zero data loss guarantee for upgrading users ✅
+
 ## [2.1.0] - 2025-10-16
 
 ### Added
