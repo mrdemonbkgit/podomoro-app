@@ -8,8 +8,11 @@ import { SessionInfo } from './components/SessionInfo';
 import { ResumePrompt } from './components/ResumePrompt';
 import { SettingsModal } from './components/SettingsModal';
 import { Settings } from './components/Settings';
+import { MotivationalQuote } from './components/MotivationalQuote';
+import { FloatingNav } from './components/FloatingNav';
 import { getBuildNumberShort, getGitInfo } from './buildInfo';
 import './App.css';
+import './styles/glass.css';
 
 function App() {
   const { settings, updateSettings, resetSettings } = useSettings();
@@ -72,27 +75,27 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isActive, sessionType, hasResumableState, isSettingsOpen, start, pause, reset, skipBreak, toggleTheme]);
 
-  const getBackgroundColor = () => {
+  const getBackgroundGradient = () => {
     switch (sessionType) {
       case 'work':
         return isDark 
-          ? 'bg-gradient-to-br from-gray-900 to-red-950/30'
-          : 'bg-red-50';
+          ? 'gradient-work-dark'
+          : 'gradient-work-light';
       case 'shortBreak':
         return isDark
-          ? 'bg-gradient-to-br from-gray-900 to-green-950/30'
-          : 'bg-green-50';
+          ? 'gradient-break-dark'
+          : 'gradient-break-light';
       case 'longBreak':
         return isDark
-          ? 'bg-gradient-to-br from-gray-900 to-blue-950/30'
-          : 'bg-blue-50';
+          ? 'gradient-longbreak-dark'
+          : 'gradient-longbreak-light';
       default:
         return isDark ? 'bg-gray-900' : 'bg-gray-50';
     }
   };
 
   return (
-    <div className={`min-h-screen ${getBackgroundColor()} transition-colors duration-500 flex items-center justify-center`}>
+    <div className={`min-h-screen ${getBackgroundGradient()} animate-gradient transition-all duration-500 flex items-center justify-center`}>
       {/* Resume Prompt Modal */}
       {hasResumableState && (
         <ResumePrompt
@@ -192,11 +195,16 @@ function App() {
             </div>
           </header>
           
-          <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl p-12 transition-colors duration-200`}>
+          <div className={`${isDark ? 'glass-panel' : 'glass-panel-light'} rounded-3xl p-12 glass-transition animate-fade-in`}>
             <SessionInfo 
               sessionType={sessionType} 
               completedSessions={completedSessions}
               sessionsUntilLongBreak={settings.sessionsUntilLongBreak}
+              isDark={isDark}
+            />
+            
+            <MotivationalQuote 
+              sessionType={sessionType}
               isDark={isDark}
             />
             
@@ -238,6 +246,12 @@ function App() {
           </div>
         </main>
       </div>
+
+      {/* Floating Navigation */}
+      <FloatingNav 
+        onSettingsClick={() => setIsSettingsOpen(true)}
+        isDark={isDark}
+      />
 
       {/* Settings Modal */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} isDark={isDark}>

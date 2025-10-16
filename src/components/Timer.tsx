@@ -35,7 +35,7 @@ export const Timer = ({ time, sessionType, isDark }: TimerProps) => {
   };
 
   return (
-    <div className={`text-9xl font-bold ${getTimerColor()} tabular-nums transition-colors duration-200`}>
+    <div className={`text-8xl md:text-9xl lg:text-[12rem] xl:text-[14rem] font-black ${getTimerColor()} tabular-nums tracking-tight drop-shadow-2xl animate-pulse-subtle transition-all duration-200`}>
       {formattedTime}
     </div>
   );

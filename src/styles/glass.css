@@ -1,0 +1,195 @@
+/* Glass Morphism Design System */
+
+/* Dark glass panels */
+.glass-panel {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Light glass panels */
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Extra light glass for overlays */
+.glass-overlay {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Extra dark glass for overlays */
+.glass-overlay-dark {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Enhanced gradients for timer container */
+.gradient-work-dark {
+  background: linear-gradient(135deg, 
+    #1a0f1e 0%, 
+    #2d1b3d 25%, 
+    #3d1e47 50%, 
+    #4a1e52 75%, 
+    #5a1e5e 100%
+  );
+}
+
+.gradient-work-light {
+  background: linear-gradient(135deg,
+    #ffe5e5 0%,
+    #ffd4e5 25%,
+    #ffc3d4 50%,
+    #ffb3c3 75%,
+    #ffa3b3 100%
+  );
+}
+
+.gradient-break-dark {
+  background: linear-gradient(135deg,
+    #0d2818 0%,
+    #0f3d2c 25%,
+    #115740 50%,
+    #137154 75%,
+    #158b68 100%
+  );
+}
+
+.gradient-break-light {
+  background: linear-gradient(135deg,
+    #d4ffe5 0%,
+    #c3ffd4 25%,
+    #b3ffc3 50%,
+    #a3ffb3 75%,
+    #93ffa3 100%
+  );
+}
+
+.gradient-longbreak-dark {
+  background: linear-gradient(135deg,
+    #0f1419 0%,
+    #1a1f3a 25%,
+    #252a5b 50%,
+    #30357c 75%,
+    #3b409d 100%
+  );
+}
+
+.gradient-longbreak-light {
+  background: linear-gradient(135deg,
+    #e5f1ff 0%,
+    #d4e5ff 25%,
+    #c3d9ff 50%,
+    #b3cdff 75%,
+    #a3c1ff 100%
+  );
+}
+
+/* Subtle breathing animation for gradients */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Subtle pulse for timer */
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+/* Slide up animation */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+/* Smooth transitions for all glass elements */
+.glass-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects for glass elements */
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.glass-hover-light:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Support for browsers without backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+  .glass-panel {
+    background: rgba(0, 0, 0, 0.85);
+  }
+  
+  .glass-panel-light {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
