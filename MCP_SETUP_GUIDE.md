@@ -31,8 +31,7 @@ Add this to your settings:
     "chrome-devtools": {
       "command": "npx",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-chrome-devtools"
+        "chrome-devtools-mcp@latest"
       ]
     }
   }
