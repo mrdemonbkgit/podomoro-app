@@ -20,6 +20,9 @@ export const Settings = ({ settings, onSave, onReset, onClose, isDark }: Setting
     if (name === 'sessionsUntilLongBreak') {
       if (value < MIN_SESSIONS) return `Minimum ${MIN_SESSIONS} sessions`;
       if (value > MAX_SESSIONS) return `Maximum ${MAX_SESSIONS} sessions`;
+    } else if (name === 'volume') {
+      if (value < MIN_VOLUME) return `Minimum ${MIN_VOLUME}%`;
+      if (value > MAX_VOLUME) return `Maximum ${MAX_VOLUME}%`;
     } else if (name !== 'notificationsEnabled') {
       if (value < MIN_DURATION) return `Minimum ${MIN_DURATION} minute`;
       if (value > MAX_DURATION) return `Maximum ${MAX_DURATION} minutes`;
