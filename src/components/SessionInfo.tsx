@@ -4,9 +4,10 @@ interface SessionInfoProps {
   sessionType: SessionType;
   completedSessions: number;
   sessionsUntilLongBreak: number;
+  isDark: boolean;
 }
 
-export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongBreak }: SessionInfoProps) => {
+export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongBreak, isDark }: SessionInfoProps) => {
   const getSessionLabel = () => {
     switch (sessionType) {
       case 'work':
@@ -23,13 +24,13 @@ export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongB
   const getSessionColor = () => {
     switch (sessionType) {
       case 'work':
-        return 'text-red-500 dark:text-red-400';
+        return isDark ? 'text-red-400' : 'text-red-500';
       case 'shortBreak':
-        return 'text-green-500 dark:text-green-400';
+        return isDark ? 'text-green-400' : 'text-green-500';
       case 'longBreak':
-        return 'text-blue-500 dark:text-blue-400';
+        return isDark ? 'text-blue-400' : 'text-blue-500';
       default:
-        return 'text-gray-900 dark:text-gray-100';
+        return isDark ? 'text-gray-100' : 'text-gray-900';
     }
   };
 
@@ -43,7 +44,7 @@ export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongB
       <h2 className={`text-3xl font-semibold mb-2 ${getSessionColor()} transition-colors duration-200`}>
         {getSessionLabel()}
       </h2>
-      <p className="text-gray-600 dark:text-gray-400 text-lg transition-colors duration-200">
+      <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-lg transition-colors duration-200`}>
         Session {currentSessionNumber} of {sessionsUntilLongBreak}
       </p>
     </div>

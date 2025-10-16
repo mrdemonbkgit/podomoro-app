@@ -4,9 +4,10 @@ import { SessionType } from '../types/timer';
 interface TimerProps {
   time: number;
   sessionType: SessionType;
+  isDark: boolean;
 }
 
-export const Timer = ({ time, sessionType }: TimerProps) => {
+export const Timer = ({ time, sessionType, isDark }: TimerProps) => {
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
   const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -23,13 +24,13 @@ export const Timer = ({ time, sessionType }: TimerProps) => {
   const getTimerColor = () => {
     switch (sessionType) {
       case 'work':
-        return 'text-red-500 dark:text-red-400';
+        return isDark ? 'text-red-400' : 'text-red-500';
       case 'shortBreak':
-        return 'text-green-500 dark:text-green-400';
+        return isDark ? 'text-green-400' : 'text-green-500';
       case 'longBreak':
-        return 'text-blue-500 dark:text-blue-400';
+        return isDark ? 'text-blue-400' : 'text-blue-500';
       default:
-        return 'text-gray-900 dark:text-gray-100';
+        return isDark ? 'text-gray-100' : 'text-gray-900';
     }
   };
 

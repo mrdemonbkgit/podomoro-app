@@ -136,10 +136,11 @@ function App() {
               sessionType={sessionType} 
               completedSessions={completedSessions}
               sessionsUntilLongBreak={settings.sessionsUntilLongBreak}
+              isDark={isDark}
             />
             
             <div className="flex justify-center mb-8">
-              <Timer time={time} sessionType={sessionType} />
+              <Timer time={time} sessionType={sessionType} isDark={isDark} />
             </div>
             
             <Controls 
