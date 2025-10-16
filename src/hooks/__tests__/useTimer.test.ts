@@ -122,8 +122,6 @@ describe('useTimer Hook', () => {
         result.current.pause();
       });
 
-      const timeBeforeSettingsChange = result.current.time;
-
       // Change settings while paused
       const newSettings = {
         ...DEFAULT_SETTINGS,

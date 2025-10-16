@@ -24,13 +24,20 @@ const localStorageMock = {
   clear: (): void => {
     localStorageMock.store = {};
   },
+  key: (index: number): string | null => {
+    const keys = Object.keys(localStorageMock.store);
+    return keys[index] || null;
+  },
+  get length(): number {
+    return Object.keys(localStorageMock.store).length;
+  },
   store: {} as Record<string, string>,
 };
 
-global.localStorage = localStorageMock as Storage;
+(globalThis as any).localStorage = localStorageMock as Storage;
 
 // Mock Audio API
-global.Audio = class Audio {
+(globalThis as any).Audio = class Audio {
   play = () => Promise.resolve();
   pause = () => {};
   load = () => {};
