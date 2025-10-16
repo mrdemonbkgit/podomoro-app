@@ -111,11 +111,16 @@ export const useTheme = (): UseThemeReturn => {
    * (Simplified toggle: light <-> dark, ignoring system)
    */
   const toggleTheme = useCallback(() => {
-    // Toggle based on current effective theme (isDark), not theme enum
-    // This works correctly even when theme is 'system'
-    console.log('[useTheme] Toggling theme. Current isDark:', isDark, 'Setting to:', isDark ? 'light' : 'dark');
-    setTheme(isDark ? 'light' : 'dark');
-  }, [isDark]);
+    console.log('[useTheme] Toggle clicked. Current state - theme:', theme, 'isDark:', isDark);
+    
+    // Use functional update to ensure we get the latest isDark value
+    setTheme(prevTheme => {
+      const currentIsDark = getEffectiveTheme(prevTheme) === 'dark';
+      const newTheme = currentIsDark ? 'light' : 'dark';
+      console.log('[useTheme] Toggling from', prevTheme, '(isDark:', currentIsDark, ') to', newTheme);
+      return newTheme;
+    });
+  }, [theme, isDark]);
 
   return {
     theme,
