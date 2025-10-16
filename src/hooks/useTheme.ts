@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -110,11 +110,12 @@ export const useTheme = (): UseThemeReturn => {
    * Toggle between light and dark modes
    * (Simplified toggle: light <-> dark, ignoring system)
    */
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     // Toggle based on current effective theme (isDark), not theme enum
     // This works correctly even when theme is 'system'
+    console.log('[useTheme] Toggling theme. Current isDark:', isDark, 'Setting to:', isDark ? 'light' : 'dark');
     setTheme(isDark ? 'light' : 'dark');
-  };
+  }, [isDark]);
 
   return {
     theme,
