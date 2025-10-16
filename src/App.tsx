@@ -53,14 +53,14 @@ function App() {
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between mb-12">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100">
+            <h1 className={`text-4xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
               🍅 Pomodoro Timer
             </h1>
             <div className="flex gap-3">
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                className={`p-3 rounded-full ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-lg hover:shadow-xl transition-all hover:scale-105`}
                 aria-label="Toggle theme"
                 title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               >
@@ -68,7 +68,7 @@ function App() {
                   // Sun icon (for light mode)
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 text-gray-700 dark:text-gray-300"
+                    className={`h-6 w-6 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -102,13 +102,13 @@ function App() {
               {/* Settings */}
               <button
                 onClick={() => setIsSettingsOpen(true)}
-                className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                className={`p-3 rounded-full ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-lg hover:shadow-xl transition-all hover:scale-105`}
                 aria-label="Open settings"
                 title="Settings"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 text-gray-700 dark:text-gray-300"
+                  className={`h-6 w-6 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -130,7 +130,7 @@ function App() {
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-12 transition-colors duration-200">
+          <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl p-12 transition-colors duration-200`}>
             <SessionInfo 
               sessionType={sessionType} 
               completedSessions={completedSessions}
@@ -149,11 +149,11 @@ function App() {
             />
           </div>
           
-          <div className="mt-8 text-center text-gray-600 dark:text-gray-400 space-y-2 transition-colors duration-200">
+          <div className={`mt-8 text-center ${isDark ? 'text-gray-400' : 'text-gray-600'} space-y-2 transition-colors duration-200`}>
             <p className="text-sm">
               Work: {settings.workDuration} min · Short Break: {settings.shortBreakDuration} min · Long Break: {settings.longBreakDuration} min
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500">
+            <p className="text-xs text-gray-500">
               v2.2.0 · Build {getBuildNumberShort()} · {getGitInfo()}
             </p>
           </div>
