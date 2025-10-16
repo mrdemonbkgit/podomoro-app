@@ -116,35 +116,57 @@ As a user, I want to set custom timer durations so that I can adapt the Pomodoro
 **Priority:** High  
 **Effort:** Small (1 day)  
 **Dependencies:** None  
-**Status:** ✅ Implemented (October 2025)
+**Status:** ✅ Implemented (October 2025)  
+**Enhancements:** Background timer continuation with elapsed time tracking
 
 #### Description
-Save timer state to survive page refreshes, so users don't lose progress.
+Save timer state to survive page refreshes, so users don't lose progress. Timer now continues counting in the background when tab is closed, calculating elapsed time and updating the timer position when user returns.
 
-#### User Story
-As a user, I want my timer progress to be saved if I accidentally refresh the page or close the browser.
+#### User Stories
+1. As a user, I want my timer progress to be saved if I accidentally refresh the page or close the browser.
+2. As a user, I want the timer to continue counting while the tab is closed, so I can see where the timer would be when I return.
 
 #### Acceptance Criteria
+**Core Persistence:**
 - [x] Save current timer state to localStorage
 - [x] Restore state on page load
 - [x] Handle edge cases (stale data, invalid state)
 - [x] Show "Resume?" prompt if state is restored
 - [x] Clear state when timer completes or is reset
 
+**Background Continuation (Enhancement):**
+- [x] Calculate elapsed time when tab was closed: `elapsed = now - savedTimestamp`
+- [x] Update timer to reflect background continuation: `newTime = savedTime - elapsed`
+- [x] Show "While you were away, Xs elapsed" message in resume prompt
+- [x] Handle timer completion while tab was closed
+- [x] Only calculate elapsed time if significant time passed (>2 seconds)
+- [x] Display updated timer value with "(Updated from pause time)" indicator
+
+**Bug Fixes:**
+- [x] Fix resume prompt appearing when pausing already-running timer after refresh
+- [x] Dismiss resume prompt if timer was active on page load
+
 #### Technical Implementation
 
 **New Files:**
-- `src/hooks/usePersistedState.ts` - Generic persisted state hook
+- `src/hooks/usePersistedState.ts` - Generic persisted state hook with validation
+- `src/components/ResumePrompt.tsx` - Resume modal UI with elapsed time display
 
 **Modified Files:**
-- `src/hooks/useTimer.ts` - Use persisted state
+- `src/hooks/useTimer.ts` - Integrated persistence with elapsed time calculation
+- `src/types/timer.ts` - Added `PersistedTimerState` interface
+- `src/App.tsx` - Added ResumePrompt modal with elapsed time prop
 
 **Implementation Steps:**
 1. Create `usePersistedState` hook wrapper around `useState`
 2. Serialize/deserialize timer state to localStorage
 3. Add timestamp to detect stale state (older than 2 hours)
 4. On load, check for saved state and prompt user to resume
-5. Clear state on timer completion or reset
+5. **Calculate elapsed time if timer was active**: `elapsed = now - savedTimestamp`
+6. **Update timer position**: `newTime = savedTime - elapsed`
+7. **Handle timer completion while away** - switch to next session
+8. Clear state on timer completion or reset
+9. **Dismiss resume prompt if timer was active on page load** (bug fix)
 
 **State to Persist:**
 ```typescript
@@ -153,14 +175,44 @@ As a user, I want my timer progress to be saved if I accidentally refresh the pa
   isActive: boolean;
   sessionType: SessionType;
   completedSessions: number;
-  timestamp: number;
+  timestamp: number; // Used for elapsed time calculation
+}
+```
+
+**Elapsed Time Calculation Logic:**
+```typescript
+// On mount, if timer was active:
+const elapsed = Math.floor((Date.now() - state.timestamp) / 1000);
+
+if (elapsed > 2) {  // Only if significant time passed
+  const newTime = state.time - elapsed;
+  
+  if (newTime <= 0) {
+    // Timer completed while away - switch to next session
+    switchToNextSession();
+  } else {
+    // Update time and show resume prompt with elapsed info
+    setElapsedWhileAway(elapsed);
+    setState({ ...prev, time: newTime, isActive: false });
+  }
 }
 ```
 
 **Testing Requirements:**
-- Test state save/restore
-- Test stale state handling
-- Test invalid data handling
+- [x] Test state save/restore
+- [x] Test stale state handling
+- [x] Test invalid data handling
+- [x] Test elapsed time calculation (verified: 25s elapsed, timer updated correctly)
+- [x] Test timer completion while away
+- [x] Test resume prompt not appearing when pausing running timer after refresh
+- [x] Test resume prompt appearance with elapsed time message
+- [x] No console errors
+
+**Commits:**
+- `4f6f17b` - Initial persistent state implementation
+- `2cfe2db` - Bug fix: Prevent resume prompt on pause after refresh
+- `ed98d1e` - Background timer continuation with elapsed time tracking
+- `b70ec73` - Updated CHANGELOG with enhancements
 
 ---
 
