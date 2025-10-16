@@ -112,10 +112,14 @@ export const useTheme = (): UseThemeReturn => {
    */
   const toggleTheme = useCallback(() => {
     // Use functional update to ensure we get the latest state value
-    // No dependencies needed since we read state inside setTheme
+    // Also apply immediately to avoid any visual lag or effect ordering issues
     setTheme(prevTheme => {
       const currentIsDark = getEffectiveTheme(prevTheme) === 'dark';
       const newTheme = currentIsDark ? 'light' : 'dark';
+      // Apply immediately for snappy toggle regardless of effect timing
+      const newIsDark = getEffectiveTheme(newTheme) === 'dark';
+      applyTheme(newIsDark);
+      saveTheme(newTheme);
       console.log('[useTheme] Toggling from', prevTheme, '(isDark:', currentIsDark, ') to', newTheme);
       return newTheme;
     });
