@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-10-16
+
 ### Added
+- **Feature 2.3: Desktop Notifications** 🔔
+  - Desktop notifications when timer completes
+  - Works even when tab is in background
+  - iOS-style toggle switch in settings
+  - Auto-request notification permission
+  - Session-specific notification messages:
+    - Work Complete: "Work Session Complete! 🎉"
+    - Short Break Complete: "Break Over! 💪"
+    - Long Break Complete: "Long Break Complete! 🌟"
+  - Graceful fallback if notifications not supported
+  - Auto-close notifications after 5 seconds
+  - Click notification to focus window
+  - User preference saved to localStorage
+  
+### Added (Feature 2.1)
 - **Feature 2.1: Customizable Timer Durations** - Users can now customize timer durations
   - **Enhancement:** Settings now apply instantly if timer hasn't been started
   - **Enhancement:** Smart session count handling when changing sessions until long break
