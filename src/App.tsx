@@ -161,7 +161,7 @@ function App() {
       </div>
 
       {/* Settings Modal */}
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}>
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} isDark={isDark}>
         <Settings
           settings={settings}
           onSave={updateSettings}
