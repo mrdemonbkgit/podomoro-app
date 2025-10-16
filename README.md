@@ -126,6 +126,30 @@ podomoro-app/
 - Advanced settings
 - Data export/import
 
+## Testing with AI Assistant (MCP Integration)
+
+This project includes Chrome DevTools MCP setup for AI-assisted testing and debugging.
+
+### Quick Start
+
+1. **Launch Chrome with debugging:**
+   ```bash
+   # Windows PowerShell
+   .\launch-chrome-debug.ps1
+   
+   # Or double-click
+   launch-chrome-debug.bat
+   ```
+
+2. **Configure MCP in Cursor** (one-time setup)
+   - See `MCP_SETUP_GUIDE.md` for detailed instructions
+   - Restart Cursor after configuration
+
+3. **Ask the AI assistant to test your app!**
+   - "Take a screenshot of the app"
+   - "Test the timer functionality"
+   - "Check for console errors"
+
 ## License
 
 MIT

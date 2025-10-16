@@ -26,3 +26,8 @@ dist-ssr
 # Plan files
 *.plan.md
 
+# MCP and testing helpers (optional - can be committed if desired)
+# MCP_SETUP_GUIDE.md
+# launch-chrome-debug.ps1
+# launch-chrome-debug.bat
+
