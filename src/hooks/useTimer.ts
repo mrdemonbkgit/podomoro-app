@@ -286,7 +286,8 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
           }
         }
       }, 100); // Update every 100ms for smooth display, but calculate based on real time
-    } else if (time === 0 && !isActive) {
+    } else if (time === 0) {
+      // Timer completed - switch to next session (work → break or break → work)
       switchToNextSession();
     }
 
