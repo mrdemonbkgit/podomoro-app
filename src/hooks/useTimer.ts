@@ -253,7 +253,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     // Clear persisted state when timer completes (optional - keeps history)
     // Uncomment if you want to clear state on session completion:
     // clearPersistedState(TIMER_STATE_KEY);
-  }, [setState, workDuration, shortBreakDuration, longBreakDuration, sessionsUntilLongBreak, settings.notificationsEnabled, sessionType]);
+  }, [setState, workDuration, shortBreakDuration, longBreakDuration, sessionsUntilLongBreak, settings.notificationsEnabled, settings.soundType, settings.volume, sessionType]);
 
   // Handle session switch if timer completed while away
   useEffect(() => {
