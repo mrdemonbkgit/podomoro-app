@@ -358,7 +358,8 @@ Provide multiple notification sounds and volume control.
 ### Feature 2.6: Dark/Light Mode
 **Priority:** Medium  
 **Effort:** Medium (1-2 days)  
-**Dependencies:** None
+**Dependencies:** None  
+**Status:** ✅ Completed (October 16, 2025)
 
 #### Description
 Theme toggle for dark and light modes.
@@ -367,33 +368,38 @@ Theme toggle for dark and light modes.
 As a user, I want a dark mode option to reduce eye strain in low-light environments.
 
 #### Acceptance Criteria
-- [ ] Toggle button in header
-- [ ] Dark theme with appropriate colors
-- [ ] Respects system preference on first load
-- [ ] Preference persists
-- [ ] Smooth transition between themes
-- [ ] All components styled for both themes
+- [x] Toggle button in header
+- [x] Dark theme with appropriate colors
+- [x] Respects system preference on first load
+- [x] Preference persists
+- [x] Smooth transition between themes
+- [x] All components styled for both themes
 
 #### Technical Implementation
 
+**New Files:**
+- `src/hooks/useTheme.ts` - Theme management hook
+- `FEATURE_2.6_SUMMARY.md` - Complete implementation summary
+
 **Modified Files:**
-- `tailwind.config.js` - Enable dark mode
-- `src/App.tsx` - Add theme toggle
-- All component files - Add dark mode classes
+- `tailwind.config.js` - Enabled dark mode (`darkMode: 'class'`)
+- `src/App.tsx` - Added theme toggle button, updated all styles
+- `src/components/Timer.tsx` - Added dark mode colors
+- `src/components/SessionInfo.tsx` - Added dark mode text colors
+- `src/components/SettingsModal.tsx` - Added dark mode backdrop/modal
+- `src/components/Settings.tsx` - Comprehensive dark mode form styles
+- `src/components/ResumePrompt.tsx` - Added dark mode modal styles
 
 **Implementation Steps:**
-1. Enable Tailwind dark mode: `darkMode: 'class'`
-2. Create `useTheme` hook:
-   ```typescript
-   const { theme, toggleTheme } = useTheme();
-   // theme: 'light' | 'dark' | 'system'
-   ```
-3. Add `dark:` classes to all components
-4. Add toggle button with sun/moon icon
-5. Save preference to localStorage
+1. ✅ Enabled Tailwind dark mode: `darkMode: 'class'`
+2. ✅ Created `useTheme` hook with system preference detection
+3. ✅ Added `dark:` classes to all components
+4. ✅ Added toggle button with sun/moon icons
+5. ✅ Saved preference to localStorage
+6. ✅ Tested all components in both modes
 
 **Color Scheme (Dark Mode):**
-- Background: `bg-gray-900`
+- Background: Session-specific (e.g., `dark:bg-red-950`)
 - Card: `bg-gray-800`
 - Text: `text-gray-100`
 - Work: `text-red-400`
@@ -401,10 +407,14 @@ As a user, I want a dark mode option to reduce eye strain in low-light environme
 - Long break: `text-blue-400`
 
 **Testing Requirements:**
-- Test theme toggle
-- Test system preference detection
-- Test all components in dark mode
-- Test persistence
+- [x] Test theme toggle
+- [x] Test system preference detection
+- [x] Test all components in dark mode
+- [x] Test persistence
+- [x] Test smooth transitions
+- [x] Test Settings modal in both modes
+
+**Test Report:** See `FEATURE_2.6_SUMMARY.md`
 
 ---
 

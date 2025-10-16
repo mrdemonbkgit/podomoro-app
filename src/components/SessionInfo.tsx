@@ -23,13 +23,13 @@ export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongB
   const getSessionColor = () => {
     switch (sessionType) {
       case 'work':
-        return 'text-red-500';
+        return 'text-red-500 dark:text-red-400';
       case 'shortBreak':
-        return 'text-green-500';
+        return 'text-green-500 dark:text-green-400';
       case 'longBreak':
-        return 'text-blue-500';
+        return 'text-blue-500 dark:text-blue-400';
       default:
-        return 'text-gray-900';
+        return 'text-gray-900 dark:text-gray-100';
     }
   };
 
@@ -40,10 +40,10 @@ export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongB
 
   return (
     <div className="text-center mb-8">
-      <h2 className={`text-3xl font-semibold mb-2 ${getSessionColor()}`}>
+      <h2 className={`text-3xl font-semibold mb-2 ${getSessionColor()} transition-colors duration-200`}>
         {getSessionLabel()}
       </h2>
-      <p className="text-gray-600 text-lg">
+      <p className="text-gray-600 dark:text-gray-400 text-lg transition-colors duration-200">
         Session {currentSessionNumber} of {sessionsUntilLongBreak}
       </p>
     </div>

@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2025-10-16
+
+### Added - Feature 2.6: Dark/Light Mode
+
+**Theme System**
+- Implemented complete dark mode/light mode theme system
+- Created `useTheme` hook for theme management
+  - Supports 'light', 'dark', and 'system' modes
+  - Detects system preference using `window.matchMedia`
+  - Listens to real-time system theme changes
+  - Persists theme to localStorage ('pomodoro-theme')
+- Theme toggle button with sun/moon icons in header
+- Smooth color transitions (200ms) for all theme changes
+
+**Dark Mode Styling**
+- Comprehensive dark mode support for all components:
+  - App: Dark session backgrounds (red-950, green-950, blue-950)
+  - Timer: Adjusted colors for better visibility (red-400, green-400, blue-400)
+  - SessionInfo: Dark text colors
+  - Settings Modal: Dark backdrop and modal container
+  - Settings Form: Dark inputs, labels, error messages, info box, toggle switch
+  - Resume Prompt: Complete dark mode support
+- Color scheme optimized for readability and eye comfort
+- All buttons and controls work well in both modes
+
+**Technical Details**
+- Enabled Tailwind class-based dark mode
+- Added `dark:` variants to all color utilities
+- Bundle impact: +7.7 kB (CSS: +2.7 kB, JS: +5 kB)
+- Maintains smooth performance with transitions
+
+**Testing & Documentation**
+- Verified theme toggle, persistence, and system preference detection
+- All components tested in both light and dark modes
+- Created `FEATURE_2.6_SUMMARY.md` for comprehensive documentation
+- Updated `ROADMAP.md` with completion status
+
+## [2.2.0] - 2025-10-16
+
+### Fixed
+- **[P0 CRITICAL] Session switch regression**
+  - Issue: Timer would not automatically switch to next session after countdown completed
+  - Root cause: Incorrect conditional check `time === 0 && !isActive` prevented session switch
+  - Solution: Removed `!isActive` check to allow switch when timer naturally reaches 0
+  - Result: Timer now correctly transitions between work/break sessions ✅
+
 ## [2.1.2] - 2025-10-16
 
 ### Fixed
