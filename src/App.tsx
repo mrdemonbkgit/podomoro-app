@@ -2,10 +2,11 @@ import { useTimer } from './hooks/useTimer';
 import { Timer } from './components/Timer';
 import { Controls } from './components/Controls';
 import { SessionInfo } from './components/SessionInfo';
+import { ResumePrompt } from './components/ResumePrompt';
 import './App.css';
 
 function App() {
-  const { time, isActive, sessionType, completedSessions, start, pause, reset } = useTimer();
+  const { time, isActive, sessionType, completedSessions, hasResumableState, start, pause, reset, dismissResume } = useTimer();
 
   const getBackgroundColor = () => {
     switch (sessionType) {
@@ -22,6 +23,16 @@ function App() {
 
   return (
     <div className={`min-h-screen ${getBackgroundColor()} transition-colors duration-500 flex items-center justify-center`}>
+      {/* Resume Prompt Modal */}
+      {hasResumableState && (
+        <ResumePrompt
+          time={time}
+          sessionType={sessionType}
+          onResume={start}
+          onStartFresh={dismissResume}
+        />
+      )}
+
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-4xl font-bold text-center text-gray-800 mb-12">

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Feature 2.2: Persistent State** - Timer state now persists across page refreshes
+  - Created `usePersistedState` generic hook for localStorage persistence with validation
+  - Added `PersistedTimerState` interface with timestamp tracking
+  - Created `ResumePrompt` component showing saved session details
+  - Automatic stale state detection (2-hour maximum age)
+  - "Resume" button to continue from saved state
+  - "Start Fresh" button to clear saved state and start over
+  - State validation to prevent corruption
+  - Cleared state on timer completion and reset
+
+### Technical Details
+- New hook: `src/hooks/usePersistedState.ts` - Generic localStorage persistence
+- New component: `src/components/ResumePrompt.tsx` - Resume modal UI
+- Updated: `src/hooks/useTimer.ts` - Integrated persistence with timer logic
+- Updated: `src/types/timer.ts` - Added `PersistedTimerState` interface
+- State includes: time, isActive, sessionType, completedSessions, timestamp
+
 See [ROADMAP.md](ROADMAP.md) for planned features.
 
 ## [1.0.0] - 2025-10-16
