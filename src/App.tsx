@@ -21,13 +21,19 @@ function App() {
   const getBackgroundColor = () => {
     switch (sessionType) {
       case 'work':
-        return 'bg-red-50 dark:bg-gradient-to-br dark:from-gray-900 dark:to-red-950/30';
+        return isDark 
+          ? 'bg-gradient-to-br from-gray-900 to-red-950/30'
+          : 'bg-red-50';
       case 'shortBreak':
-        return 'bg-green-50 dark:bg-gradient-to-br dark:from-gray-900 dark:to-green-950/30';
+        return isDark
+          ? 'bg-gradient-to-br from-gray-900 to-green-950/30'
+          : 'bg-green-50';
       case 'longBreak':
-        return 'bg-blue-50 dark:bg-gradient-to-br dark:from-gray-900 dark:to-blue-950/30';
+        return isDark
+          ? 'bg-gradient-to-br from-gray-900 to-blue-950/30'
+          : 'bg-blue-50';
       default:
-        return 'bg-gray-50 dark:bg-gray-900';
+        return isDark ? 'bg-gray-900' : 'bg-gray-50';
     }
   };
 
