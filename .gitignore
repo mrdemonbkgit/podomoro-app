@@ -28,6 +28,9 @@ dist-ssr
 coverage
 *.lcov
 
+# Build info (auto-generated)
+src/buildInfo.ts
+
 # Environment files
 .env
 .env.local

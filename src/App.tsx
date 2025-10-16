@@ -7,6 +7,7 @@ import { SessionInfo } from './components/SessionInfo';
 import { ResumePrompt } from './components/ResumePrompt';
 import { SettingsModal } from './components/SettingsModal';
 import { Settings } from './components/Settings';
+import { getBuildNumberShort, getGitInfo } from './buildInfo';
 import './App.css';
 
 function App() {
@@ -100,7 +101,7 @@ function App() {
               Work: {settings.workDuration} min · Short Break: {settings.shortBreakDuration} min · Long Break: {settings.longBreakDuration} min
             </p>
             <p className="text-xs text-gray-500">
-              v2.2.0
+              v2.2.0 · Build {getBuildNumberShort()} · {getGitInfo()}
             </p>
           </div>
         </div>
