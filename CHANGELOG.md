@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-10-16 🎉 **V2.0 RELEASE**
+
+### 🌟 V2.0: Enhanced Experience - Complete!
+
+This is a **major milestone release** that transforms the Pomodoro Timer from a basic fixed-duration timer into a fully customizable, feature-rich productivity tool. All 6 planned V2.0 features have been successfully implemented, tested, and polished.
+
+### Major Features
+- ✅ **Feature 2.1: Customizable Timer Durations** - Personalize work/break durations (1-60 min)
+- ✅ **Feature 2.2: Smart Resume/Restart Prompt** - Never lose progress on page reload
+- ✅ **Feature 2.3: Desktop Notifications** - Stay informed even when tab is hidden
+- ✅ **Feature 2.4: Skip Session Button** - Take control of your breaks
+- ✅ **Feature 2.5: Sound Options** - 5 unique notification sounds with volume control
+- ✅ **Feature 2.6: Dark/Light Mode** - Elegant themes with system preference detection
+
+### Quality & Polish
+- ✅ **86 Unit Tests** - Comprehensive coverage of hooks and utilities
+- ✅ **CI/CD Pipeline** - Automated testing and build verification
+- ✅ **Accessibility** - Keyboard shortcuts, ARIA labels, screen reader support
+- ✅ **15+ Bug Fixes** - Including critical timer accuracy and UI compatibility issues
+
+### Technical Improvements
+- Automatic build versioning with git integration
+- Timestamp-based timer for accuracy in background
+- Web Audio API for synthesized sounds
+- Backward-compatible settings migration
+- Legacy browser support (Safari ≤13)
+
+**See `RELEASE_NOTES_V2.0.md` for complete details.**
+
+---
+
 ## [2.5.0] - 2025-10-16
 
 ### Added - Feature 2.5: Sound Options

@@ -26,6 +26,8 @@ describe('useSettings Hook', () => {
         longBreakDuration: 20,
         sessionsUntilLongBreak: 3,
         notificationsEnabled: false,
+        soundType: 'bell' as const,
+        volume: 80,
       };
 
       localStorage.setItem('pomodoro-settings', JSON.stringify(customSettings));

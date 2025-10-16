@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTimer } from './hooks/useTimer';
 import { useSettings } from './hooks/useSettings';
 import { useTheme } from './hooks/useTheme';
@@ -17,6 +17,60 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   const { time, isActive, sessionType, completedSessions, hasResumableState, elapsedWhileAway, start, pause, reset, dismissResume, skipBreak } = useTimer({ settings });
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Don't trigger shortcuts when modals are open
+      if (hasResumableState || isSettingsOpen) {
+        // ESC to close settings
+        if (event.key === 'Escape' && isSettingsOpen) {
+          setIsSettingsOpen(false);
+        }
+        return;
+      }
+
+      switch (event.key.toLowerCase()) {
+        case ' ':
+        case 'spacebar':
+          event.preventDefault();
+          if (isActive) {
+            pause();
+          } else {
+            start();
+          }
+          break;
+        case 'r':
+          event.preventDefault();
+          reset();
+          break;
+        case 's':
+          if (!event.ctrlKey && !event.metaKey) {
+            event.preventDefault();
+            setIsSettingsOpen(true);
+          }
+          break;
+        case 'k':
+          if (sessionType !== 'work') {
+            event.preventDefault();
+            skipBreak();
+          }
+          break;
+        case 't':
+          event.preventDefault();
+          toggleTheme();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isActive, sessionType, hasResumableState, isSettingsOpen, start, pause, reset, skipBreak, toggleTheme]);
 
   const getBackgroundColor = () => {
     switch (sessionType) {
@@ -51,9 +105,16 @@ function App() {
         />
       )}
 
+      {/* Screen reader announcements */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {isActive ? 'Timer is running' : 'Timer is paused'}
+        {', '}
+        {sessionType === 'work' ? 'Work session' : sessionType === 'shortBreak' ? 'Short break' : 'Long break'}
+      </div>
+
       <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-12">
+        <main className="max-w-2xl mx-auto">
+          <header className="flex items-center justify-between mb-12">
             <h1 className={`text-4xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
               🍅 Pomodoro Timer
             </h1>
@@ -129,7 +190,7 @@ function App() {
                 </svg>
               </button>
             </div>
-          </div>
+          </header>
           
           <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl p-12 transition-colors duration-200`}>
             <SessionInfo 
@@ -158,11 +219,24 @@ function App() {
             <p className="text-sm">
               Work: {settings.workDuration} min · Short Break: {settings.shortBreakDuration} min · Long Break: {settings.longBreakDuration} min
             </p>
+            <details className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-600'} mt-2`}>
+              <summary className="cursor-pointer hover:underline inline-block">
+                ⌨️ Keyboard Shortcuts
+              </summary>
+              <div className="mt-2 space-y-1">
+                <p><kbd className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Space</kbd> Start/Pause</p>
+                <p><kbd className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">R</kbd> Reset</p>
+                <p><kbd className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">S</kbd> Settings</p>
+                <p><kbd className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">K</kbd> Skip Break</p>
+                <p><kbd className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">T</kbd> Toggle Theme</p>
+                <p><kbd className="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">ESC</kbd> Close Modal</p>
+              </div>
+            </details>
             <p className="text-xs text-gray-500">
-              v2.2.0 · Build {getBuildNumberShort()} · {getGitInfo()}
+              v2.0.0 · Build {getBuildNumberShort()} · {getGitInfo()}
             </p>
           </div>
-        </div>
+        </main>
       </div>
 
       {/* Settings Modal */}
