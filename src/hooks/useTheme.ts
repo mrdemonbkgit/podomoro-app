@@ -111,16 +111,15 @@ export const useTheme = (): UseThemeReturn => {
    * (Simplified toggle: light <-> dark, ignoring system)
    */
   const toggleTheme = useCallback(() => {
-    console.log('[useTheme] Toggle clicked. Current state - theme:', theme, 'isDark:', isDark);
-    
-    // Use functional update to ensure we get the latest isDark value
+    // Use functional update to ensure we get the latest state value
+    // No dependencies needed since we read state inside setTheme
     setTheme(prevTheme => {
       const currentIsDark = getEffectiveTheme(prevTheme) === 'dark';
       const newTheme = currentIsDark ? 'light' : 'dark';
       console.log('[useTheme] Toggling from', prevTheme, '(isDark:', currentIsDark, ') to', newTheme);
       return newTheme;
     });
-  }, [theme, isDark]);
+  }, []); // Empty deps - functional update doesn't need external dependencies
 
   return {
     theme,
