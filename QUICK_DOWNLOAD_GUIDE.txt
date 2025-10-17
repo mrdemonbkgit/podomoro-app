@@ -1,0 +1,91 @@
+🎵 QUICK DOWNLOAD GUIDE - 5 ESSENTIAL SOUNDS
+=============================================
+
+I've opened 5 browser tabs for you. Here's what to do:
+
+📋 FOR EACH TAB:
+
+Pixabay (Rain, Ocean, White Noise):
+1. Click on any sound you like
+2. Click the green "Download" button
+3. Save to: C:\Users\mrdem\ai-project\podomoro-app\public\sounds\
+4. Use these filenames:
+   - Tab 1 → rain.mp3
+   - Tab 2 → ocean.mp3
+   - Tab 5 → whitenoise.mp3
+
+Freesound (Forest, Coffee Shop):
+1. You may need to create a FREE account (takes 1 minute)
+2. Click on any sound with "loop" in the title
+3. Click "Download" button
+4. Save to: C:\Users\mrdem\ai-project\podomoro-app\public\sounds\
+5. Use these filenames:
+   - Tab 3 → forest.mp3
+   - Tab 4 → coffeeshop.mp3
+
+⏱️ ESTIMATED TIME: 5-10 minutes
+
+===============================================
+
+✅ AFTER DOWNLOADING ALL 5 FILES:
+
+1. Verify files are in: public/sounds/
+   You should see:
+   - rain.mp3
+   - ocean.mp3
+   - forest.mp3
+   - coffeeshop.mp3
+   - whitenoise.mp3
+
+2. Edit this file: src/data/audioFiles.ts
+
+3. Find these lines and UNCOMMENT them (remove the //):
+
+   rain: {
+     url: '/sounds/rain.mp3', // <-- REMOVE the // here
+     duration: 30
+   },
+   ocean: {
+     url: '/sounds/ocean.mp3', // <-- REMOVE the // here
+     duration: 30
+   },
+   forest: {
+     url: '/sounds/forest.mp3', // <-- REMOVE the // here
+     duration: 60
+   },
+   coffeeshop: {
+     url: '/sounds/coffeeshop.mp3', // <-- REMOVE the // here
+     duration: 60
+   },
+   whitenoise: {
+     url: '/sounds/whitenoise.mp3', // <-- REMOVE the // here
+     duration: 30
+   },
+
+4. Rebuild the app:
+   npm run build
+
+5. Test:
+   npm run dev
+   Click the 🎵 icon and try playing these 5 sounds!
+
+===============================================
+
+🎯 TIPS:
+
+- Look for sounds labeled "loop" or "seamless"
+- Choose sounds that are 30-60 seconds long
+- MP3 format is best
+- If a sound doesn't loop well, try a different one
+
+===============================================
+
+📚 WANT MORE SOUNDS?
+
+See download-sounds.md for all 27 sounds with direct links!
+
+===============================================
+
+Need help? The app works perfectly with synthesis,
+so there's no rush. Download at your own pace! 🎉
+
