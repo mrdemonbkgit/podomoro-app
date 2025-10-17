@@ -10,7 +10,6 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { MotivationalQuote } from './components/MotivationalQuote';
 import { FloatingNav } from './components/FloatingNav';
 import { SoundsPanel } from './components/SoundsPanel';
-import { Greeting } from './components/Greeting';
 import { getBuildNumberShort, getGitInfo } from './buildInfo';
 import './App.css';
 import './styles/glass.css';
@@ -198,9 +197,6 @@ function App() {
           </header>
           
           <div className={`${isDark ? 'glass-panel' : 'glass-panel-light'} rounded-3xl p-12 glass-transition animate-fade-in`}>
-            {/* Personalized Greeting */}
-            <Greeting isDark={isDark} />
-            
             <SessionInfo 
               sessionType={sessionType} 
               completedSessions={completedSessions}
