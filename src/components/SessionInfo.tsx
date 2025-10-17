@@ -9,17 +9,8 @@ interface SessionInfoProps {
 }
 
 export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongBreak, isDark }: SessionInfoProps) => {
-  // Show current session number during work sessions
-  const currentSessionNumber = sessionType === 'work' 
-    ? (completedSessions % sessionsUntilLongBreak) + 1 
-    : completedSessions % sessionsUntilLongBreak || sessionsUntilLongBreak;
-
   return (
-    <div className="text-center mb-6">
-      <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-lg mb-3 transition-colors duration-200`}>
-        Session {currentSessionNumber} of {sessionsUntilLongBreak}
-      </p>
-      
+    <div className="text-center mb-4">
       {/* Visual session progress dots */}
       <SessionDots 
         completedSessions={completedSessions}
