@@ -99,26 +99,35 @@ export const SoundsPanel = ({ isOpen, onClose, isDark }: SoundsPanelProps) => {
   const categories = getAllCategories();
   const currentSounds = getSoundsByCategory(selectedCategory);
 
-  if (!isOpen) return null;
+  const panelClasses = `
+    fixed right-0 top-0 bottom-0 w-full md:w-[480px] z-50 overflow-y-auto
+    transform transition-transform duration-300 ease-out
+    ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+    ${isDark ? 'glass-panel-dark' : 'glass-panel-light'}
+    shadow-2xl
+  `;
+
+  const overlayClasses = `
+    fixed inset-0 bg-black/50 backdrop-blur-sm z-40
+    transition-opacity duration-300
+    ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+  `;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 animate-fade-in"
+        className={overlayClasses}
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Panel */}
-      <div
-        className={`fixed right-0 top-0 bottom-0 w-full md:w-[480px] ${
-          isDark ? 'glass-panel-dark' : 'glass-panel-light'
-        } shadow-2xl z-50 overflow-y-auto animate-slide-in-right`}
-      >
+      <div className={panelClasses} role="dialog" aria-modal="true" aria-labelledby="sounds-panel-title">
         {/* Header */}
         <div className={`sticky top-0 ${isDark ? 'bg-gray-900/90' : 'bg-white/90'} backdrop-blur-lg border-b ${isDark ? 'border-white/10' : 'border-gray-200'} p-6 z-10`}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+            <h2 id="sounds-panel-title" className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
               🎵 Ambient Sounds
             </h2>
             <button

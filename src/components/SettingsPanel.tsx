@@ -122,8 +122,6 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
     setShowResetConfirm(false);
   };
 
-  if (!isOpen) return null;
-
   const panelClasses = `
     fixed top-0 right-0 h-full w-96 z-50
     transform transition-transform duration-300 ease-out
