@@ -3,11 +3,15 @@
 
 Write-Host "🎵 Opening Sound Download Pages..." -ForegroundColor Cyan
 Write-Host ""
+Write-Host "⚠️  IMPORTANT WARNING:" -ForegroundColor Red
+Write-Host "Only save .MP3 audio files to public/sounds/" -ForegroundColor Yellow
+Write-Host "DO NOT copy your entire Downloads folder!" -ForegroundColor Red
+Write-Host ""
 Write-Host "Instructions:" -ForegroundColor Yellow
 Write-Host "1. Each page will open in a new browser tab"
 Write-Host "2. Download the sound you like from each page"
-Write-Host "3. Save to: public/sounds/ directory"
-Write-Host "4. Use the filename shown in the console"
+Write-Host "3. Save ONLY the MP3 file to: public/sounds/ directory"
+Write-Host "4. Use the exact filename shown in the console"
 Write-Host ""
 Write-Host "Press Enter to start..." -ForegroundColor Green
 Read-Host

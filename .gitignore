@@ -32,3 +32,8 @@ coverage
 .env
 .env.local
 .env.*.local
+
+# Protect sounds folder from accidentally committed files
+public/sounds/*
+!public/sounds/*.mp3
+!public/sounds/.gitkeep

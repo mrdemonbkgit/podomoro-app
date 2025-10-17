@@ -32,63 +32,63 @@ export interface AudioFile {
 export const AUDIO_FILES: Record<string, AudioFile> = {
   // Nature Sounds
   rain: {
-    // url: '/sounds/rain.mp3', // Uncomment after adding file
+    url: '/sounds/rain.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   ocean: {
-    // url: '/sounds/ocean.mp3',
+    url: '/sounds/ocean-waves-376898.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   forest: {
-    // url: '/sounds/forest.mp3',
+    url: '/sounds/forest-ambience-296528.mp3', // ✅ File available
     duration: 60,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   river: {
-    // url: '/sounds/river.mp3',
+    url: '/sounds/soothing-river-flow-372456.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   birds: {
-    // url: '/sounds/birds.mp3',
+    url: '/sounds/sparrow-and-crickets-382498.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   crickets: {
-    // url: '/sounds/crickets.mp3',
+    url: '/sounds/sparrow-and-crickets-382498.mp3', // ✅ File available (shared with birds)
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   wind: {
-    // url: '/sounds/wind.mp3',
+    url: '/sounds/winter-wind-402331.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
 
   // Weather Sounds
   thunderstorm: {
-    // url: '/sounds/thunderstorm.mp3',
+    url: '/sounds/rain-with-thunderstorm-420333.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   heavyrain: {
-    // url: '/sounds/heavyrain.mp3',
+    url: '/sounds/heavy-rain-314309.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   snow: {
-    // url: '/sounds/snow.mp3',
-    duration: 30,
-    license: 'Add your own'
+    url: '/sounds/cold-snowfall-ambience-5-minutes-sound-effect-164512.mp3', // ✅ File available
+    duration: 300,
+    license: 'Downloaded from Pixabay'
   },
 
   // Urban Sounds
   city: {
-    // url: '/sounds/city.mp3',
+    url: '/sounds/city-ambiance-62632.mp3', // ✅ File available
     duration: 60,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   traffic: {
     // url: '/sounds/traffic.mp3',
@@ -96,36 +96,36 @@ export const AUDIO_FILES: Record<string, AudioFile> = {
     license: 'Add your own'
   },
   subway: {
-    // url: '/sounds/subway.mp3',
+    url: '/sounds/subway.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
 
   // Workspace Sounds
   coffeeshop: {
-    // url: '/sounds/coffeeshop.mp3',
+    url: '/sounds/coffeeshop.mp3', // ✅ File available
     duration: 60,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   keyboard: {
-    // url: '/sounds/keyboard.mp3',
+    url: '/sounds/keyboard.mp3', // ✅ File available
     duration: 20,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   library: {
-    // url: '/sounds/library.mp3',
+    url: '/sounds/library.mp3', // ✅ File available
     duration: 60,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   office: {
-    // url: '/sounds/office.mp3',
+    url: '/sounds/office.mp3', // ✅ File available
     duration: 60,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
   fan: {
-    // url: '/sounds/fan.mp3',
+    url: '/sounds/fan.mp3', // ✅ File available
     duration: 30,
-    license: 'Add your own'
+    license: 'Downloaded from Pixabay'
   },
 
   // Travel Sounds

@@ -4,7 +4,11 @@ import { getAudioFile, isAudioFileAvailable } from '../data/audioFiles';
 export interface ActiveSound {
   id: string;
   audio: HTMLAudioElement | undefined;
+  mediaSource?: MediaElementAudioSourceNode; // For real audio files
   gainNode: GainNode | null;
+  oscillator?: OscillatorNode; // For synthesized oscillator sounds
+  noiseSource?: AudioBufferSourceNode; // For synthesized noise sounds
+  filterNode?: BiquadFilterNode; // For filtered noise
   volume: number;
   usingSynthesis: boolean; // Track if using fallback synthesis
 }
@@ -88,7 +92,7 @@ class AmbientAudioEngineV2 {
   /**
    * Create synthesized sound (fallback)
    */
-  private createSynthesizedSound(sound: AmbientSound, volume: number): { oscillator?: OscillatorNode; noiseNode?: AudioBufferSourceNode; gainNode: GainNode } | null {
+  private createSynthesizedSound(sound: AmbientSound, volume: number): { oscillator?: OscillatorNode; noiseNode?: AudioBufferSourceNode; filterNode?: BiquadFilterNode; gainNode: GainNode } | null {
     if (!this.context || !this.masterGainNode) return null;
 
     const gainNode = this.context.createGain();
@@ -118,16 +122,16 @@ class AmbientAudioEngineV2 {
       noiseNode.buffer = buffer;
       noiseNode.loop = true;
       
-      const filter = this.context.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = sound.frequency * 2;
-      filter.Q.value = 0.5;
+      const filterNode = this.context.createBiquadFilter();
+      filterNode.type = 'lowpass';
+      filterNode.frequency.value = sound.frequency * 2;
+      filterNode.Q.value = 0.5;
       
-      noiseNode.connect(filter);
-      filter.connect(gainNode);
+      noiseNode.connect(filterNode);
+      filterNode.connect(gainNode);
       noiseNode.start();
       
-      return { noiseNode, gainNode };
+      return { noiseNode, filterNode, gainNode };
     }
   }
 
@@ -161,11 +165,11 @@ class AmbientAudioEngineV2 {
             audioClone.volume = volume / 100;
 
             // Connect to Web Audio API for better control
-            const source = this.context.createMediaElementSource(audioClone);
+            const mediaSource = this.context.createMediaElementSource(audioClone);
             const gainNode = this.context.createGain();
             gainNode.gain.value = volume / 100;
             
-            source.connect(gainNode);
+            mediaSource.connect(gainNode);
             gainNode.connect(this.masterGainNode);
 
             // Play
@@ -174,6 +178,7 @@ class AmbientAudioEngineV2 {
             const activeSound: ActiveSound = {
               id: sound.id,
               audio: audioClone,
+              mediaSource, // Store the media source
               gainNode,
               volume,
               usingSynthesis: false
@@ -195,6 +200,9 @@ class AmbientAudioEngineV2 {
           id: sound.id,
           audio: undefined,
           gainNode: synth.gainNode,
+          oscillator: synth.oscillator,
+          noiseSource: synth.noiseNode,
+          filterNode: synth.filterNode,
           volume,
           usingSynthesis: true
         };
@@ -211,9 +219,14 @@ class AmbientAudioEngineV2 {
    */
   stopSound(soundId: string): void {
     const activeSound = this.activeSounds.get(soundId);
-    if (!activeSound) return;
+    if (!activeSound) {
+      console.warn(`[AmbientAudioV2] Cannot stop sound ${soundId}: not found in active sounds`);
+      return;
+    }
 
     try {
+      console.log(`[AmbientAudioV2] Stopping sound: ${soundId}`);
+
       // Fade out for smooth stop
       if (activeSound.gainNode && this.context) {
         activeSound.gainNode.gain.setValueAtTime(
@@ -222,22 +235,62 @@ class AmbientAudioEngineV2 {
         );
         activeSound.gainNode.gain.linearRampToValueAtTime(
           0,
-          this.context.currentTime + 0.5
+          this.context.currentTime + 0.3
         );
       }
 
       // Stop after fade
       setTimeout(() => {
-        if (activeSound.audio) {
-          activeSound.audio.pause();
-          activeSound.audio.currentTime = 0;
-          activeSound.audio = undefined;
+        try {
+          // Stop HTML5 audio element
+          if (activeSound.audio) {
+            activeSound.audio.pause();
+            activeSound.audio.currentTime = 0;
+          }
+
+          // Disconnect media source
+          if (activeSound.mediaSource) {
+            activeSound.mediaSource.disconnect();
+          }
+
+          // Stop and disconnect oscillator
+          if (activeSound.oscillator) {
+            try {
+              activeSound.oscillator.stop();
+              activeSound.oscillator.disconnect();
+            } catch (e) {
+              // Oscillator may already be stopped
+            }
+          }
+
+          // Stop and disconnect noise source
+          if (activeSound.noiseSource) {
+            try {
+              activeSound.noiseSource.stop();
+              activeSound.noiseSource.disconnect();
+            } catch (e) {
+              // Noise source may already be stopped
+            }
+          }
+
+          // Disconnect filter
+          if (activeSound.filterNode) {
+            activeSound.filterNode.disconnect();
+          }
+
+          // Disconnect gain node
+          if (activeSound.gainNode) {
+            activeSound.gainNode.disconnect();
+          }
+
+          // Remove from active sounds
+          this.activeSounds.delete(soundId);
+          console.log(`[AmbientAudioV2] Successfully stopped sound: ${soundId}`);
+        } catch (error) {
+          console.error(`[AmbientAudioV2] Error during sound cleanup for ${soundId}:`, error);
+          this.activeSounds.delete(soundId);
         }
-        if (activeSound.gainNode) {
-          activeSound.gainNode.disconnect();
-        }
-        this.activeSounds.delete(soundId);
-      }, 500);
+      }, 300);
     } catch (error) {
       console.error(`[AmbientAudioV2] Failed to stop sound ${soundId}:`, error);
       this.activeSounds.delete(soundId);
