@@ -208,12 +208,7 @@ function App() {
               isDark={isDark}
             />
             
-            <MotivationalQuote 
-              sessionType={sessionType}
-              isDark={isDark}
-            />
-            
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-12 mt-8">
               <Timer 
                 time={time} 
                 initialTime={
@@ -225,6 +220,11 @@ function App() {
                 isDark={isDark} 
               />
             </div>
+            
+            <MotivationalQuote 
+              sessionType={sessionType}
+              isDark={isDark}
+            />
             
             <Controls 
               isActive={isActive}

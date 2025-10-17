@@ -40,17 +40,17 @@ export const Timer = ({ time, initialTime, sessionType, isDark }: TimerProps) =>
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block py-4">
       {/* Circular Progress Ring */}
       <CircularProgress 
         progress={progress} 
         sessionType={sessionType} 
         isDark={isDark}
-        size={500}
+        size={420}
       />
       
       {/* Timer Display */}
-      <div className={`relative z-10 text-8xl md:text-9xl lg:text-[12rem] xl:text-[14rem] font-black ${getTimerColor()} tabular-nums tracking-tight drop-shadow-2xl animate-pulse-subtle transition-all duration-200`}>
+      <div className={`relative z-10 text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black ${getTimerColor()} tabular-nums tracking-tight drop-shadow-2xl animate-pulse-subtle transition-all duration-200`}>
         {formattedTime}
       </div>
     </div>
