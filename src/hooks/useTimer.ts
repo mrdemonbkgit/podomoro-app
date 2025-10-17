@@ -8,6 +8,7 @@ import {
 import { Settings } from '../types/settings';
 import { playNotification } from '../utils/audio';
 import { notifySessionComplete } from '../utils/notifications';
+import { celebrateCompletion } from '../utils/confetti';
 import { usePersistedState, clearPersistedState, hasPersistedState } from './usePersistedState';
 
 interface UseTimerReturn {
@@ -212,6 +213,9 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     if (settings.notificationsEnabled) {
       notifySessionComplete(sessionType);
     }
+    
+    // Celebrate completion with confetti! 🎉
+    celebrateCompletion(sessionType);
     
     setState(prev => {
       if (prev.sessionType === 'work') {

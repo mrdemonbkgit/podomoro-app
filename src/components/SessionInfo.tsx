@@ -1,4 +1,5 @@
 import { SessionType } from '../types/timer';
+import { SessionDots } from './SessionDots';
 
 interface SessionInfoProps {
   sessionType: SessionType;
@@ -47,6 +48,14 @@ export const SessionInfo = ({ sessionType, completedSessions, sessionsUntilLongB
       <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} text-lg transition-colors duration-200`}>
         Session {currentSessionNumber} of {sessionsUntilLongBreak}
       </p>
+      
+      {/* Visual session progress dots */}
+      <SessionDots 
+        completedSessions={completedSessions}
+        totalSessions={sessionsUntilLongBreak}
+        sessionType={sessionType}
+        isDark={isDark}
+      />
     </div>
   );
 };

@@ -6,11 +6,11 @@ import { Timer } from './components/Timer';
 import { Controls } from './components/Controls';
 import { SessionInfo } from './components/SessionInfo';
 import { ResumePrompt } from './components/ResumePrompt';
-import { SettingsModal } from './components/SettingsModal';
-import { Settings } from './components/Settings';
+import { SettingsPanel } from './components/SettingsPanel';
 import { MotivationalQuote } from './components/MotivationalQuote';
 import { FloatingNav } from './components/FloatingNav';
 import { SoundsPanel } from './components/SoundsPanel';
+import { Greeting } from './components/Greeting';
 import { getBuildNumberShort, getGitInfo } from './buildInfo';
 import './App.css';
 import './styles/glass.css';
@@ -198,6 +198,9 @@ function App() {
           </header>
           
           <div className={`${isDark ? 'glass-panel' : 'glass-panel-light'} rounded-3xl p-12 glass-transition animate-fade-in`}>
+            {/* Personalized Greeting */}
+            <Greeting isDark={isDark} />
+            
             <SessionInfo 
               sessionType={sessionType} 
               completedSessions={completedSessions}
@@ -211,7 +214,16 @@ function App() {
             />
             
             <div className="flex justify-center mb-8">
-              <Timer time={time} sessionType={sessionType} isDark={isDark} />
+              <Timer 
+                time={time} 
+                initialTime={
+                  sessionType === 'work' ? settings.workDuration * 60 :
+                  sessionType === 'shortBreak' ? settings.shortBreakDuration * 60 :
+                  settings.longBreakDuration * 60
+                }
+                sessionType={sessionType} 
+                isDark={isDark} 
+              />
             </div>
             
             <Controls 
@@ -263,16 +275,15 @@ function App() {
         isDark={isDark}
       />
 
-      {/* Settings Modal */}
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} isDark={isDark}>
-        <Settings
-          settings={settings}
-          onSave={updateSettings}
-          onReset={resetSettings}
-          onClose={() => setIsSettingsOpen(false)}
-          isDark={isDark}
-        />
-      </SettingsModal>
+      {/* Settings Panel */}
+      <SettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        isDark={isDark}
+        settings={settings}
+        onSave={updateSettings}
+        onReset={resetSettings}
+      />
     </div>
   );
 }

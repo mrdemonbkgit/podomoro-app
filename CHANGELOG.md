@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 🎨 **Phase 3 & 4: UI/UX Upgrade Complete** - Major visual and interaction enhancements:
+  - **Circular Progress Ring** - Beautiful animated ring around timer showing session progress
+  - **Session Completion Dots** - Visual progress indicators with checkmarks and pulsing current session
+  - **Confetti Celebrations** 🎉 - Animated celebrations on session completion (work/break/long break)
+  - **Personalized Greeting** - Time-based greeting (Good morning/afternoon/evening) with custom name option
+  - **Settings Slide-out Panel** - Converted modal to slide-out panel for consistency with sounds mixer
+  - **Framer Motion Integration** - Smooth spring animations throughout the app
+  - **Auto Dark Mode** - Already supported via system preferences (light/dark/system modes)
 - 🎵 **Phase 2: Real Audio Files Integration - Batch 2** - Integrated 9 additional real audio files:
   - Nature: Ocean Waves, Forest, River Stream, Birds Chirping, Crickets, Wind
   - Weather: Thunderstorm, Heavy Rain, Snowfall
@@ -27,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation with comprehensive sound inventory
 
 ### Fixed
+- **[P0] Ambient sounds stop button** - Complete redesign of audio engine to fix critical bug where sounds wouldn't stop
+- **Race conditions** in audio loading preventing duplicate sound instances
+- **Audio element lifecycle** - Proper pause() before disconnect() to prevent independent playback
 - Git ignore rules to protect `public/sounds/` from accidental commits
 - Added README.md in `public/sounds/` with safety guidelines
 
