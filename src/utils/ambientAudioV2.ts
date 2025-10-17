@@ -3,9 +3,9 @@ import { getAudioFile, isAudioFileAvailable } from '../data/audioFiles';
 
 export interface ActiveSound {
   id: string;
-  audio: HTMLAudioElement | undefined;
+  audio?: HTMLAudioElement; // For real audio files
   mediaSource?: MediaElementAudioSourceNode; // For real audio files
-  gainNode: GainNode | null;
+  gainNode: GainNode;
   oscillator?: OscillatorNode; // For synthesized oscillator sounds
   noiseSource?: AudioBufferSourceNode; // For synthesized noise sounds
   filterNode?: BiquadFilterNode; // For filtered noise
@@ -143,62 +143,98 @@ class AmbientAudioEngineV2 {
       this.initContext();
       if (!this.context || !this.masterGainNode) return;
 
-      // Stop if already playing
+      // CRITICAL: Prevent duplicate starts - add placeholder IMMEDIATELY
       if (this.activeSounds.has(sound.id)) {
-        this.stopSound(sound.id);
+        console.warn(`[AmbientAudioV2] ⚠️ Sound ${sound.id} is ALREADY PLAYING or LOADING - ignoring duplicate start!`);
+        return; // Don't start again!
       }
+
+      console.log(`[AmbientAudioV2] 🎵 Starting sound: ${sound.id}`);
+
+      // Reserve this sound ID immediately to prevent race condition
+      // We'll replace this placeholder with the real ActiveSound once loaded
+      const placeholderGain = this.context.createGain();
+      placeholderGain.gain.value = 0; // Silent placeholder
+      this.activeSounds.set(sound.id, {
+        id: sound.id,
+        gainNode: placeholderGain,
+        volume: 0,
+        usingSynthesis: false
+      });
 
       // Try to use audio file first
       if (isAudioFileAvailable(sound.id)) {
         try {
-          // Get or preload audio
-          let audio = this.preloadedAudio.get(sound.id);
-          if (!audio) {
-            const preloadedAudio = await this.preloadAudio(sound.id);
-            audio = preloadedAudio || undefined;
+          // Create a NEW audio element for each play (don't reuse or clone)
+          const audioFile = getAudioFile(sound.id);
+          if (!audioFile || !audioFile.url) {
+            throw new Error('Audio file URL not available');
           }
 
-          if (audio) {
-            // Clone the audio element to allow multiple plays
-            const audioClone = audio.cloneNode() as HTMLAudioElement;
-            audioClone.loop = true;
-            audioClone.volume = volume / 100;
+          // Create fresh audio element
+          const audio = new Audio(audioFile.url);
+          audio.loop = true;
+          audio.preload = 'auto';
+          
+          // Load the audio
+          await new Promise((resolve, reject) => {
+            audio.addEventListener('canplaythrough', resolve, { once: true });
+            audio.addEventListener('error', reject, { once: true });
+            audio.load();
+          });
 
-            // Connect to Web Audio API for better control
-            const mediaSource = this.context.createMediaElementSource(audioClone);
-            const gainNode = this.context.createGain();
-            gainNode.gain.value = volume / 100;
-            
-            mediaSource.connect(gainNode);
-            gainNode.connect(this.masterGainNode);
+          console.log(`[AmbientAudioV2] Audio loaded for ${sound.id}`);
 
-            // Play
-            await audioClone.play();
+          // Create Web Audio nodes
+          const mediaSource = this.context.createMediaElementSource(audio);
+          const gainNode = this.context.createGain();
+          gainNode.gain.value = volume / 100;
+          
+          // Connect: audio -> mediaSource -> gainNode -> master -> destination
+          mediaSource.connect(gainNode);
+          gainNode.connect(this.masterGainNode);
 
-            const activeSound: ActiveSound = {
-              id: sound.id,
-              audio: audioClone,
-              mediaSource, // Store the media source
-              gainNode,
-              volume,
-              usingSynthesis: false
-            };
+          // Disconnect placeholder
+          placeholderGain.disconnect();
 
-            this.activeSounds.set(sound.id, activeSound);
-            console.log(`[AmbientAudioV2] Playing audio file: ${sound.id}`);
-            return;
-          }
+          // Play
+          await audio.play();
+          console.log(`[AmbientAudioV2] Audio playing for ${sound.id}`);
+
+          // Replace placeholder with real ActiveSound
+          const activeSound: ActiveSound = {
+            id: sound.id,
+            audio,
+            mediaSource,
+            gainNode,
+            volume,
+            usingSynthesis: false
+          };
+
+          this.activeSounds.set(sound.id, activeSound);
+          console.log(`[AmbientAudioV2] ✅ Playing audio file: ${sound.id}`);
+          return;
         } catch (error) {
           console.warn(`[AmbientAudioV2] Failed to play audio file for ${sound.id}, falling back to synthesis:`, error);
+          // Remove placeholder, will be replaced by synth
+          placeholderGain.disconnect();
+          this.activeSounds.delete(sound.id);
         }
       }
 
-      // Fallback to synthesized sound
+      // Fallback to synthesized sound (or if no audio file available)
       const synth = this.createSynthesizedSound(sound, volume);
       if (synth) {
+        // Disconnect placeholder if still exists
+        if (this.activeSounds.has(sound.id)) {
+          const placeholder = this.activeSounds.get(sound.id);
+          if (placeholder?.gainNode) {
+            placeholder.gainNode.disconnect();
+          }
+        }
+
         const activeSound: ActiveSound = {
           id: sound.id,
-          audio: undefined,
           gainNode: synth.gainNode,
           oscillator: synth.oscillator,
           noiseSource: synth.noiseNode,
@@ -207,10 +243,16 @@ class AmbientAudioEngineV2 {
           usingSynthesis: true
         };
         this.activeSounds.set(sound.id, activeSound);
-        console.log(`[AmbientAudioV2] Playing synthesized sound: ${sound.id}`);
+        console.log(`[AmbientAudioV2] ✅ Playing synthesized sound: ${sound.id}`);
+      } else {
+        // Failed to create synth, remove placeholder
+        console.error(`[AmbientAudioV2] Failed to create sound for ${sound.id}`);
+        this.activeSounds.delete(sound.id);
       }
     } catch (error) {
       console.error(`[AmbientAudioV2] Failed to start sound ${sound.id}:`, error);
+      // Clean up placeholder on error
+      this.activeSounds.delete(sound.id);
     }
   }
 
@@ -220,79 +262,76 @@ class AmbientAudioEngineV2 {
   stopSound(soundId: string): void {
     const activeSound = this.activeSounds.get(soundId);
     if (!activeSound) {
-      console.warn(`[AmbientAudioV2] Cannot stop sound ${soundId}: not found in active sounds`);
+      console.warn(`[AmbientAudioV2] Cannot stop sound ${soundId}: not found`);
       return;
     }
 
-    try {
-      console.log(`[AmbientAudioV2] Stopping sound: ${soundId}`);
+    console.log(`[AmbientAudioV2] 🛑 Stopping sound: ${soundId}`);
 
-      // Fade out for smooth stop
-      if (activeSound.gainNode && this.context) {
-        activeSound.gainNode.gain.setValueAtTime(
-          activeSound.gainNode.gain.value,
-          this.context.currentTime
-        );
-        activeSound.gainNode.gain.linearRampToValueAtTime(
-          0,
-          this.context.currentTime + 0.3
-        );
+    try {
+      // CRITICAL FIX: Pause HTML5 audio FIRST before disconnecting!
+      // Once disconnected, the audio element plays independently!
+      if (activeSound.audio) {
+        console.log(`[AmbientAudioV2] Step 1: Pausing audio element FIRST`);
+        activeSound.audio.pause();
+        activeSound.audio.volume = 0; // Mute it
+        activeSound.audio.currentTime = 0;
       }
 
-      // Stop after fade
-      setTimeout(() => {
+      // Step 2: Stop oscillators/noise immediately
+      if (activeSound.oscillator) {
         try {
-          // Stop HTML5 audio element
-          if (activeSound.audio) {
-            activeSound.audio.pause();
-            activeSound.audio.currentTime = 0;
-          }
-
-          // Disconnect media source
-          if (activeSound.mediaSource) {
-            activeSound.mediaSource.disconnect();
-          }
-
-          // Stop and disconnect oscillator
-          if (activeSound.oscillator) {
-            try {
-              activeSound.oscillator.stop();
-              activeSound.oscillator.disconnect();
-            } catch (e) {
-              // Oscillator may already be stopped
-            }
-          }
-
-          // Stop and disconnect noise source
-          if (activeSound.noiseSource) {
-            try {
-              activeSound.noiseSource.stop();
-              activeSound.noiseSource.disconnect();
-            } catch (e) {
-              // Noise source may already be stopped
-            }
-          }
-
-          // Disconnect filter
-          if (activeSound.filterNode) {
-            activeSound.filterNode.disconnect();
-          }
-
-          // Disconnect gain node
-          if (activeSound.gainNode) {
-            activeSound.gainNode.disconnect();
-          }
-
-          // Remove from active sounds
-          this.activeSounds.delete(soundId);
-          console.log(`[AmbientAudioV2] Successfully stopped sound: ${soundId}`);
-        } catch (error) {
-          console.error(`[AmbientAudioV2] Error during sound cleanup for ${soundId}:`, error);
-          this.activeSounds.delete(soundId);
+          activeSound.oscillator.stop();
+        } catch (e) {
+          // Already stopped
         }
-      }, 300);
+      }
+
+      if (activeSound.noiseSource) {
+        try {
+          activeSound.noiseSource.stop();
+        } catch (e) {
+          // Already stopped
+        }
+      }
+
+      // Step 3: NOW disconnect from audio graph
+      if (activeSound.gainNode) {
+        console.log(`[AmbientAudioV2] Step 2: Disconnecting gainNode`);
+        activeSound.gainNode.disconnect();
+      }
+
+      if (activeSound.mediaSource) {
+        console.log(`[AmbientAudioV2] Step 3: Disconnecting mediaSource`);
+        activeSound.mediaSource.disconnect();
+      }
+
+      if (activeSound.filterNode) {
+        activeSound.filterNode.disconnect();
+      }
+
+      if (activeSound.oscillator) {
+        activeSound.oscillator.disconnect();
+      }
+
+      if (activeSound.noiseSource) {
+        activeSound.noiseSource.disconnect();
+      }
+
+      // Step 4: Final cleanup of audio element
+      if (activeSound.audio) {
+        console.log(`[AmbientAudioV2] Step 4: Final audio cleanup`);
+        activeSound.audio.src = '';
+        activeSound.audio.load();
+      }
+
+      // Step 5: Remove from active sounds immediately
+      this.activeSounds.delete(soundId);
+      console.log(`[AmbientAudioV2] ✅ Sound stopped and removed: ${soundId}`);
+      
     } catch (error) {
-      console.error(`[AmbientAudioV2] Failed to stop sound ${soundId}:`, error);
+      console.error(`[AmbientAudioV2] ❌ Error stopping sound ${soundId}:`, error);
+      // Force remove even if error
       this.activeSounds.delete(soundId);
     }
   }
