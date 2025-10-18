@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { SessionType } from '../types/timer';
-import { CircularProgress } from './CircularProgress';
 
 interface TimerProps {
   time: number;
@@ -19,38 +18,17 @@ export const Timer = ({ time, initialTime, sessionType, isDark }: TimerProps) =>
 
   useEffect(() => {
     // Update document title with countdown
-    document.title = `${formattedTime} - Pomodoro Timer`;
+    document.title = `${formattedTime} - ZenFocus`;
     
     return () => {
-      document.title = 'Pomodoro Timer';
+      document.title = 'ZenFocus - Find Your Flow';
     };
   }, [formattedTime]);
 
-  const getTimerColor = () => {
-    switch (sessionType) {
-      case 'work':
-        return isDark ? 'text-red-400' : 'text-red-500';
-      case 'shortBreak':
-        return isDark ? 'text-green-400' : 'text-green-500';
-      case 'longBreak':
-        return isDark ? 'text-blue-400' : 'text-blue-500';
-      default:
-        return isDark ? 'text-gray-100' : 'text-gray-900';
-    }
-  };
-
   return (
-    <div className="relative inline-block py-4">
-      {/* Circular Progress Ring */}
-      <CircularProgress 
-        progress={progress} 
-        sessionType={sessionType} 
-        isDark={isDark}
-        size={420}
-      />
-      
-      {/* Timer Display */}
-      <div className={`relative z-10 text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black ${getTimerColor()} tabular-nums tracking-tight drop-shadow-2xl animate-pulse-subtle transition-all duration-200`}>
+    <div className="relative w-full flex items-center justify-center">
+      {/* Timer Display - Massive and centered */}
+      <div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-bold text-white/90 tabular-nums tracking-tight drop-shadow-2xl">
         {formattedTime}
       </div>
     </div>

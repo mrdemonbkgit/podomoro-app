@@ -26,15 +26,12 @@ export const MotivationalQuote = ({ sessionType, isDark }: MotivationalQuoteProp
 
   return (
     <div 
-      className={`text-center mb-6 mt-2 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       role="status"
       aria-live="polite"
     >
-      <p className={`text-lg md:text-xl italic ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 leading-relaxed`}>
+      <p className="text-lg md:text-xl font-medium text-white/90 leading-relaxed">
         "{quote.text}"
-      </p>
-      <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-        — {quote.author}
       </p>
     </div>
   );

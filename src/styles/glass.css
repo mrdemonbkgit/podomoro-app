@@ -49,64 +49,70 @@
     inset 1px 0 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Enhanced gradients for timer container */
+/* Enhanced gradients for timer container - Flocus style */
 .gradient-work-dark {
   background: linear-gradient(135deg, 
-    #1a0f1e 0%, 
-    #2d1b3d 25%, 
-    #3d1e47 50%, 
-    #4a1e52 75%, 
-    #5a1e5e 100%
+    #1e3a8a 0%,
+    #3b4f9e 20%,
+    #6b5b95 40%,
+    #9b5f8d 60%,
+    #c75c7c 80%,
+    #f06464 100%
   );
 }
 
 .gradient-work-light {
   background: linear-gradient(135deg,
-    #ffe5e5 0%,
-    #ffd4e5 25%,
-    #ffc3d4 50%,
-    #ffb3c3 75%,
-    #ffa3b3 100%
+    #3b82f6 0%,
+    #6366f1 20%,
+    #8b5cf6 40%,
+    #a855f7 60%,
+    #ec4899 80%,
+    #f87171 100%
   );
 }
 
 .gradient-break-dark {
   background: linear-gradient(135deg,
-    #0d2818 0%,
-    #0f3d2c 25%,
-    #115740 50%,
-    #137154 75%,
-    #158b68 100%
+    #1e3a8a 0%,
+    #3b4f9e 20%,
+    #5b6f95 40%,
+    #7b7f8d 60%,
+    #9b8f7c 80%,
+    #c7a464 100%
   );
 }
 
 .gradient-break-light {
   background: linear-gradient(135deg,
-    #d4ffe5 0%,
-    #c3ffd4 25%,
-    #b3ffc3 50%,
-    #a3ffb3 75%,
-    #93ffa3 100%
+    #3b82f6 0%,
+    #6366f1 20%,
+    #8b5cf6 40%,
+    #a855f7 60%,
+    #d946ef 80%,
+    #fbbf24 100%
   );
 }
 
 .gradient-longbreak-dark {
   background: linear-gradient(135deg,
-    #0f1419 0%,
-    #1a1f3a 25%,
-    #252a5b 50%,
-    #30357c 75%,
-    #3b409d 100%
+    #1e3a8a 0%,
+    #3b4f9e 20%,
+    #5b6095 40%,
+    #7b708d 60%,
+    #9b807c 80%,
+    #ba8f64 100%
   );
 }
 
 .gradient-longbreak-light {
   background: linear-gradient(135deg,
-    #e5f1ff 0%,
-    #d4e5ff 25%,
-    #c3d9ff 50%,
-    #b3cdff 75%,
-    #a3c1ff 100%
+    #3b82f6 0%,
+    #6366f1 20%,
+    #8b5cf6 40%,
+    #a855f7 60%,
+    #c084fc 80%,
+    #e9d5ff 100%
   );
 }
 
