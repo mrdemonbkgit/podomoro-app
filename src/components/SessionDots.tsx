@@ -8,7 +8,7 @@ interface SessionDotsProps {
   isDark: boolean;
 }
 
-export const SessionDots = ({ completedSessions, totalSessions, sessionType, isDark }: SessionDotsProps) => {
+export const SessionDots = ({ completedSessions, totalSessions, sessionType }: SessionDotsProps) => {
   const dots = Array.from({ length: totalSessions }, (_, index) => index);
   const currentSession = completedSessions % totalSessions;
 

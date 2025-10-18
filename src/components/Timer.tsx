@@ -8,13 +8,10 @@ interface TimerProps {
   isDark: boolean;
 }
 
-export const Timer = ({ time, initialTime, sessionType, isDark }: TimerProps) => {
+export const Timer = ({ time }: TimerProps) => {
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
   const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-  // Calculate progress percentage (inverted: 0 = complete, 100 = just started)
-  const progress = initialTime > 0 ? ((initialTime - time) / initialTime) * 100 : 0;
 
   useEffect(() => {
     // Update document title with countdown

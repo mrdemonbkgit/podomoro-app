@@ -10,7 +10,6 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { MotivationalQuote } from './components/MotivationalQuote';
 import { FloatingNav } from './components/FloatingNav';
 import { SoundsPanel } from './components/SoundsPanel';
-import { getBuildNumberShort, getGitInfo } from './buildInfo';
 import './App.css';
 import './styles/glass.css';
 

@@ -10,7 +10,7 @@ interface ControlsProps {
   isDark: boolean;
 }
 
-export const Controls = ({ isActive, onStart, onPause, onReset, onSkip, sessionType, isDark }: ControlsProps) => {
+export const Controls = ({ isActive, onStart, onPause, onReset, onSkip, sessionType }: ControlsProps) => {
   const isBreak = sessionType !== 'work';
   return (
     <div className="flex gap-4 justify-center mt-4 items-center">

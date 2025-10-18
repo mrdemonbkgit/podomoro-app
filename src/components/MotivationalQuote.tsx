@@ -6,7 +6,7 @@ interface MotivationalQuoteProps {
   isDark: boolean;
 }
 
-export const MotivationalQuote = ({ sessionType, isDark }: MotivationalQuoteProps) => {
+export const MotivationalQuote = ({ sessionType }: MotivationalQuoteProps) => {
   const [quote, setQuote] = useState<Quote>(() => getRandomQuote(sessionType === 'work'));
   const [isVisible, setIsVisible] = useState(true);
 
