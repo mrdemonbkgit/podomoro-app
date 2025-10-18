@@ -27,8 +27,8 @@ export const Timer = ({ time, initialTime, sessionType, isDark }: TimerProps) =>
 
   return (
     <div className="relative w-full flex items-center justify-center">
-      {/* Timer Display - Massive and centered */}
-      <div className="text-[8rem] md:text-[12rem] lg:text-[16rem] font-bold text-white/90 tabular-nums tracking-tight drop-shadow-2xl">
+      {/* Timer Display - Large and centered */}
+      <div className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white/90 tabular-nums tracking-tight drop-shadow-2xl">
         {formattedTime}
       </div>
     </div>

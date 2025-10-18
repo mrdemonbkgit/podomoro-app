@@ -205,8 +205,8 @@ function App() {
       </div>
 
       {/* Main Content - Centered */}
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 pt-24 pb-8">
-        <main className="w-full max-w-4xl">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-6">
+        <main className="w-full max-w-4xl flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 3rem)' }}>
           {/* Session Type Question */}
           <SessionInfo 
             sessionType={sessionType} 
@@ -216,7 +216,7 @@ function App() {
           />
           
           {/* Timer */}
-          <div className="flex justify-center my-12">
+          <div className="flex justify-center my-6 md:my-8">
             <Timer 
               time={time} 
               initialTime={
