@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTimer } from './hooks/useTimer';
 import { useSettings } from './hooks/useSettings';
 import { useTheme } from './hooks/useTheme';
+import { useTasks } from './hooks/useTasks';
 import { Timer } from './components/Timer';
 import { Controls } from './components/Controls';
 import { SessionInfo } from './components/SessionInfo';
@@ -10,16 +11,22 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { MotivationalQuote } from './components/MotivationalQuote';
 import { FloatingNav } from './components/FloatingNav';
 import { SoundsPanel } from './components/SoundsPanel';
+import { TasksModal } from './components/TasksModal';
 import './App.css';
 import './styles/glass.css';
 
 function App() {
   const { settings, updateSettings, resetSettings } = useSettings();
   const { isDark, toggleTheme } = useTheme();
+  const { tasks, updateTask, toggleTask, resetTasks } = useTasks();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSoundsOpen, setIsSoundsOpen] = useState(false);
+  const [isTasksOpen, setIsTasksOpen] = useState(false);
   
   const { time, isActive, sessionType, completedSessions, hasResumableState, elapsedWhileAway, start, pause, reset, dismissResume, skipBreak } = useTimer({ settings });
+
+  // Get the first unfinished task to display
+  const currentTask = tasks.find(task => !task.completed && task.text.trim() !== '')?.text;
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -150,6 +157,8 @@ function App() {
             completedSessions={completedSessions}
             sessionsUntilLongBreak={settings.sessionsUntilLongBreak}
             isDark={isDark}
+            onEditTasks={() => setIsTasksOpen(true)}
+            currentTask={currentTask}
           />
           
           {/* Timer */}
@@ -202,6 +211,17 @@ function App() {
         settings={settings}
         onSave={updateSettings}
         onReset={resetSettings}
+      />
+
+      {/* Tasks Modal */}
+      <TasksModal
+        isOpen={isTasksOpen}
+        onClose={() => setIsTasksOpen(false)}
+        tasks={tasks}
+        onUpdateTask={updateTask}
+        onToggleTask={toggleTask}
+        onReset={resetTasks}
+        isDark={isDark}
       />
     </div>
   );

@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 🎯 **Task Management (Focus Priorities)** - Simple task management inspired by Flocus:
+  - Set up to 3 daily focus priorities
+  - Current task displays on main screen
+  - Click edit icon to open Focus Priorities modal
+  - Check off tasks as you complete them
+  - Auto-progression to next unfinished task
+  - Smooth modal animations with Framer Motion
+  - Keyboard shortcuts: Enter to move between tasks, Escape to close
+  - Tasks persist in localStorage across sessions
+  - Staggered entrance animations for task items
 - 🎨 **Phase 3 & 4: UI/UX Upgrade Complete** - Major visual and interaction enhancements:
   - **Circular Progress Ring** - Beautiful animated ring around timer showing session progress
   - **Session Completion Dots** - Visual progress indicators with checkmarks and pulsing current session
@@ -42,6 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Single-line display with ellipsis overflow
   - More subtle styling (smaller text, lighter weight, italic)
   - Better positioned alignment at top-right
+- **Session Info Component** - Updated to display current active task:
+  - Shows first unfinished task as main heading
+  - Falls back to default question when no tasks set
+  - Automatically updates as tasks are completed
 
 ### Fixed
 - **[P0] Ambient sounds stop button** - Complete redesign of audio engine to fix critical bug where sounds wouldn't stop
