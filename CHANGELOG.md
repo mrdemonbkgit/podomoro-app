@@ -33,6 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced audio quality for all nature and weather sounds
 - All quick presets now use primarily real audio files
 - Updated documentation with comprehensive sound inventory
+- **UI Cleanup** - Streamlined top navigation:
+  - Removed redundant settings button from top-right corner
+  - Moved dark mode toggle to floating navigation menu (bottom-right)
+  - Cleaner header with only ZenFocus logo
+  - All controls now consolidated in bottom-right floating menu
+- **Motivational Quotes** - Refined display for cleaner UI:
+  - Single-line display with ellipsis overflow
+  - More subtle styling (smaller text, lighter weight, italic)
+  - Better positioned alignment at top-right
 
 ### Fixed
 - **[P0] Ambient sounds stop button** - Complete redesign of audio engine to fix critical bug where sounds wouldn't stop

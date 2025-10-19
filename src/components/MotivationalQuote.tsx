@@ -30,7 +30,7 @@ export const MotivationalQuote = ({ sessionType }: MotivationalQuoteProps) => {
       role="status"
       aria-live="polite"
     >
-      <p className="text-lg md:text-xl font-medium text-white/90 leading-relaxed">
+      <p className="text-sm font-light text-white/70 whitespace-nowrap overflow-hidden text-ellipsis italic">
         "{quote.text}"
       </p>
     </div>
