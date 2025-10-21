@@ -53,7 +53,11 @@ Start with `core/ARCHITECTURE.md` to understand the overall application structur
 - [`DEV_LOGIN_GUIDE.md`](../DEV_LOGIN_GUIDE.md) - Dev Login feature for automated testing (bypasses Google OAuth)
 
 **Phase Summaries:**
-- `PHASE_3_COMPLETE_SUMMARY.md` - Phase 3 completion report (Check-Ins, Relapse Tracking, UI improvements)
+- `phase-summaries/` - Implementation plans and completion reports for each phase
+  - Phase 1: Firebase Auth setup
+  - Phase 2: Streak tracking foundation
+  - Phase 3: Check-ins and relapse tracking
+  - Phase 4: AI therapist chat (in progress)
 
 ### `tools/` - Development Tools
 - MCP setup and testing workflows
