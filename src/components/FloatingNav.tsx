@@ -1,3 +1,5 @@
+import { Link, useLocation } from 'react-router-dom';
+
 interface FloatingNavProps {
   onSettingsClick: () => void;
   onSoundsClick: () => void;
@@ -6,23 +8,41 @@ interface FloatingNavProps {
 }
 
 export const FloatingNav = ({ onSettingsClick, onSoundsClick, onThemeToggle, isDark }: FloatingNavProps) => {
+  const location = useLocation();
+  const isTimerPage = location.pathname === '/' || location.pathname === '/timer';
+  const isKamehamehaPage = location.pathname === '/kamehameha';
+
   return (
     <nav 
       className="fixed bottom-8 right-8 z-50 animate-slide-up"
       aria-label="Main navigation"
     >
       <div className={`flex items-center gap-2 px-4 py-3 ${isDark ? 'glass-panel' : 'glass-panel-light'} rounded-full shadow-2xl glass-transition`}>
-        {/* Timer Icon (Active) */}
-        <button
-          className={`p-3 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-900/10'} transition-all hover:scale-110`}
-          aria-label="Timer (current)"
-          aria-current="page"
+        {/* Timer Icon */}
+        <Link
+          to="/timer"
+          className={`p-3 rounded-full ${isTimerPage ? (isDark ? 'bg-white/10' : 'bg-gray-900/10') : ''} transition-all hover:scale-110`}
+          aria-label={isTimerPage ? 'Timer (current)' : 'Timer'}
+          aria-current={isTimerPage ? 'page' : undefined}
           title="Timer"
         >
           <span className="text-2xl" role="img" aria-label="Timer">
             🍅
           </span>
-        </button>
+        </Link>
+
+        {/* Kamehameha Icon */}
+        <Link
+          to="/kamehameha"
+          className={`p-3 rounded-full ${isKamehamehaPage ? (isDark ? 'bg-white/10' : 'bg-gray-900/10') : ''} transition-all hover:scale-110`}
+          aria-label={isKamehamehaPage ? 'Kamehameha (current)' : 'Kamehameha'}
+          aria-current={isKamehamehaPage ? 'page' : undefined}
+          title="Kamehameha Recovery Tool"
+        >
+          <span className="text-2xl" role="img" aria-label="Kamehameha">
+            🔥
+          </span>
+        </Link>
 
         {/* Divider */}
         <div className={`w-px h-8 ${isDark ? 'bg-white/10' : 'bg-gray-900/10'}`} />

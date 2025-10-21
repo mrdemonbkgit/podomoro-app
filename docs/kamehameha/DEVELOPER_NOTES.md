@@ -506,6 +506,123 @@ firebase emulators:start --only functions
 
 ---
 
+## 🧪 Dev Login Feature (Testing Breakthrough!)
+
+### The Problem
+Google blocks sign-in attempts from automated browsers (Playwright, Puppeteer, Chrome DevTools) for security reasons. This made testing authenticated features extremely difficult, requiring manual screenshots and error copying.
+
+### The Solution: Dev Login
+We implemented a development-only mock authentication system that bypasses Google OAuth entirely:
+
+**How it works:**
+1. A yellow "Dev Login (Testing Only)" button appears on the login page (dev mode only)
+2. Clicking it stores a mock user in `localStorage`
+3. `AuthContext` checks for this mock user before Firebase auth
+4. Firestore rules allow read/write for the specific dev test user UID
+
+**Files Modified:**
+- `src/features/auth/context/AuthContext.tsx` - Added `devSignIn()` function
+- `src/features/auth/types/auth.types.ts` - Added `devSignIn?` to interface
+- `src/features/auth/components/LoginPage.tsx` - Added Dev Login button
+- `firestore.rules` - Added permissions for `dev-test-user-12345`
+
+**Benefits:**
+- ✅ Complete Playwright automation now possible
+- ✅ Instant authentication (no OAuth popup)
+- ✅ Test Firestore operations without restrictions
+- ✅ Massive productivity boost for development
+
+**Security:**
+- Only available when `import.meta.env.DEV === true`
+- Button doesn't appear in production builds
+- Mock user has limited test data scope
+- **DO NOT** deploy Firestore rules with dev user to production!
+
+**See:** [`DEV_LOGIN_GUIDE.md`](../../DEV_LOGIN_GUIDE.md) for complete documentation
+
+---
+
+## 🐛 Bug Fixes (Phase 2)
+
+### Bug #1: Infinite Recursion in Streak Calculations
+**Problem:** `formatStreakTime()` was calling `parseStreakDisplay()`, which called `formatStreakTime()` again, causing "Maximum call stack size exceeded" errors.
+
+**Solution:** Calculate time components directly in `formatStreakTime()` without calling `parseStreakDisplay()`.
+
+**File:** `src/features/kamehameha/services/streakCalculations.ts:85-111`
+
+### Bug #2: useStreaks Hook Called Without Auth Check
+**Problem:** The `useStreaks` hook was being called unconditionally in `App.tsx`, causing errors when the user wasn't authenticated.
+
+**Solution:** Created a `StreakBadgeWrapper` component that only calls `useStreaks` when a user is authenticated. The wrapper is only rendered when `user` exists.
+
+**File:** `src/App.tsx`
+
+### Bug #3: Redirect Authentication vs Popup
+**Problem:** Firebase `signInWithPopup` fails in some contexts (automated browsers, certain security policies) with COOP errors.
+
+**Solution:** Switched to `signInWithRedirect`, which is more reliable and works in all contexts. Added `getRedirectResult()` handling on auth state changes.
+
+**File:** `src/features/auth/context/AuthContext.tsx`
+
+**Lesson Learned:** For production apps, redirect-based auth is generally more reliable than popups, especially for mobile users and automated testing scenarios.
+
+### Bug #4: Firestore Collection Path Segments
+**Problem:** `FirebaseError: Invalid collection reference. Collection references must have an odd number of segments.`
+
+**Root Cause:** Collections require ODD path segments, documents require EVEN segments.
+- ❌ `users/{userId}/kamehameha/checkIns` = 4 segments (INVALID for collection)
+- ✅ `users/{userId}/kamehameha_checkIns` = 3 segments (VALID)
+
+**Solution:** Renamed collections to be at user level with `kamehameha_` prefix:
+- `checkIns` → `kamehameha_checkIns`
+- `relapses` → `kamehameha_relapses`
+
+**Files:** `src/features/kamehameha/services/firestoreService.ts`, `docs/kamehameha/DATA_SCHEMA.md`
+
+**Lesson Learned:** Always count path segments when designing Firestore schemas. Collections = odd, documents = even.
+
+---
+
+## 🎨 UI/UX Design Lessons
+
+### Phase 3 Timer Display Evolution
+
+**Initial Design:**
+- Two separate streak cards side-by-side
+- Each showing: Days, Hours, Minutes, Seconds as separate components
+- Labels above each number
+- Welcome message at top
+- "Updates every second" footer text
+- Reset buttons on each card
+
+**User Feedback:** "The UI is so bad with 2 card running 4 numbers at the same time"
+
+**Solution - Single Timer with Tabs:**
+- Tab buttons to switch between Main and Discipline streaks
+- Single timer display showing `D:HH:MM:SS` format
+- Matches Pomodoro timer aesthetic (consistency across app)
+- Removed welcome message (reduced noise)
+- Removed redundant labels and footer text
+- Action buttons below timer (Check-In, Report Relapse)
+
+**Result:** "much better" - User feedback after redesign
+
+**Design Principles:**
+1. **Less is more** - Remove unnecessary text and labels
+2. **Consistency** - Match existing patterns in the app
+3. **Focus** - One thing at a time (single timer, not dual)
+4. **Simplicity** - Clean, large numbers with clear hierarchy
+5. **User feedback** - Listen and iterate quickly
+
+**Implementation Tips:**
+- Used `tabular-nums` for consistent digit spacing
+- Responsive text sizing: `6xl → 7xl → 8xl → 9xl`
+- Simple format: just numbers and colons, no labels needed
+- Tab switching with active state styling
+
+---
+
 ## 🚀 Motivation & Philosophy
 
 ### Why This Project Matters

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Kamehameha Recovery Tool 🔥
+- 🔥 **Phase 1 & 2: Firebase Authentication & Foundation (Kamehameha Feature)** - Complete foundation for recovery tool:
+  - **Firebase Integration:**
+    - Google OAuth authentication with redirect flow
+    - Protected routes for authenticated features
+    - User profile dropdown with avatar
+    - Firestore database integration
+  - **Dev Login Feature (Testing):**
+    - Development-only mock authentication
+    - Bypasses Google OAuth for automated testing
+    - Enables complete Playwright automation
+    - One-click authentication in dev mode
+  - **Dual Streak Tracking:**
+    - Main streak (recovery days) with trophy icon 🏆
+    - Discipline streak (consecutive check-ins) with lightning icon ⚡
+    - Real-time countdown timers (updates every second)
+    - Auto-save to Firestore (every minute)
+    - Longest streak tracking (updates every 5 minutes)
+  - **Beautiful Dashboard:**
+    - Glass morphism card design
+    - Animated progress bars with milestone tracking
+    - Top streak badge visible on all authenticated pages
+    - Mobile-responsive layout
+    - Smooth animations and transitions
+  - **Documentation:**
+    - Complete Firebase setup guide
+    - Dev Login testing guide
+    - Phase implementation plans
+    - Comprehensive progress tracking
+  - **Bug Fixes:**
+    - Fixed infinite recursion in streak calculations
+    - Fixed useStreaks hook authentication check
+    - Switched from popup to redirect authentication
+  - **Ready for Phase 3:** Check-ins, journal entries, and relapse tracking
+
 ### Added
 - 🎯 **Task Management (Focus Priorities)** - Simple task management inspired by Flocus:
   - Set up to 3 daily focus priorities

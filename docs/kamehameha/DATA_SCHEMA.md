@@ -27,19 +27,27 @@ users/ (collection)
     kamehameha/ (subcollection)
       streaks/ (document - single doc)
       config/ (document - single doc)
-      
-      checkIns/ (subcollection)
-        {checkInId}/ (document)
-      
-      relapses/ (subcollection)
-        {relapseId}/ (document)
-      
-      chatHistory/ (subcollection)
-        {messageId}/ (document)
-      
-      badges/ (subcollection)
-        {badgeId}/ (document)
+    
+    kamehameha_checkIns/ (subcollection) ⚠️ Note: Top-level subcollection
+      {checkInId}/ (document)
+    
+    kamehameha_relapses/ (subcollection) ⚠️ Note: Top-level subcollection
+      {relapseId}/ (document)
+    
+    kamehameha_chatHistory/ (subcollection) ⚠️ Note: Top-level subcollection
+      {messageId}/ (document)
+    
+    kamehameha_badges/ (subcollection) ⚠️ Note: Top-level subcollection
+      {badgeId}/ (document)
 ```
+
+**⚠️ Important Note on Collection Structure:**
+Firestore requires collections to have an ODD number of path segments:
+- ✅ `users/{userId}/kamehameha_checkIns` = 3 segments (collection)
+- ✅ `users/{userId}/kamehameha/streaks` = 4 segments (document)
+- ❌ `users/{userId}/kamehameha/checkIns` = 4 segments (would fail as collection!)
+
+This is why check-ins, relapses, and other collections are at the user level with `kamehameha_` prefix, rather than nested under the `kamehameha` subcollection.
 
 ---
 
@@ -75,7 +83,8 @@ interface StreakData {
   startDate: number; // timestamp when current streak started
   currentSeconds: number; // current streak length in seconds
   longestSeconds: number; // longest streak ever in seconds
-  history: StreakHistory[];
+  lastUpdated: number; // timestamp of last update (Phase 2) ✅
+  history?: StreakHistory[]; // Phase 4 - Not yet implemented
 }
 
 interface StreakHistory {
@@ -96,6 +105,31 @@ interface StreakHistory {
     "startDate": 1697932800000,
     "currentSeconds": 1296000,
     "longestSeconds": 3888000,
+    "lastUpdated": 1697932800000
+  },
+  "discipline": {
+    "startDate": 1697932800000,
+    "currentSeconds": 864000,
+    "longestSeconds": 2592000,
+    "lastUpdated": 1697932800000
+  },
+  "lastUpdated": 1697932800000
+}
+```
+
+<!-- Phase 2 Implementation (October 21, 2025):
+- ✅ Implemented: startDate, currentSeconds, longestSeconds, lastUpdated
+- ⏳ Not yet implemented: history field (planned for Phase 4)
+-->
+
+**Example with History (Phase 4):**
+```json
+{
+  "main": {
+    "startDate": 1697932800000,
+    "currentSeconds": 1296000,
+    "longestSeconds": 3888000,
+    "lastUpdated": 1697932800000,
     "history": [
       {
         "id": "streak_001",

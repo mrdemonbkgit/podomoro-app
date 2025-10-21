@@ -2,10 +2,14 @@
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": [
-        "chrome-devtools-mcp@latest"
-      ]
+      "args": ["chrome-devtools-mcp@latest", "--browser-url=http://127.0.0.1:9222"]
+    },
+    "cursor-playwright": {
+      "command": "npx",
+      "args": ["-y", "cursor-playwright"],
+      "env": {
+        "PLAYWRIGHT_CHROMIUM_USER_DATA_DIR": "C:\\Users\\Tony\\AppData\\Local\\Google\\Chrome\\User Data"
+      }
     }
   }
 }
-

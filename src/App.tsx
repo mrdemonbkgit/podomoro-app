@@ -12,10 +12,20 @@ import { MotivationalQuote } from './components/MotivationalQuote';
 import { FloatingNav } from './components/FloatingNav';
 import { SoundsPanel } from './components/SoundsPanel';
 import { TasksModal } from './components/TasksModal';
+import { StreakBadge } from './shared/components/StreakBadge';
+import { useAuth } from './features/auth/context/AuthContext';
+import { useStreaks } from './features/kamehameha/hooks/useStreaks';
 import './App.css';
 import './styles/glass.css';
 
+// Wrapper component to only call useStreaks when authenticated
+function StreakBadgeWrapper() {
+  const { mainDisplay } = useStreaks();
+  return <StreakBadge display={mainDisplay} isVisible={true} />;
+}
+
 function App() {
+  const { user } = useAuth();
   const { settings, updateSettings, resetSettings } = useSettings();
   const { isDark, toggleTheme } = useTheme();
   const { tasks, updateTask, toggleTask, resetTasks } = useTasks();
@@ -103,6 +113,9 @@ function App() {
 
   return (
     <div className={`min-h-screen ${getBackgroundGradient()} animate-gradient transition-all duration-500 relative overflow-hidden`}>
+      {/* Streak Badge (top-left, visible when authenticated) */}
+      {user && <StreakBadgeWrapper />}
+
       {/* Resume Prompt Modal */}
       {hasResumableState && (
         <ResumePrompt

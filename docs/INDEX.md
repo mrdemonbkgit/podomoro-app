@@ -48,6 +48,13 @@ Start with `core/ARCHITECTURE.md` to understand the overall application structur
 - `DOCUMENTATION_MAINTENANCE.md` - How to keep docs updated during development
 - `phases/` - Detailed phase-by-phase guides (optional)
 
+**Setup & Testing:**
+- [`FIREBASE_SETUP.md`](../FIREBASE_SETUP.md) - Complete Firebase setup instructions
+- [`DEV_LOGIN_GUIDE.md`](../DEV_LOGIN_GUIDE.md) - Dev Login feature for automated testing (bypasses Google OAuth)
+
+**Phase Summaries:**
+- `PHASE_3_COMPLETE_SUMMARY.md` - Phase 3 completion report (Check-Ins, Relapse Tracking, UI improvements)
+
 ### `tools/` - Development Tools
 - MCP setup and testing workflows
 - Cursor IDE configuration
