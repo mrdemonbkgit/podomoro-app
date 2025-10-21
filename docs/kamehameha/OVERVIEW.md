@@ -10,7 +10,9 @@
 - **[Data Schema](DATA_SCHEMA.md)** - Firestore structure and TypeScript types
 - **[AI Integration](AI_INTEGRATION.md)** - OpenAI setup and context building
 - **[Security Guide](SECURITY.md)** - Privacy, security, and data protection
-- **[Implementation Plan](../../kamehameha-pmo-recovery-tool.plan.md)** - Step-by-step development guide
+- **[Implementation Guide](IMPLEMENTATION_GUIDE.md)** - Phase-by-phase development roadmap
+- **[Quick Start Guide](QUICKSTART.md)** - Fast-track guide for each phase
+- **[Progress Tracker](PROGRESS.md)** - Current implementation status
 
 ---
 
