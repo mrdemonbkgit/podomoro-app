@@ -452,23 +452,33 @@ function validateChatMessage(message: Partial<ChatMessage>): string[] {
 
 ### Required Firestore Indexes
 
+**Query Pattern:** Per-user path queries (data already scoped by `users/{userId}/kamehameha/...`)
+
+**Note:** Since we use per-user subcollections, `userId` is NOT needed in indexes (it's already in the document path).
+
 ```
-Collection: checkIns
-Fields: userId ASC, timestamp DESC
-Purpose: Efficiently query user's check-ins by date
+Collection: users/{userId}/kamehameha/checkIns
+Fields: timestamp DESC
+Purpose: Query check-ins chronologically for specific user
 
-Collection: relapses
-Fields: userId ASC, timestamp DESC
-Purpose: Efficiently query user's relapses by date
+Collection: users/{userId}/kamehameha/relapses
+Fields: timestamp DESC
+Purpose: Query relapses chronologically for specific user
 
-Collection: chatHistory
-Fields: userId ASC, timestamp ASC
-Purpose: Load chat messages in chronological order
+Collection: users/{userId}/kamehameha/chatMessages
+Fields: timestamp ASC
+Purpose: Load chat messages in order for specific user
 
-Collection: badges
-Fields: userId ASC, earnedAt DESC
-Purpose: Display badges in order earned
+Collection: users/{userId}/kamehameha/badges
+Fields: earnedAt DESC
+Purpose: Display badges in order earned for specific user
 ```
+
+**Why no `userId` field?**
+- Documents are stored under `users/{userId}/kamehameha/{subcollection}`
+- The path already scopes queries to specific user
+- Query example: `db.collection('users').doc(userId).collection('checkIns').orderBy('timestamp', 'desc')`
+- No collection group queries needed (each user only sees their own data)
 
 ### Creating Indexes
 
@@ -481,6 +491,8 @@ Or via Firebase CLI:
 ```bash
 firebase deploy --only firestore:indexes
 ```
+
+**Single-field indexes** (timestamp, earnedAt) are automatically created by Firestore.
 
 ---
 
