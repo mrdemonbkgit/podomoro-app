@@ -1,852 +1,372 @@
-# 🍅 Pomodoro Timer - Product Roadmap
+# ZenFocus - Product Roadmap
 
-This document outlines the product roadmap for the Pomodoro Timer application. It's designed to be AI-agent friendly with detailed technical implementation notes.
-
----
-
-## 📦 Current Version: V1.0 ✅
-**Release Date:** October 16, 2025  
-**Status:** Production Ready  
-**Git Tag:** `v1.0.0`
-
-### Completed Features
-- [x] Fixed timer durations (25/5/15 min)
-- [x] Start/Pause/Reset controls
-- [x] Session counter (1-4) with auto-reset after long break
-- [x] Color-coded sessions (red/green/blue)
-- [x] Audio notifications using Web Audio API
-- [x] Browser tab countdown display
-- [x] Responsive, modern UI design
-- [x] React 19 + TypeScript + Vite + Tailwind CSS
-- [x] Chrome DevTools MCP integration for testing
-
-### Current File Structure
-```
-src/
-├── components/
-│   ├── Timer.tsx          # Timer display with countdown
-│   ├── Controls.tsx       # Start/Pause/Reset buttons
-│   └── SessionInfo.tsx    # Session type and counter
-├── hooks/
-│   └── useTimer.ts        # Core timer logic
-├── types/
-│   └── timer.ts           # TypeScript types and constants
-├── utils/
-│   └── audio.ts           # Audio notification utility
-└── App.tsx                # Main app component
-```
+**Last Updated:** October 21, 2025  
+**Current Version:** V3.0  
+**Next Major Release:** V4.0 - Kamehameha (PMO Recovery Tool)
 
 ---
 
-## 🚀 V2.0 - Enhanced Experience ✅ **COMPLETED**
-**Release Date:** October 16, 2025  
-**Status:** ✅ Production Ready  
-**Git Tag:** `v2.0.0`  
-**Version:** 2.0.0
+## 🎯 Vision
 
-### Features Overview
-Focus: Enhance user experience with customization and persistence.
-
-**All V2.0 features have been successfully implemented and tested!** This release transforms the Pomodoro Timer from a basic fixed-duration timer into a fully customizable, feature-rich productivity tool with dark mode, sound options, desktop notifications, and comprehensive keyboard support.
+**ZenFocus** is evolving from a Pomodoro timer into a **dual-purpose productivity platform**:
+1. **Focus & Productivity** (Timer, Tasks, Ambient Sounds)
+2. **Personal Recovery** (Kamehameha - PMO Recovery Companion)
 
 ---
 
-### Feature 2.1: Customizable Timer Durations ✅ **COMPLETED**
-**Priority:** High  
-**Effort:** Medium (2-3 days)  
-**Dependencies:** None  
-**Status:** ✅ Implemented (October 2025)
-
-#### Description
-Allow users to customize work, short break, and long break durations instead of fixed 25/5/15 minutes.
-
-#### User Story
-As a user, I want to set custom timer durations so that I can adapt the Pomodoro technique to my personal workflow preferences.
-
-#### Acceptance Criteria
-- [x] Settings panel/modal with three number inputs
-- [x] Input validation (min: 1 min, max: 60 min)
-- [x] Real-time preview of changes
-- [x] Save button to apply settings
-- [x] Reset to defaults button (25/5/15)
-- [x] Settings persist across sessions (localStorage)
-- [x] Settings apply to next session (don't interrupt current)
-
-#### Technical Implementation
-
-**New Files:**
-- `src/components/Settings.tsx` - Settings panel component with form inputs
-- `src/components/SettingsModal.tsx` - Modal wrapper with backdrop
-- `src/hooks/useSettings.ts` - Settings state management with localStorage
-- `src/types/settings.ts` - Settings type definitions and constants
-
-**Modified Files:**
-- `src/types/timer.ts` - Added minutesToSeconds helper function
-- `src/hooks/useTimer.ts` - Updated to accept settings and use custom durations
-- `src/App.tsx` - Added settings button, modal, and dynamic footer
-
-**Implementation Steps:**
-1. ✅ Created settings type interface with validation constants
-2. ✅ Created `useSettings` hook with localStorage persistence
-3. ✅ Updated `useTimer` to accept settings prop
-4. ✅ Added settings gear icon button to App header
-5. ✅ Created modal with form inputs and validation
-6. ✅ Added save and reset functionality
-7. ✅ Settings apply to next session (current session not interrupted)
-8. ✅ Dynamic footer shows current settings
-
-**Testing Requirements:**
-- [x] TypeScript compilation successful
-- [x] Production build successful
-- [x] Settings validation working
-- [x] localStorage persistence working
-- [x] Automated MCP testing completed
-- [x] Test timer with custom durations
-- [x] Test persistence across page refreshes
-- [x] Test reset to defaults functionality
-
-**Test Report:** See `TEST_REPORT_FEATURE_2.1.md`  
-**Testing Method:** Chrome DevTools MCP (see `MCP_TESTING_WORKFLOW.md`)
-
----
-
-### Feature 2.2: Persistent State ✅ **COMPLETED**
-**Priority:** High  
-**Effort:** Small (1 day)  
-**Dependencies:** None  
-**Status:** ✅ Implemented (October 2025)  
-**Enhancements:** Background timer continuation with elapsed time tracking
-
-#### Description
-Save timer state to survive page refreshes, so users don't lose progress. Timer now continues counting in the background when tab is closed, calculating elapsed time and updating the timer position when user returns.
-
-#### User Stories
-1. As a user, I want my timer progress to be saved if I accidentally refresh the page or close the browser.
-2. As a user, I want the timer to continue counting while the tab is closed, so I can see where the timer would be when I return.
-
-#### Acceptance Criteria
-**Core Persistence:**
-- [x] Save current timer state to localStorage
-- [x] Restore state on page load
-- [x] Handle edge cases (stale data, invalid state)
-- [x] Show "Resume?" prompt if state is restored
-- [x] Clear state when timer completes or is reset
-
-**Background Continuation (Enhancement):**
-- [x] Calculate elapsed time when tab was closed: `elapsed = now - savedTimestamp`
-- [x] Update timer to reflect background continuation: `newTime = savedTime - elapsed`
-- [x] Show "While you were away, Xs elapsed" message in resume prompt
-- [x] Handle timer completion while tab was closed
-- [x] Only calculate elapsed time if significant time passed (>2 seconds)
-- [x] Display updated timer value with "(Updated from pause time)" indicator
-
-**Bug Fixes:**
-- [x] Fix resume prompt appearing when pausing already-running timer after refresh
-- [x] Dismiss resume prompt if timer was active on page load
-
-#### Technical Implementation
-
-**New Files:**
-- `src/hooks/usePersistedState.ts` - Generic persisted state hook with validation
-- `src/components/ResumePrompt.tsx` - Resume modal UI with elapsed time display
-
-**Modified Files:**
-- `src/hooks/useTimer.ts` - Integrated persistence with elapsed time calculation
-- `src/types/timer.ts` - Added `PersistedTimerState` interface
-- `src/App.tsx` - Added ResumePrompt modal with elapsed time prop
-
-**Implementation Steps:**
-1. Create `usePersistedState` hook wrapper around `useState`
-2. Serialize/deserialize timer state to localStorage
-3. Add timestamp to detect stale state (older than 2 hours)
-4. On load, check for saved state and prompt user to resume
-5. **Calculate elapsed time if timer was active**: `elapsed = now - savedTimestamp`
-6. **Update timer position**: `newTime = savedTime - elapsed`
-7. **Handle timer completion while away** - switch to next session
-8. Clear state on timer completion or reset
-9. **Dismiss resume prompt if timer was active on page load** (bug fix)
-
-**State to Persist:**
-```typescript
-{
-  time: number;
-  isActive: boolean;
-  sessionType: SessionType;
-  completedSessions: number;
-  timestamp: number; // Used for elapsed time calculation
-}
-```
-
-**Elapsed Time Calculation Logic:**
-```typescript
-// On mount, if timer was active:
-const elapsed = Math.floor((Date.now() - state.timestamp) / 1000);
-
-if (elapsed > 2) {  // Only if significant time passed
-  const newTime = state.time - elapsed;
-  
-  if (newTime <= 0) {
-    // Timer completed while away - switch to next session
-    switchToNextSession();
-  } else {
-    // Update time and show resume prompt with elapsed info
-    setElapsedWhileAway(elapsed);
-    setState({ ...prev, time: newTime, isActive: false });
-  }
-}
-```
-
-**Testing Requirements:**
-- [x] Test state save/restore
-- [x] Test stale state handling
-- [x] Test invalid data handling
-- [x] Test elapsed time calculation (verified: 25s elapsed, timer updated correctly)
-- [x] Test timer completion while away
-- [x] Test resume prompt not appearing when pausing running timer after refresh
-- [x] Test resume prompt appearance with elapsed time message
-- [x] No console errors
-
-**Commits:**
-- `4f6f17b` - Initial persistent state implementation
-- `2cfe2db` - Bug fix: Prevent resume prompt on pause after refresh
-- `ed98d1e` - Background timer continuation with elapsed time tracking
-- `b70ec73` - Updated CHANGELOG with enhancements
-
----
-
-### Feature 2.3: Desktop Notifications
-**Status:** ✅ COMPLETED  
-**Priority:** Medium  
-**Effort:** Small (1 day)  
-**Dependencies:** None  
-**Completed:** October 16, 2025
-
-#### Description
-Request browser notification permission and show desktop notifications when timer completes.
-
-#### User Story
-As a user, I want desktop notifications when my timer ends so I'm alerted even if the tab is in the background.
-
-#### Acceptance Criteria
-- [x] Request notification permission on first use
-- [x] Show desktop notification when timer completes
-- [x] Notification shows session type (work/break completed)
-- [x] Fallback to in-app notification if permission denied
-- [x] Settings to enable/disable notifications
-- [x] Works in background tabs
-
-#### Technical Implementation
-
-**New Files:**
-- ✅ `src/utils/notifications.ts` - Notification utility (161 lines)
-- ✅ `FEATURE_2.3_SUMMARY.md` - Implementation documentation
-
-**Modified Files:**
-- ✅ `src/hooks/useTimer.ts` - Call notification on completion
-- ✅ `src/components/Settings.tsx` - Add notification toggle
-- ✅ `src/types/settings.ts` - Add notificationsEnabled field
-- ✅ `src/hooks/useSettings.ts` - Update validation for boolean
-
-**Implementation Steps:**
-1. ✅ Check browser notification support
-2. ✅ Request permission on app load or first timer start
-3. ✅ Create notification utility:
-   ```typescript
-   showNotification(title: string, body: string, icon?: string)
-   notifySessionComplete(sessionType: 'work' | 'shortBreak' | 'longBreak')
-   ```
-4. ✅ Call notification in `switchToNextSession` function
-5. ✅ Add setting to enable/disable (default: enabled)
-6. ✅ Create iOS-style toggle switch in settings
-7. ✅ Update settings validation for boolean fields
-
-**Notification Messages:**
-- Work complete: "Time for a break! 🎉"
-- Short break complete: "Break's over - back to work! 💪"
-- Long break complete: "Long break done - ready for the next round?"
-
-**Testing Requirements:**
-- [x] Test with permission granted/denied
-- [x] Test notification content
-- [x] Test in background tab
-- [x] Test toggle switch functionality
-- [x] Test settings persistence
-- [x] TypeScript compilation
-- [x] Production build
-
-**Test Report:** See FEATURE_2.3_SUMMARY.md
-
----
-
-### Feature 2.4: Skip Break ✅ **COMPLETED**
-**Priority:** Low  
-**Effort:** Small (0.5 day)  
-**Dependencies:** None  
-**Status:** ✅ Completed (October 16, 2025)
-
-#### Description
-Add button to skip current break and start next work session immediately.
-
-#### User Story
-As a user, I want to skip my break if I'm in a flow state and want to continue working.
-
-#### Acceptance Criteria
-- [x] Skip button only visible during break sessions
-- [x] Clicking skip immediately starts next work session
-- [x] Maintains session counter
-- [x] No confirmation prompt (immediate action for fast workflow)
-
-#### Technical Implementation
-
-**Modified Files:**
-- `src/hooks/useTimer.ts` - Added `skipBreak()` function and return value
-- `src/components/Controls.tsx` - Added skip button with conditional visibility
-- `src/App.tsx` - Wired up skipBreak and passed new props
-
-**Implementation Steps:**
-1. ✅ Added `skipBreak` function to useTimer hook
-2. ✅ Function switches to work session immediately without notification
-3. ✅ Added conditional skip button in Controls
-4. ✅ Only shows when `sessionType !== 'work'`
-5. ✅ Styled with orange color to indicate "skip ahead" action
-6. ✅ Supports dark mode with proper color variants
-
-**Testing Results:**
-- ✅ Skip button visible during short break
-- ✅ Skip button visible during long break
-- ✅ Session counter maintained correctly (increments after short break)
-- ✅ Session counter resets after long break
-- ✅ Button positioned correctly between Start/Pause and Reset
-- ✅ Works in both light and dark modes
-
----
-
-### Feature 2.5: Sound Options ✅ **COMPLETED**
-**Priority:** Medium  
-**Effort:** Medium (2 days)  
-**Dependencies:** None  
-**Status:** ✅ Completed (October 16, 2025)
-
-#### Description
-Provide multiple notification sounds and volume control.
-
-#### Acceptance Criteria
-- [x] 5 different notification sounds
-- [x] Sound preview in settings (click to select and play)
-- [x] Volume slider (0-100%)
-- [x] Mute option (volume at 0%)
-- [x] Preferences persist
-
-#### Technical Implementation
-
-**New Files:**
-- `src/utils/sounds.ts` - Sound library with Web Audio API and 5 sound generators
-
-**Modified Files:**
-- `src/utils/audio.ts` - Refactored to support sound type and volume parameters
-- `src/components/Settings.tsx` - Added sound picker cards and volume slider
-- `src/types/settings.ts` - Added `soundType` and `volume` fields
-- `src/hooks/useTimer.ts` - Updated to pass sound settings to playNotification
-
-**Implementation Steps:**
-1. ✅ Created 5 sound generators with Web Audio API:
-   - Chime (two-tone pleasant chime) - Default
-   - Bell (classic bell ring with harmonics)
-   - Beep (simple digital beep)
-   - Piano (soft piano notes - C major chord)
-   - Gentle (calm ambient tone)
-2. ✅ Added volume control (0-100%) with visual feedback
-3. ✅ Created interactive sound picker with cards (icon, name, description)
-4. ✅ Added "Test" button to preview current sound and volume
-5. ✅ Implemented instant sound playback when selecting a sound
-6. ✅ Settings persist to localStorage
-7. ✅ Full dark mode support
-
-**Testing Results:**
-- ✅ All 5 sounds play correctly with distinct characteristics
-- ✅ Volume slider adjusts sound level (0-100%)
-- ✅ Volume at 0% mutes sound (Test button disabled)
-- ✅ Sound selection persists across page refreshes
-- ✅ Volume setting persists across page refreshes
-- ✅ Clicking sound card immediately plays preview
-- ✅ Test button plays current sound at current volume
-- ✅ Works in both light and dark modes
-
----
-
-### Feature 2.6: Dark/Light Mode
-**Priority:** Medium  
-**Effort:** Medium (1-2 days)  
-**Dependencies:** None  
-**Status:** ✅ Completed (October 16, 2025)
-
-#### Description
-Theme toggle for dark and light modes.
-
-#### User Story
-As a user, I want a dark mode option to reduce eye strain in low-light environments.
-
-#### Acceptance Criteria
-- [x] Toggle button in header
-- [x] Dark theme with appropriate colors
-- [x] Respects system preference on first load
-- [x] Preference persists
-- [x] Smooth transition between themes
-- [x] All components styled for both themes
-
-#### Technical Implementation
-
-**New Files:**
-- `src/hooks/useTheme.ts` - Theme management hook
-- `FEATURE_2.6_SUMMARY.md` - Complete implementation summary
-
-**Modified Files:**
-- `tailwind.config.js` - Enabled dark mode (`darkMode: 'class'`)
-- `src/App.tsx` - Added theme toggle button, updated all styles
-- `src/components/Timer.tsx` - Added dark mode colors
-- `src/components/SessionInfo.tsx` - Added dark mode text colors
-- `src/components/SettingsModal.tsx` - Added dark mode backdrop/modal
-- `src/components/Settings.tsx` - Comprehensive dark mode form styles
-- `src/components/ResumePrompt.tsx` - Added dark mode modal styles
-
-**Implementation Steps:**
-1. ✅ Enabled Tailwind dark mode: `darkMode: 'class'`
-2. ✅ Created `useTheme` hook with system preference detection
-3. ✅ Added `dark:` classes to all components
-4. ✅ Added toggle button with sun/moon icons
-5. ✅ Saved preference to localStorage
-6. ✅ Tested all components in both modes
-
-**Color Scheme (Dark Mode):**
-- Background: Session-specific (e.g., `dark:bg-red-950`)
-- Card: `bg-gray-800`
-- Text: `text-gray-100`
-- Work: `text-red-400`
-- Short break: `text-green-400`
-- Long break: `text-blue-400`
-
-**Testing Requirements:**
-- [x] Test theme toggle
-- [x] Test system preference detection
-- [x] Test all components in dark mode
-- [x] Test persistence
-- [x] Test smooth transitions
-- [x] Test Settings modal in both modes
-
-**Test Report:** See `FEATURE_2.6_SUMMARY.md`
-
----
-
-### V2.0 Quality & Polish ✅ **COMPLETED**
-
-#### ✅ Completed
-- [x] **Unit Tests** - 86 comprehensive tests passing
-  - All custom hooks tested (useTimer, useSettings, useTheme, usePersistedState)
-  - All utility functions tested (sounds, notifications)
-  - Excellent coverage on business logic
-  
-- [x] **Accessibility Improvements**
-  - ✅ ARIA labels on all interactive elements
-  - ✅ Keyboard navigation (Space, R, S, K, T, ESC)
-  - ✅ Screen reader support with live regions
-  - ✅ Focus management in modals
-  - ✅ Semantic HTML (header, main, etc.)
-  - ✅ Keyboard shortcuts help section
-
-- [x] **CI/CD Pipeline**
-  - ✅ GitHub Actions workflow
-  - ✅ Automated testing on push/PR
-  - ✅ Build verification
-
-#### 📝 Future Technical Debt (Optional)
-- [ ] Component unit tests (React Testing Library)
-  - Current: Business logic fully tested
-  - Future: Add component integration tests
-  
-- [ ] E2E tests (Playwright)
-  - Full user flow automation
-  - Cross-browser testing
-  
-- [ ] Performance optimization
-  - Lazy load settings modal
-  - Memoize expensive calculations
-  - Bundle size optimization
-
----
-
-## 📊 V3.0 - Productivity Suite
-**Planned Release:** Q2 2026  
-**Status:** Planning  
-**Priority:** Medium  
-**Estimated Effort:** 4-6 weeks
-
-### Features Overview
-Focus: Transform from timer to full productivity tool with analytics and task management.
-
----
-
-### Feature 3.1: Task Management
-**Priority:** High  
-**Effort:** Large (1-2 weeks)  
-**Dependencies:** None
-
-#### Description
-Add task list functionality to associate Pomodoros with specific tasks.
-
-#### User Story
-As a user, I want to create tasks and track which Pomodoros are spent on each task to measure my productivity.
-
-#### Acceptance Criteria
-- [ ] Add, edit, delete tasks
-- [ ] Associate current Pomodoro with a task
-- [ ] Mark tasks as complete
-- [ ] Show task list with Pomodoro count
-- [ ] Task persistence (localStorage initially)
-- [ ] Drag to reorder tasks
-- [ ] Task categories/tags (optional)
-
-#### Technical Implementation
-
-**New Files:**
-- `src/components/TaskList.tsx` - Task list component
-- `src/components/TaskItem.tsx` - Individual task
-- `src/components/AddTaskForm.tsx` - Add task form
-- `src/hooks/useTasks.ts` - Task state management
-- `src/types/task.ts` - Task type definitions
-
-**Modified Files:**
-- `src/App.tsx` - Add task panel
-- `src/hooks/useTimer.ts` - Link to active task
-
-**Data Structure:**
-```typescript
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  pomodorosCompleted: number;
-  pomodorosEstimated: number;
-  createdAt: number;
-  completedAt?: number;
-  tags?: string[];
-}
-```
-
-**Implementation Steps:**
-1. Create task CRUD operations
-2. Add task list UI (sidebar or bottom panel)
-3. Add "active task" selector during timer
-4. Increment task pomodoro count on work completion
-5. Add task completion checkbox
-6. Persist tasks to localStorage
-7. Add drag-and-drop reordering (react-dnd or dnd-kit)
-
-**Testing Requirements:**
-- Test CRUD operations
-- Test Pomodoro counting
-- Test persistence
-- E2E test for full task workflow
-
----
-
-### Feature 3.2: Statistics Dashboard
-**Priority:** High  
-**Effort:** Large (1 week)  
-**Dependencies:** Task Management (optional)
-
-#### Description
-Visual dashboard showing productivity statistics and trends.
-
-#### User Story
-As a user, I want to see my productivity statistics to understand my work patterns and stay motivated.
-
-#### Acceptance Criteria
-- [ ] Today's completed Pomodoros
-- [ ] This week's completed Pomodoros
-- [ ] Monthly view with calendar heatmap
-- [ ] Current streak counter
-- [ ] Longest streak
-- [ ] Total productive time
-- [ ] Average Pomodoros per day
-- [ ] Charts/graphs
-- [ ] Task breakdown (if tasks enabled)
-
-#### Technical Implementation
-
-**New Files:**
-- `src/components/Stats.tsx` - Stats dashboard
-- `src/components/StatsCard.tsx` - Individual stat card
-- `src/components/StreakCalendar.tsx` - Calendar heatmap
-- `src/components/Charts.tsx` - Charts component
-- `src/hooks/useStats.ts` - Stats calculation
-- `src/types/stats.ts` - Stats type definitions
-
-**Dependencies:**
-- Chart library: `recharts` or `chart.js`
-- Calendar: `react-calendar` or custom
-
-**Data Structure:**
-```typescript
-interface DailyStats {
-  date: string; // YYYY-MM-DD
-  workSessionsCompleted: number;
-  shortBreaksCompleted: number;
-  longBreaksCompleted: number;
-  totalMinutes: number;
-  taskBreakdown?: { taskId: string; count: number }[];
-}
-```
-
-**Implementation Steps:**
-1. Track completed sessions in localStorage
-2. Create stats calculation hook
-3. Build dashboard UI with cards
-4. Implement streak calculation
-5. Add calendar heatmap
-6. Add charts (bar, line, pie)
-7. Export stats functionality
-
-**Testing Requirements:**
-- Test stats calculations
-- Test with various date ranges
-- Test streak logic
-
----
-
-### Feature 3.3: Advanced Settings
-**Priority:** Medium  
-**Effort:** Medium (3-4 days)  
-**Dependencies:** V2.0 Settings
-
-#### Description
-Additional configuration options for power users.
-
-#### Acceptance Criteria
-- [ ] Auto-start next session toggle
-- [ ] Auto-start breaks toggle
-- [ ] Configurable long break interval (4-8 sessions)
-- [ ] Notification settings (sound, desktop, timing)
-- [ ] Data management (export, import, clear)
-- [ ] Keyboard shortcuts configuration
-
-#### Technical Implementation
-
-**Modified Files:**
-- `src/components/Settings.tsx` - Expand settings
-- `src/hooks/useSettings.ts` - Add new settings
-- `src/hooks/useTimer.ts` - Implement auto-start
-
-**New Settings:**
-```typescript
-interface AdvancedSettings {
-  autoStartNextSession: boolean;
-  autoStartBreaks: boolean;
-  longBreakInterval: number; // 4-8
-  notifyBeforeEnd: number; // seconds (0 = disabled)
-  keyboardShortcuts: {
-    startPause: string;
-    reset: string;
-    skip: string;
-  };
-}
-```
-
-**Implementation Steps:**
-1. Add settings UI with toggles
-2. Implement auto-start logic
-3. Add keyboard shortcut listener
-4. Add customizable long break interval
-5. Add pre-notification (X seconds before end)
-
----
-
-### Feature 3.4: Data Export/Import
-**Priority:** Low  
-**Effort:** Medium (2-3 days)  
-**Dependencies:** Task Management, Statistics
-
-#### Description
-Export and import data for backup and portability.
-
-#### Acceptance Criteria
-- [ ] Export all data to JSON
-- [ ] Export stats to CSV
-- [ ] Import data from JSON
-- [ ] Merge or replace on import
-- [ ] Clear all data option with confirmation
-- [ ] Automatic backup option
-
-#### Technical Implementation
-
-**New Files:**
-- `src/utils/export.ts` - Export utilities
-- `src/utils/import.ts` - Import utilities
-
-**Modified Files:**
-- `src/components/Settings.tsx` - Add export/import UI
-
-**Implementation Steps:**
-1. Create export functions (JSON, CSV)
-2. Create import with validation
-3. Add download/upload buttons
-4. Add data merge logic
-5. Add clear data with confirmation
-
-**Data Format:**
-```json
-{
-  "version": "3.0",
-  "exportDate": "2026-01-15",
-  "settings": { ... },
-  "tasks": [ ... ],
-  "stats": { ... }
-}
-```
-
----
-
-## 💡 Future Ideas (Backlog)
-**No timeline assigned - Ideas for V4.0+**
-
-### High-Level Concepts
-- [ ] **Mobile App** (React Native)
-  - Native iOS/Android apps
-  - Sync with web version
-  - Background timers
-  - Native notifications
-
-- [ ] **Browser Extension**
-  - Chrome/Firefox/Edge extension
-  - Quick timer in toolbar
-  - Website blocking during work sessions
-  - Integration with task management
-
-- [ ] **Team/Collaborative Features**
-  - Share timer with team
-  - Group Pomodoro sessions
-  - Team statistics
-  - Accountability features
-
-- [ ] **Integration with Other Tools**
-  - Google Calendar integration
-  - Todoist/Trello sync
-  - Slack notifications
-  - API for third-party integrations
-
-- [ ] **Gamification**
-  - Achievement badges
-  - Level system
-  - Challenges
-  - Leaderboards (optional)
-
-- [ ] **Advanced Analytics**
-  - Productivity insights (AI-powered)
-  - Best productivity time detection
-  - Focus score
-  - Recommendations
-
-- [ ] **Content During Sessions**
-  - Background music/sounds
-  - Focus music integration (Spotify, etc.)
-  - White noise generator
-  - Ambient sounds
-
-- [ ] **Customization**
-  - Custom color themes
-  - Custom timer faces
-  - Custom notification sounds (upload)
-  - Font size adjustments
-
-- [ ] **Educational Features**
-  - Pomodoro technique tutorials
-  - Productivity tips
-  - Focus techniques guide
-  - Onboarding flow for new users
-
-- [ ] **Offline Support**
-  - Progressive Web App (PWA)
-  - Service Worker for offline functionality
-  - Offline data sync
-
----
-
-## 🔄 Version History
-
-### V1.0 - October 2025
-**Focus:** MVP with core Pomodoro functionality
+## 📦 Version History
+
+### V3.0 - Current Release ✅ **LIVE**
+**Released:** October 2025  
+**Status:** Production Ready
 
 **Major Features:**
-- Basic timer (25/5/15 fixed durations)
-- Start/Pause/Reset controls
-- Session tracking
-- Audio notifications
-- Responsive UI
+- ✅ **ZenFocus Rebrand** - New name, modern UI
+- ✅ **Task Management** - 3 focus priorities system
+- ✅ **Customizable Timer** - Adjust work/break durations
+- ✅ **Ambient Sounds** - 15 high-quality audio tracks
+- ✅ **Dark Mode** - Beautiful dark/light themes
+- ✅ **Desktop Notifications** - Stay on top of sessions
+- ✅ **Persistent State** - Settings saved across sessions
+- ✅ **Keyboard Shortcuts** - Efficient workflow
 
 **Tech Stack:**
-- React 19 + TypeScript
-- Vite
-- Tailwind CSS
-- Web Audio API
+- React 19 + TypeScript + Vite
+- Tailwind CSS + Framer Motion
+- localStorage for persistence
 
-**Lines of Code:** ~500
-**Components:** 3
-**Hooks:** 1
+**Documentation:**
+- See [`docs/zenfocus/OVERVIEW.md`](docs/zenfocus/OVERVIEW.md) for Timer feature details
+- See [`CHANGELOG.md`](CHANGELOG.md) for complete version history
 
 ---
 
-## 📖 Implementation Guidelines
+### V2.0 - Enhanced Experience ✅ **COMPLETED**
+**Released:** October 2025
 
-### For AI Agents
+**Key Features:**
+- ✅ Customizable durations
+- ✅ Sound notifications
+- ✅ Skip break functionality
+- ✅ Theme switcher
+- ✅ Settings persistence
 
-When implementing features from this roadmap:
+---
 
-1. **Read the full feature specification** including acceptance criteria
-2. **Check dependencies** - ensure prerequisite features are complete
-3. **Follow the technical implementation** section
-4. **Update existing files** as specified in "Modified Files"
-5. **Create new files** as specified in "New Files"
-6. **Build and verify** - run `npm run build` to check for errors
-7. **Test with Chrome DevTools MCP** - use automated browser testing (see `MCP_TESTING_WORKFLOW.md`)
-8. **Create test report** - document test results with screenshots
-9. **Update this roadmap** - mark features complete with checkmarks
-10. **Update CHANGELOG.md** with changes
-11. **Consider backwards compatibility** with existing data
+### V1.0 - Initial Release ✅ **COMPLETED**
+**Released:** October 2025
 
-### Testing Checklist
-- [x] TypeScript compilation passes
-- [x] Production build successful
-- [x] **MCP automated testing** (Chrome DevTools MCP)
-- [x] Visual verification with screenshots
-- [x] Console error checking
-- [x] Functional testing (all interactions)
-- [x] Persistence testing (localStorage)
-- [ ] Accessibility testing (keyboard nav, screen readers)
-- [ ] Mobile responsive testing
-- [ ] Cross-browser testing (Firefox, Safari, Edge)
+**Core Features:**
+- ✅ Basic Pomodoro timer (25/5/15)
+- ✅ Session tracking
+- ✅ Audio notifications
+- ✅ Responsive UI
 
-**New:** See `MCP_TESTING_WORKFLOW.md` for automated browser testing workflow
+---
 
-### Documentation Updates
-After implementing a feature, update:
-- [ ] README.md (if public API changes)
-- [ ] CHANGELOG.md (version entry)
-- [ ] This ROADMAP.md (mark complete)
-- [ ] Code comments (JSDoc for public functions)
+## 🚀 V4.0 - Kamehameha (Major Release) 🔥
+
+**Target Release:** December 2025 (5-6 weeks)  
+**Status:** 📋 Planning Phase Complete → Starting Implementation  
+**Priority:** 🔴 Critical - Major Feature
+
+### Overview
+
+**Kamehameha** is a comprehensive **PMO (Pornography-Masturbation-Orgasm) recovery companion tool** that helps users break addiction through:
+- 🛡️ **Dual Streak Tracking** - Main & Discipline streaks with live timers
+- 🤖 **AI Therapist Chat** - Contextual support powered by OpenAI GPT-5
+- 📝 **Daily Check-Ins** - Mood, urges, triggers, and journal entries
+- 📊 **Relapse Tracking** - Structured reflection and pattern analysis
+- 🏆 **Milestones & Badges** - Gamification for motivation
+- ☁️ **Cloud Sync** - Firebase integration with Google login
+
+### Why Kamehameha?
+
+"Kamehameha" (turtle devastation wave) symbolizes **building inner strength** to overcome challenges. This tool provides:
+- **Accountability** through structured check-ins
+- **Support** via AI-powered therapy chat
+- **Motivation** through visible progress and milestones
+- **Privacy** with secure, user-owned data
+
+### Architecture
+
+**New Tech Stack:**
+- **Firebase Authentication** - Google OAuth 2.0
+- **Firestore** - Real-time cloud database
+- **Cloud Functions** - Serverless backend for AI
+- **OpenAI GPT-5** - AI therapist with context awareness
+- **React Router** - Multi-page navigation (`/timer`, `/kamehameha`)
+
+**Integration:**
+- Shared: FloatingNav, Theme system, Firebase Auth
+- Independent: Data storage, UI components, Cloud Functions
+
+### Implementation Phases
+
+#### Phase 1: Firebase Setup & Authentication (Week 1)
+**Status:** 📋 Ready to Start  
+**Effort:** 2-3 days
+
+**Tasks:**
+- [ ] Create Firebase project
+- [ ] Enable Google Authentication
+- [ ] Set up Firestore database
+- [ ] Configure security rules
+- [ ] Add Firebase SDK to project
+- [ ] Implement Google sign-in flow
+- [ ] Set up React Router (`/timer`, `/kamehameha`)
+- [ ] Create protected routes
+
+**Documentation:** [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase 1
+
+---
+
+#### Phase 2: Foundation & Data Layer (Week 2)
+**Status:** ⏸️ Pending Phase 1  
+**Effort:** 3-4 days
+
+**Tasks:**
+- [ ] Create Firestore service layer
+- [ ] Build custom hooks (useKamehameha, useStreaks, useCheckIns)
+- [ ] Implement streak calculations
+- [ ] Create Kamehameha page layout
+- [ ] Build always-visible streak badge
+- [ ] Set up real-time listeners
+
+**Documentation:** [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase 2
+
+---
+
+#### Phase 3: Core Features (Week 3)
+**Status:** ⏸️ Pending Phase 2  
+**Effort:** 4-5 days
+
+**Tasks:**
+- [ ] Check-in system UI and logic
+- [ ] Relapse flow (multi-step modal)
+- [ ] Journal system
+- [ ] Trigger tracking
+- [ ] Mood visualization
+- [ ] Data persistence
+
+**Documentation:** [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase 3
+
+---
+
+#### Phase 4: AI Chat Integration (Week 4)
+**Status:** ⏸️ Pending Phase 3  
+**Effort:** 4-5 days
+
+**Tasks:**
+- [ ] Set up Cloud Functions
+- [ ] Implement OpenAI API integration
+- [ ] Build context builder (user data → AI prompt)
+- [ ] Create chat UI with emergency mode
+- [ ] Add system prompt editor
+- [ ] Implement rate limiting
+- [ ] Test and optimize costs
+
+**Documentation:** 
+- [`docs/kamehameha/AI_INTEGRATION.md`](docs/kamehameha/AI_INTEGRATION.md)
+- [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase 4
+
+---
+
+#### Phase 5: Gamification (Week 5)
+**Status:** ⏸️ Pending Phase 4  
+**Effort:** 2-3 days
+
+**Tasks:**
+- [ ] Milestone detection logic
+- [ ] Badge system
+- [ ] Celebration animations (confetti)
+- [ ] Badge gallery
+- [ ] Achievement notifications
+
+**Documentation:** [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase 5
+
+---
+
+#### Phase 6: Polish & Testing (Week 6)
+**Status:** ⏸️ Pending Phase 5  
+**Effort:** 3-4 days
+
+**Tasks:**
+- [ ] Settings panel (system prompt, rules)
+- [ ] Data export/import
+- [ ] Security audit
+- [ ] Performance optimization
+- [ ] Cross-device testing
+- [ ] User acceptance testing
+- [ ] Documentation updates
+
+**Documentation:** [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase 6
+
+---
+
+### Progress Tracking
+
+**Current Status:** Phase 1 Ready to Start  
+**Completion:** 0% (0/6 phases)  
+**Estimated Completion:** December 2025
+
+**Track Progress:** [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) ← Updated during implementation
+
+---
+
+### Documentation
+
+**Comprehensive guides available:**
+- 📖 **[Complete Specification](docs/kamehameha/SPEC.md)** - All features and requirements
+- 🗄️ **[Data Schema](docs/kamehameha/DATA_SCHEMA.md)** - Firestore structure
+- 🤖 **[AI Integration](docs/kamehameha/AI_INTEGRATION.md)** - OpenAI setup
+- 🔒 **[Security Guide](docs/kamehameha/SECURITY.md)** - Privacy and security
+- ⚡ **[Quick Start](docs/kamehameha/QUICKSTART.md)** - Phase-by-phase guide
+- 📂 **[File Structure](docs/kamehameha/FILE_STRUCTURE.md)** - Complete reference
+- 💡 **[Developer Notes](docs/kamehameha/DEVELOPER_NOTES.md)** - Tips and patterns
+
+**For AI Agents:**
+- 🤖 **[AI Agent Guide](AI_AGENT_GUIDE.md)** - Comprehensive guide
+- ⚡ **[.cursorrules](.cursorrules)** - Quick start & critical rules
+
+---
+
+## 🔮 Future Roadmap (Beyond V4.0)
+
+### V5.0 - Advanced Analytics (Q2 2026)
+**Status:** Concept Phase
+
+**Potential Features:**
+- 📊 Statistics dashboard for Timer
+- 📈 Recovery patterns analysis for Kamehameha
+- 📉 Trigger frequency tracking
+- 🎯 Goal setting and progress tracking
+- 📅 Calendar view for streaks
+- 📱 Weekly/monthly reports
+
+---
+
+### V6.0 - Community & Support (Q3 2026)
+**Status:** Ideas Phase
+
+**Potential Features:**
+- 👥 Anonymous support groups (optional)
+- 📚 Educational resources library
+- 🎓 Recovery programs and courses
+- 💬 Peer accountability partners (opt-in)
+- 🏅 Community challenges
+
+---
+
+### V7.0 - Mobile & Offline (Q4 2026)
+**Status:** Research Phase
+
+**Potential Features:**
+- 📱 Progressive Web App (PWA) enhancements
+- ⚡ Offline mode with sync
+- 📲 Mobile notifications
+- 🔄 Background sync
+- 💾 Local-first architecture
+
+---
+
+## 💡 Backlog Ideas
+
+**Community Requests:**
+- 🎨 Custom themes and color schemes
+- 🔊 Custom notification sounds
+- 📊 CSV export for analytics
+- 🌐 Multi-language support
+- ♿ Enhanced accessibility features
+- 🔗 Calendar integrations (Google, Outlook)
+- ⏰ Scheduled sessions
+
+**Technical Improvements:**
+- 🧪 Comprehensive test coverage (unit + integration)
+- 📦 E2E testing with Playwright
+- 🚀 Performance monitoring
+- 📈 Analytics and telemetry (privacy-focused)
+- 🔍 Search functionality
+- 🎯 Smart focus suggestions
+
+---
+
+## 🎯 Development Priorities
+
+### Critical (V4.0)
+1. ✅ **Documentation Complete** - All specs and guides finished
+2. 🔄 **Firebase Setup** - Phase 1 starting
+3. ⏳ **Core Implementation** - Phases 2-6 upcoming
+
+### High (Post V4.0)
+- Statistics and analytics
+- Enhanced data visualization
+- Performance optimizations
+- Mobile PWA improvements
+
+### Medium (Future)
+- Community features
+- Advanced customization
+- Third-party integrations
+
+### Low (Nice to Have)
+- Themes and skins
+- Advanced gamification
+- Social features
+
+---
+
+## 📊 Success Metrics
+
+### V4.0 Goals
+- ✅ **Complete implementation** in 5-6 weeks
+- ✅ **Security audit** passed
+- ✅ **User privacy** fully protected
+- ✅ **AI costs** < $0.50/user/month
+- ✅ **Performance** - < 3s page load
+- ✅ **Mobile responsive** - Works on all devices
+
+### User Impact
+- Help users build healthier habits
+- Provide compassionate AI support
+- Maintain strict data privacy
+- Create sustainable recovery tool
 
 ---
 
 ## 🤝 Contributing
 
-This roadmap is a living document. If you have ideas for features or improvements:
+This project is currently in active development. For detailed implementation:
 
-1. Check if the idea exists in the backlog
-2. Consider creating a detailed feature spec
-3. Discuss feasibility and priority
-4. Add to appropriate section with status "Proposed"
+**AI Agents:**
+1. Read [AI Agent Guide](AI_AGENT_GUIDE.md)
+2. Check [Progress Tracker](docs/kamehameha/PROGRESS.md)
+3. Follow phase guides in [Quick Start](docs/kamehameha/QUICKSTART.md)
+
+**Developers:**
+1. See [README.md](README.md) for setup
+2. Read feature specs in [`docs/kamehameha/`](docs/kamehameha/)
+3. Follow [CHANGELOG.md](CHANGELOG.md) for updates
 
 ---
 
-**Last Updated:** October 16, 2025  
-**Next Review:** January 2026
+## 📞 Resources
 
+### Documentation Hub
+- 📚 **[docs/INDEX.md](docs/INDEX.md)** - Main navigation hub
+
+### Timer Feature (V3.0)
+- ⏱️ **[docs/zenfocus/](docs/zenfocus/)** - Timer documentation
+
+### Kamehameha Feature (V4.0)
+- 🎯 **[docs/kamehameha/](docs/kamehameha/)** - Complete documentation
+
+### Project Meta
+- 📝 **[CHANGELOG.md](CHANGELOG.md)** - Version history
+- 🏗️ **[docs/core/ARCHITECTURE.md](docs/core/ARCHITECTURE.md)** - System architecture
+
+---
+
+**Ready to start Phase 1?** 🚀
+
+Check [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) and [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) to begin!
