@@ -116,9 +116,12 @@ podomoro-app/
 │
 ├── functions/                # Firebase Cloud Functions
 │   ├── src/
-│   │   ├── openai.ts        # OpenAI API integration
-│   │   └── contextBuilder.ts # Build AI context
-│   └── package.json
+│   │   ├── index.ts         # Main export point
+│   │   ├── chatWithTherapist.ts # OpenAI chat implementation
+│   │   ├── contextBuilder.ts # Build AI context from user data
+│   │   └── rateLimit.ts     # Rate limiting logic
+│   ├── package.json
+│   └── tsconfig.json
 │
 ├── docs/                     # Documentation
 │   ├── INDEX.md
