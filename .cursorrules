@@ -1,0 +1,212 @@
+# AI Agent Instructions for ZenFocus Project
+
+## 🎯 FIRST: Read This Before Doing Anything
+
+You are working on **ZenFocus**, a dual-purpose productivity app (Pomodoro Timer + Kamehameha Recovery Tool).
+
+**Your entry point:** Read [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md) in the root directory for complete instructions.
+
+---
+
+## 📋 Before Starting Any Task
+
+### 1. Check Current Status (30 seconds)
+```
+Read: docs/kamehameha/PROGRESS.md
+Purpose: See what's done, what's in progress, any blockers
+```
+
+### 2. Understand the Task (2 minutes)
+```
+Read: docs/kamehameha/QUICKSTART.md → Find your phase
+Read: docs/kamehameha/SPEC.md → Feature requirements
+```
+
+### 3. Know Where Files Go (30 seconds)
+```
+Read: docs/kamehameha/FILE_STRUCTURE.md
+Purpose: Directory structure, naming conventions
+```
+
+---
+
+## 🔄 While Working
+
+### Every 30-60 Minutes
+```
+✅ Update docs/kamehameha/PROGRESS.md with completed tasks
+✅ Note any blockers in PROGRESS.md
+```
+
+### When You Learn Something (>30 min debugging)
+```
+✅ Document solution in docs/kamehameha/DEVELOPER_NOTES.md
+```
+
+### When Schema Changes
+```
+✅ Update docs/kamehameha/DATA_SCHEMA.md immediately
+✅ Update TypeScript interfaces to match
+```
+
+### When Behavior Differs from Spec
+```
+✅ Update docs/kamehameha/SPEC.md with note explaining why
+```
+
+---
+
+## 📚 Documentation System
+
+**Read this to understand how to maintain docs:**
+[`docs/kamehameha/DOCUMENTATION_MAINTENANCE.md`](docs/kamehameha/DOCUMENTATION_MAINTENANCE.md)
+
+### Quick Rules
+1. **PROGRESS.md** → Update after EVERY task ⚡
+2. **DEVELOPER_NOTES.md** → Add solutions you discover 💡
+3. **DATA_SCHEMA.md** → Update when Firestore changes 🗄️
+4. **SPEC.md** → Update when behavior intentionally differs 📝
+5. Everything else → Rarely needs updates ✅
+
+---
+
+## 🗂️ Navigation
+
+### Essential Documents (Read These)
+- [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md) - Your complete guide (737 lines)
+- [`docs/INDEX.md`](docs/INDEX.md) - Documentation hub
+- [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) - Current status
+- [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase guide
+- [`docs/kamehameha/SPEC.md`](docs/kamehameha/SPEC.md) - Requirements
+- [`docs/kamehameha/DATA_SCHEMA.md`](docs/kamehameha/DATA_SCHEMA.md) - Database
+- [`docs/kamehameha/DEVELOPER_NOTES.md`](docs/kamehameha/DEVELOPER_NOTES.md) - Tips
+- [`docs/kamehameha/FILE_STRUCTURE.md`](docs/kamehameha/FILE_STRUCTURE.md) - File organization
+- [`docs/kamehameha/DOCUMENTATION_MAINTENANCE.md`](docs/kamehameha/DOCUMENTATION_MAINTENANCE.md) - How to maintain
+
+### Reference Documents (As Needed)
+- [`docs/core/ARCHITECTURE.md`](docs/core/ARCHITECTURE.md) - System architecture
+- [`docs/kamehameha/OVERVIEW.md`](docs/kamehameha/OVERVIEW.md) - Feature overview
+- [`docs/kamehameha/AI_INTEGRATION.md`](docs/kamehameha/AI_INTEGRATION.md) - OpenAI setup
+- [`docs/kamehameha/SECURITY.md`](docs/kamehameha/SECURITY.md) - Security rules
+
+---
+
+## 🎓 Context About This Project
+
+### Developer (Tony)
+- New to Firebase (provide clear explanations)
+- Budget-conscious (monitor costs)
+- Privacy-focused (user data security critical)
+- Using Google login for auth
+- Has OpenAI API key ready
+
+### Tech Stack
+- React 19 + TypeScript + Vite
+- Tailwind CSS + Framer Motion
+- Firebase (Auth + Firestore + Cloud Functions)
+- OpenAI GPT-5 (for AI chat)
+- React Router
+
+### Current Phase
+Check [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) for current status.
+
+---
+
+## ⚠️ Critical Rules
+
+### Security
+1. **NEVER expose API keys** in frontend code
+2. **Always verify user ownership** in Firestore rules
+3. **Test security rules** thoroughly before deployment
+4. Store OpenAI key in Cloud Functions config only
+
+### Code Quality
+1. **TypeScript strict mode** - All new code must be TypeScript
+2. **Follow existing patterns** - Check Timer feature for examples
+3. **Mobile-first** - Test responsive design
+4. **Dark mode** - Support both themes
+
+### Documentation
+1. **Update PROGRESS.md** after every task (non-negotiable)
+2. **Document solutions** if debugging took >30 minutes
+3. **Keep schemas in sync** with actual Firestore structure
+4. **Note spec deviations** with reasons
+
+---
+
+## 🚨 Before Committing Code
+
+**Checklist:**
+- [ ] Is PROGRESS.md updated?
+- [ ] Did I document any tricky solutions?
+- [ ] Did any schemas change? (Update DATA_SCHEMA.md)
+- [ ] Does implementation match spec? (If not, update SPEC.md)
+- [ ] TypeScript compiles without errors?
+- [ ] No console errors in dev?
+- [ ] Tested in dark mode?
+- [ ] Mobile responsive?
+
+---
+
+## 💬 Communication Style
+
+- Be concise but thorough
+- Explain Firebase concepts clearly (user is new to it)
+- Show code examples
+- Link to relevant documentation
+- Ask clarifying questions if requirements unclear
+
+---
+
+## 🔍 If You're Stuck
+
+1. Check [`docs/kamehameha/DEVELOPER_NOTES.md`](docs/kamehameha/DEVELOPER_NOTES.md) for known issues
+2. Review [`docs/kamehameha/SPEC.md`](docs/kamehameha/SPEC.md) for requirements
+3. Look at existing Timer feature for patterns
+4. Check Firebase Console for errors
+5. Ask the user for clarification
+
+---
+
+## 📖 Reading Order for New Tasks
+
+```
+1. docs/kamehameha/PROGRESS.md (where are we?)
+2. docs/kamehameha/QUICKSTART.md (what's the phase?)
+3. docs/kamehameha/SPEC.md (what to build?)
+4. docs/kamehameha/FILE_STRUCTURE.md (where does it go?)
+5. docs/kamehameha/DEVELOPER_NOTES.md (any tips?)
+6. Start coding!
+7. Update PROGRESS.md as you go
+```
+
+---
+
+## 🎯 Success Metrics
+
+**You're doing well if:**
+- ✅ PROGRESS.md reflects actual current state
+- ✅ No dead code or unused files
+- ✅ TypeScript has no errors
+- ✅ Documentation stays in sync with code
+- ✅ Next AI agent can pick up where you left off
+
+---
+
+## 📞 Quick Reference
+
+**Need requirements?** → [`docs/kamehameha/SPEC.md`](docs/kamehameha/SPEC.md)
+**Need data structure?** → [`docs/kamehameha/DATA_SCHEMA.md`](docs/kamehameha/DATA_SCHEMA.md)
+**Where does file go?** → [`docs/kamehameha/FILE_STRUCTURE.md`](docs/kamehameha/FILE_STRUCTURE.md)
+**How to maintain docs?** → [`docs/kamehameha/DOCUMENTATION_MAINTENANCE.md`](docs/kamehameha/DOCUMENTATION_MAINTENANCE.md)
+**What's the status?** → [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md)
+**Need Firebase tips?** → [`docs/kamehameha/DEVELOPER_NOTES.md`](docs/kamehameha/DEVELOPER_NOTES.md)
+
+---
+
+**Remember:** This project has comprehensive documentation. USE IT! Reading 5 minutes of docs saves 30 minutes of debugging.
+
+**Most important:** Keep [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) updated as you work!
+
+🚀 Happy coding!
+
