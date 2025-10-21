@@ -465,7 +465,7 @@ Collection: users/{userId}/kamehameha/relapses
 Fields: timestamp DESC
 Purpose: Query relapses chronologically for specific user
 
-Collection: users/{userId}/kamehameha/chatMessages
+Collection: users/{userId}/kamehameha/chatHistory
 Fields: timestamp ASC
 Purpose: Load chat messages in order for specific user
 

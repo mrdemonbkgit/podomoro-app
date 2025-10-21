@@ -256,7 +256,7 @@ Component Re-renders
 6. AI integration
 7. Testing and deployment
 
-**Timeline:** 5-6 weeks (see implementation plan)
+**Timeline:** 5-6 weeks (see [Implementation Guide](IMPLEMENTATION_GUIDE.md))
 
 ---
 
@@ -388,7 +388,7 @@ src/features/kamehameha/
 3. **[AI_INTEGRATION.md](AI_INTEGRATION.md)** - OpenAI setup
 
 ### Implementation
-4. **[Implementation Plan](../../kamehameha-pmo-recovery-tool.plan.md)** - Step-by-step guide
+4. **[Implementation Guide](IMPLEMENTATION_GUIDE.md)** - Phase-by-phase roadmap
 5. **[SECURITY.md](SECURITY.md)** - Security considerations
 6. **[Architecture](../core/ARCHITECTURE.md)** - Overall app structure
 
@@ -454,5 +454,5 @@ A: ZenFocus is free. Firebase has generous free tier. OpenAI API costs paid by y
 
 ---
 
-**Ready to build?** Start with [SPEC.md](SPEC.md) for complete requirements, then follow the [Implementation Plan](../../kamehameha-pmo-recovery-tool.plan.md).
+**Ready to build?** Start with [SPEC.md](SPEC.md) for complete requirements, then follow the [Implementation Guide](IMPLEMENTATION_GUIDE.md) and [Quick Start Guide](QUICKSTART.md) for step-by-step guidance.
 
