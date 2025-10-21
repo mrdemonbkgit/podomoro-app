@@ -8,7 +8,7 @@
 Start with `core/ARCHITECTURE.md` to understand the overall application structure.
 
 ### For Feature Development
-- **Working on Pomodoro Timer?** Go to existing feature documentation in root folder
+- **Working on Pomodoro Timer?** Go to `zenfocus/OVERVIEW.md`
 - **Working on Kamehameha?** Go to `kamehameha/OVERVIEW.md`
 
 ### For AI Agents
@@ -154,6 +154,11 @@ Both features share:
 - `AI_AGENT_GUIDE.md` - For AI assistants
 - `.cursorrules` - AI auto-load configuration
 
+### Documentation Meta
+- `REORGANIZATION_SUMMARY.md` - Quick overview of recent reorganization
+- `REORGANIZATION_COMPLETE.md` - Detailed reorganization breakdown
+- `REORGANIZATION_PLAN.md` - Original reorganization plan
+
 ### Historical
 - `archive/` - Completed bug fixes, old test reports
 
@@ -172,9 +177,17 @@ src/
 └── routes/            - React Router configuration
 
 docs/
-├── INDEX.md           - This file
+├── INDEX.md           - This file (documentation hub)
 ├── core/              - Shared architecture docs
-└── kamehameha/        - Kamehameha-specific docs
+├── zenfocus/          - Timer feature documentation
+│   ├── features/      - Task Management, Audio System, Settings
+│   ├── releases/      - Version release notes
+│   └── development/   - Build System, Testing, UI/UX
+├── kamehameha/        - PMO recovery feature docs
+│   ├── phases/        - Phase-by-phase guides
+│   └── [specs, guides, schemas]
+├── tools/             - Development tool setup
+└── archive/           - Historical documentation
 
 functions/             - Firebase Cloud Functions (AI chat)
 ```
@@ -253,11 +266,18 @@ functions/             - Firebase Cloud Functions (AI chat)
 
 ## Version History
 
-- **2025-10-21:** 
+- **2025-10-21:**
+  - **Documentation Reorganization:** Complete restructure of 30+ files
+    - Created `zenfocus/` directory for Timer feature docs
+    - Created `tools/` directory for development tool setup
+    - Created `archive/` directory for historical docs
+    - Consolidated 5 audio files → 1 comprehensive AUDIO_SYSTEM.md
+    - Consolidated 3 UI/UX files → 1 UI_UX_IMPROVEMENTS.md
+    - Root directory cleaned: 30+ docs → 6 essential files
   - Created comprehensive documentation structure for Kamehameha feature
   - Added implementation resources: QUICKSTART, PROGRESS, FILE_STRUCTURE, DEVELOPER_NOTES
   - Organized into phases with detailed guides
-  - Removed all references
+  - Added AI auto-load configuration (.cursorrules)
 - **2025-10-19:** Added task management feature documentation
 - **2025-10-18:** V3.0 release - ZenFocus rebrand
 - **2025-10-16:** V2.0 release - Enhanced features
@@ -297,4 +317,9 @@ functions/             - Firebase Cloud Functions (AI chat)
 20. [README.md](../README.md) - Project overview
 21. [CHANGELOG.md](../CHANGELOG.md) - Version history
 22. [ROADMAP.md](../ROADMAP.md) - Future features
+
+### Documentation Meta
+23. [Reorganization Summary](REORGANIZATION_SUMMARY.md) - Quick overview of recent docs reorganization
+24. [Archive Index](archive/README.md) - Index of historical documentation
+25. [Tools Index](tools/README.md) - Development tools setup
 
