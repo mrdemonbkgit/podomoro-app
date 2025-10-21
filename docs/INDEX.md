@@ -12,7 +12,10 @@ Start with `core/ARCHITECTURE.md` to understand the overall application structur
 - **Working on Kamehameha?** Go to `kamehameha/OVERVIEW.md`
 
 ### For AI Agents
-Read this index first, then navigate to the specific feature documentation you need.
+1. Read [`.cursorrules`](../.cursorrules) (auto-loads, quick start)
+2. Read [`AI_AGENT_GUIDE.md`](../AI_AGENT_GUIDE.md) (comprehensive guide)
+3. Read this index for navigation
+4. See [`AI_DOCUMENTATION_SYSTEM.md`](AI_DOCUMENTATION_SYSTEM.md) to understand the tiered system
 
 ---
 
@@ -155,6 +158,7 @@ Both features share:
 - `.cursorrules` - AI auto-load configuration
 
 ### Documentation Meta
+- `AI_DOCUMENTATION_SYSTEM.md` - Explains the tiered AI documentation architecture
 - `REORGANIZATION_SUMMARY.md` - Quick overview of recent reorganization
 - `REORGANIZATION_COMPLETE.md` - Detailed reorganization breakdown
 - `REORGANIZATION_PLAN.md` - Original reorganization plan
@@ -319,7 +323,8 @@ functions/             - Firebase Cloud Functions (AI chat)
 22. [ROADMAP.md](../ROADMAP.md) - Future features
 
 ### Documentation Meta
-23. [Reorganization Summary](REORGANIZATION_SUMMARY.md) - Quick overview of recent docs reorganization
-24. [Archive Index](archive/README.md) - Index of historical documentation
-25. [Tools Index](tools/README.md) - Development tools setup
+23. [AI Documentation System](AI_DOCUMENTATION_SYSTEM.md) - Tiered AI documentation architecture
+24. [Reorganization Summary](REORGANIZATION_SUMMARY.md) - Quick overview of recent docs reorganization
+25. [Archive Index](archive/README.md) - Index of historical documentation
+26. [Tools Index](tools/README.md) - Development tools setup
 

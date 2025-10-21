@@ -5,6 +5,29 @@
 
 ---
 
+## 📚 Documentation Hierarchy
+
+**Two-Tier System:**
+
+1. **[`.cursorrules`](.cursorrules)** - Quick Start & Critical Rules (auto-loaded)
+   - Essential rules you must never break
+   - Quick checklists and references
+   - Common commands
+   - ~200 lines for fast scanning
+
+2. **`AI_AGENT_GUIDE.md`** - Comprehensive Reference (this file)
+   - Full project context and history
+   - Detailed workflows and examples
+   - Architecture explanations
+   - Troubleshooting guides
+   - ~700+ lines with complete information
+
+**When to use which:**
+- `.cursorrules` → Quick checks during coding, critical reminders
+- `AI_AGENT_GUIDE.md` → Understanding the project, detailed implementation guidance
+
+---
+
 ## Quick Start
 
 You're working on **ZenFocus**, a dual-purpose productivity app:
@@ -12,10 +35,11 @@ You're working on **ZenFocus**, a dual-purpose productivity app:
 2. **Kamehameha** - PMO recovery tool with AI therapist (in development)
 
 **First Steps:**
-1. Read this guide completely
-2. Review [`docs/INDEX.md`](docs/INDEX.md)
-3. Read [`docs/core/ARCHITECTURE.md`](docs/core/ARCHITECTURE.md)
-4. Read feature-specific docs based on your task
+1. Read this guide completely (you're in the right place!)
+2. Keep [`.cursorrules`](.cursorrules) handy for quick reference
+3. Review [`docs/INDEX.md`](docs/INDEX.md) for navigation
+4. Read [`docs/core/ARCHITECTURE.md`](docs/core/ARCHITECTURE.md) for system overview
+5. Read feature-specific docs based on your task
 
 ---
 
@@ -434,6 +458,8 @@ export async function callMyFunction(data: any): Promise<any> {
 
 ## Critical Guidelines
 
+**⚡ For quick reference, see [`.cursorrules`](.cursorrules) → Critical Rules section**
+
 ### Security
 
 1. **API Keys:**
@@ -659,7 +685,11 @@ npx tsc --noEmit
 
 ## Quick Reference Card
 
+**⚡ For ultra-quick reference, see [`.cursorrules`](.cursorrules)**
+
 ### Essential Files
+- `.cursorrules` - Quick start & critical rules (keep this handy!)
+- `AI_AGENT_GUIDE.md` - This comprehensive guide
 - `docs/kamehameha/SPEC.md` - Feature requirements
 - `docs/kamehameha/DATA_SCHEMA.md` - Database structure
 - `docs/kamehameha/IMPLEMENTATION_GUIDE.md` - Phases overview
@@ -712,6 +742,7 @@ docs/kamehameha/PROGRESS.md (track your work)
 ## Final Checklist Before Starting
 
 - [ ] Read this guide completely
+- [ ] Review [`.cursorrules`](.cursorrules) for critical rules and quick reference
 - [ ] Read `docs/INDEX.md`
 - [ ] Read `docs/core/ARCHITECTURE.md`
 - [ ] Read relevant `docs/kamehameha/*.md` for your task
@@ -726,6 +757,11 @@ docs/kamehameha/PROGRESS.md (track your work)
 ---
 
 **You're ready to start building! 🚀**
+
+**During development:**
+- Keep [`.cursorrules`](.cursorrules) handy for quick checks
+- Refer to this guide for detailed explanations
+- Update `PROGRESS.md` after every task
 
 When in doubt:
 1. Read the documentation

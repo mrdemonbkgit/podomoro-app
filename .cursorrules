@@ -1,150 +1,150 @@
-# AI Agent Instructions for ZenFocus Project
+# ZenFocus AI Agent - Quick Start & Critical Rules
 
-## 🎯 FIRST: Read This Before Doing Anything
+## 🎯 FIRST: Read the Comprehensive Guide
 
-You are working on **ZenFocus**, a dual-purpose productivity app (Pomodoro Timer + Kamehameha Recovery Tool).
+**📖 Read [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md) for complete project context and detailed instructions.**
 
-**Your entry point:** Read [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md) in the root directory for complete instructions.
+This file contains only critical rules and quick references. For detailed explanations, workflows, and examples, consult the comprehensive guide.
+
+---
+
+## ⚡ Quick Context
+
+**Project:** ZenFocus - Dual-purpose productivity app  
+**Features:** Pomodoro Timer (existing) + Kamehameha Recovery Tool (in development)  
+**Tech:** React 19, TypeScript, Vite, Firebase, OpenAI GPT-5
+
+**User:** Tony (new to Firebase, budget-conscious, privacy-focused)
 
 ---
 
 ## 📋 Before Starting Any Task
 
-### 1. Check Current Status (30 seconds)
-```
-Read: docs/kamehameha/PROGRESS.md
-Purpose: See what's done, what's in progress, any blockers
-```
-
-### 2. Understand the Task (2 minutes)
-```
-Read: docs/kamehameha/QUICKSTART.md → Find your phase
-Read: docs/kamehameha/SPEC.md → Feature requirements
-```
-
-### 3. Know Where Files Go (30 seconds)
-```
-Read: docs/kamehameha/FILE_STRUCTURE.md
-Purpose: Directory structure, naming conventions
-```
+1. **Check current status:** `docs/kamehameha/PROGRESS.md`
+2. **Find your phase:** `docs/kamehameha/QUICKSTART.md`
+3. **Read requirements:** `docs/kamehameha/SPEC.md`
+4. **Know file locations:** `docs/kamehameha/FILE_STRUCTURE.md`
 
 ---
 
-## 🔄 While Working
+## ⚠️ CRITICAL RULES (Never Break These)
+
+### Security 🔒
+- ❌ **NEVER** expose API keys in frontend code
+- ✅ Store OpenAI key in Cloud Functions config only
+- ✅ Always verify user ownership in Firestore rules
+- ✅ Test security rules thoroughly before deployment
+
+### Code Quality 💻
+- ✅ All new code must be TypeScript (strict mode)
+- ✅ Follow existing patterns (check Timer feature)
+- ✅ Mobile-first responsive design
+- ✅ Support dark mode in all components
+
+### Documentation 📝
+- ✅ **Update `PROGRESS.md` after EVERY task** (non-negotiable)
+- ✅ Document solutions if debugging took >30 minutes
+- ✅ Keep `DATA_SCHEMA.md` synced with Firestore
+- ✅ Note spec deviations in `SPEC.md` with reasons
+
+### Git Commits 🔀
+- ❌ Never commit without updating documentation
+- ❌ Never skip hooks (--no-verify, --no-gpg-sign)
+- ❌ Never force push to main/master
+- ✅ Use conventional commit format: `<type>: <description>`
+
+---
+
+## 🔄 During Development
 
 ### Every 30-60 Minutes
 ```
-✅ Update docs/kamehameha/PROGRESS.md with completed tasks
-✅ Note any blockers in PROGRESS.md
-```
-
-### When You Learn Something (>30 min debugging)
-```
-✅ Document solution in docs/kamehameha/DEVELOPER_NOTES.md
+✅ Update docs/kamehameha/PROGRESS.md
+✅ Note blockers if any
 ```
 
 ### When Schema Changes
 ```
-✅ Update docs/kamehameha/DATA_SCHEMA.md immediately
-✅ Update TypeScript interfaces to match
+✅ Update docs/kamehameha/DATA_SCHEMA.md
+✅ Update TypeScript interfaces
 ```
 
 ### When Behavior Differs from Spec
 ```
-✅ Update docs/kamehameha/SPEC.md with note explaining why
+✅ Update docs/kamehameha/SPEC.md
+✅ Explain why in comments
+```
+
+### When You Learn Something (>30 min debugging)
+```
+✅ Document in docs/kamehameha/DEVELOPER_NOTES.md
 ```
 
 ---
 
-## 📚 Documentation System
+## 🚨 Pre-Commit Checklist
 
-**Read this to understand how to maintain docs:**
-[`docs/kamehameha/DOCUMENTATION_MAINTENANCE.md`](docs/kamehameha/DOCUMENTATION_MAINTENANCE.md)
-
-### Quick Rules
-1. **PROGRESS.md** → Update after EVERY task ⚡
-2. **DEVELOPER_NOTES.md** → Add solutions you discover 💡
-3. **DATA_SCHEMA.md** → Update when Firestore changes 🗄️
-4. **SPEC.md** → Update when behavior intentionally differs 📝
-5. Everything else → Rarely needs updates ✅
-
----
-
-## 🗂️ Navigation
-
-### Essential Documents (Read These)
-- [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md) - Your complete guide (737 lines)
-- [`docs/INDEX.md`](docs/INDEX.md) - Documentation hub
-- [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) - Current status
-- [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md) - Phase guide
-- [`docs/kamehameha/SPEC.md`](docs/kamehameha/SPEC.md) - Requirements
-- [`docs/kamehameha/DATA_SCHEMA.md`](docs/kamehameha/DATA_SCHEMA.md) - Database
-- [`docs/kamehameha/DEVELOPER_NOTES.md`](docs/kamehameha/DEVELOPER_NOTES.md) - Tips
-- [`docs/kamehameha/FILE_STRUCTURE.md`](docs/kamehameha/FILE_STRUCTURE.md) - File organization
-- [`docs/kamehameha/DOCUMENTATION_MAINTENANCE.md`](docs/kamehameha/DOCUMENTATION_MAINTENANCE.md) - How to maintain
-
-### Reference Documents (As Needed)
-- [`docs/core/ARCHITECTURE.md`](docs/core/ARCHITECTURE.md) - System architecture
-- [`docs/kamehameha/OVERVIEW.md`](docs/kamehameha/OVERVIEW.md) - Feature overview
-- [`docs/kamehameha/AI_INTEGRATION.md`](docs/kamehameha/AI_INTEGRATION.md) - OpenAI setup
-- [`docs/kamehameha/SECURITY.md`](docs/kamehameha/SECURITY.md) - Security rules
-
----
-
-## 🎓 Context About This Project
-
-### Developer (Tony)
-- New to Firebase (provide clear explanations)
-- Budget-conscious (monitor costs)
-- Privacy-focused (user data security critical)
-- Using Google login for auth
-- Has OpenAI API key ready
-
-### Tech Stack
-- React 19 + TypeScript + Vite
-- Tailwind CSS + Framer Motion
-- Firebase (Auth + Firestore + Cloud Functions)
-- OpenAI GPT-5 (for AI chat)
-- React Router
-
-### Current Phase
-Check [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) for current status.
-
----
-
-## ⚠️ Critical Rules
-
-### Security
-1. **NEVER expose API keys** in frontend code
-2. **Always verify user ownership** in Firestore rules
-3. **Test security rules** thoroughly before deployment
-4. Store OpenAI key in Cloud Functions config only
-
-### Code Quality
-1. **TypeScript strict mode** - All new code must be TypeScript
-2. **Follow existing patterns** - Check Timer feature for examples
-3. **Mobile-first** - Test responsive design
-4. **Dark mode** - Support both themes
-
-### Documentation
-1. **Update PROGRESS.md** after every task (non-negotiable)
-2. **Document solutions** if debugging took >30 minutes
-3. **Keep schemas in sync** with actual Firestore structure
-4. **Note spec deviations** with reasons
-
----
-
-## 🚨 Before Committing Code
-
-**Checklist:**
-- [ ] Is PROGRESS.md updated?
-- [ ] Did I document any tricky solutions?
-- [ ] Did any schemas change? (Update DATA_SCHEMA.md)
-- [ ] Does implementation match spec? (If not, update SPEC.md)
+- [ ] `PROGRESS.md` updated?
+- [ ] Tricky solutions documented?
+- [ ] Schema changes reflected in `DATA_SCHEMA.md`?
+- [ ] Implementation matches `SPEC.md`?
 - [ ] TypeScript compiles without errors?
 - [ ] No console errors in dev?
 - [ ] Tested in dark mode?
 - [ ] Mobile responsive?
+
+---
+
+## 📂 Quick File Reference
+
+### Kamehameha Files Go Here:
+```
+src/features/kamehameha/
+├── pages/         - KamehamehaPage.tsx, ChatPage.tsx
+├── components/    - StreakTimer.tsx, CheckInModal.tsx, etc.
+├── hooks/         - useKamehameha.ts, useStreaks.ts, etc.
+├── services/      - firestoreService.ts, aiChatService.ts
+└── types/         - kamehameha.types.ts
+```
+
+### Documentation:
+```
+docs/
+├── INDEX.md                    - Navigation hub
+├── kamehameha/PROGRESS.md      - Task tracker (UPDATE OFTEN!)
+├── kamehameha/QUICKSTART.md    - Phase guide
+├── kamehameha/SPEC.md          - Requirements
+├── kamehameha/DATA_SCHEMA.md   - Database structure
+└── kamehameha/FILE_STRUCTURE.md - Complete reference
+```
+
+---
+
+## 📖 Essential Documentation
+
+**For detailed instructions, see [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md)**
+
+### Quick Access:
+- **Full guide:** [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md)
+- **Navigation:** [`docs/INDEX.md`](docs/INDEX.md)
+- **Current status:** [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md)
+- **Phase guide:** [`docs/kamehameha/QUICKSTART.md`](docs/kamehameha/QUICKSTART.md)
+- **Requirements:** [`docs/kamehameha/SPEC.md`](docs/kamehameha/SPEC.md)
+- **Database:** [`docs/kamehameha/DATA_SCHEMA.md`](docs/kamehameha/DATA_SCHEMA.md)
+- **File structure:** [`docs/kamehameha/FILE_STRUCTURE.md`](docs/kamehameha/FILE_STRUCTURE.md)
+- **Tips:** [`docs/kamehameha/DEVELOPER_NOTES.md`](docs/kamehameha/DEVELOPER_NOTES.md)
+- **Maintenance:** [`docs/kamehameha/DOCUMENTATION_MAINTENANCE.md`](docs/kamehameha/DOCUMENTATION_MAINTENANCE.md)
+
+---
+
+## 🎯 Success Metrics
+
+**You're doing well if:**
+- ✅ `PROGRESS.md` reflects actual current state
+- ✅ No dead code or unused files
+- ✅ TypeScript has no errors
+- ✅ Documentation stays in sync with code
+- ✅ Next AI agent can pick up where you left off
 
 ---
 
@@ -154,59 +154,93 @@ Check [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) for current s
 - Explain Firebase concepts clearly (user is new to it)
 - Show code examples
 - Link to relevant documentation
-- Ask clarifying questions if requirements unclear
+- Ask clarifying questions if unclear
 
 ---
 
 ## 🔍 If You're Stuck
 
-1. Check [`docs/kamehameha/DEVELOPER_NOTES.md`](docs/kamehameha/DEVELOPER_NOTES.md) for known issues
-2. Review [`docs/kamehameha/SPEC.md`](docs/kamehameha/SPEC.md) for requirements
+1. Check `docs/kamehameha/DEVELOPER_NOTES.md` for known issues
+2. Review `docs/kamehameha/SPEC.md` for requirements
 3. Look at existing Timer feature for patterns
 4. Check Firebase Console for errors
 5. Ask the user for clarification
 
 ---
 
-## 📖 Reading Order for New Tasks
+## 📝 Reading Order for New Tasks
 
 ```
-1. docs/kamehameha/PROGRESS.md (where are we?)
-2. docs/kamehameha/QUICKSTART.md (what's the phase?)
-3. docs/kamehameha/SPEC.md (what to build?)
+1. docs/kamehameha/PROGRESS.md     (where are we?)
+2. docs/kamehameha/QUICKSTART.md   (what's the phase?)
+3. docs/kamehameha/SPEC.md         (what to build?)
 4. docs/kamehameha/FILE_STRUCTURE.md (where does it go?)
 5. docs/kamehameha/DEVELOPER_NOTES.md (any tips?)
 6. Start coding!
 7. Update PROGRESS.md as you go
 ```
 
----
-
-## 🎯 Success Metrics
-
-**You're doing well if:**
-- ✅ PROGRESS.md reflects actual current state
-- ✅ No dead code or unused files
-- ✅ TypeScript has no errors
-- ✅ Documentation stays in sync with code
-- ✅ Next AI agent can pick up where you left off
+**For detailed reading orders by task type, see [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md#reading-order-for-tasks)**
 
 ---
 
-## 📞 Quick Reference
+## 🛠️ Common Commands
 
-**Need requirements?** → [`docs/kamehameha/SPEC.md`](docs/kamehameha/SPEC.md)
-**Need data structure?** → [`docs/kamehameha/DATA_SCHEMA.md`](docs/kamehameha/DATA_SCHEMA.md)
-**Where does file go?** → [`docs/kamehameha/FILE_STRUCTURE.md`](docs/kamehameha/FILE_STRUCTURE.md)
-**How to maintain docs?** → [`docs/kamehameha/DOCUMENTATION_MAINTENANCE.md`](docs/kamehameha/DOCUMENTATION_MAINTENANCE.md)
-**What's the status?** → [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md)
-**Need Firebase tips?** → [`docs/kamehameha/DEVELOPER_NOTES.md`](docs/kamehameha/DEVELOPER_NOTES.md)
+```bash
+npm run dev                       # Start dev server
+firebase emulators:start          # Start Firebase emulator
+firebase deploy --only functions  # Deploy Cloud Functions
+npm run build                     # Build for production
+npm test                          # Run tests
+npx tsc --noEmit                 # Type check
+```
 
 ---
 
-**Remember:** This project has comprehensive documentation. USE IT! Reading 5 minutes of docs saves 30 minutes of debugging.
+## ⚡ Quick Tips
 
-**Most important:** Keep [`docs/kamehameha/PROGRESS.md`](docs/kamehameha/PROGRESS.md) updated as you work!
+1. **Read before you code** - Prevents misunderstandings
+2. **Follow existing patterns** - Check Timer feature for examples
+3. **Test security rules** - Use Firebase emulator
+4. **Update docs as you go** - Don't wait until the end
+5. **Ask questions** - Better to clarify than guess
+
+---
+
+## 🎓 Context
+
+**Developer (Tony):**
+- New to Firebase (provide clear explanations)
+- Budget-conscious (monitor costs)
+- Privacy-focused (user data security critical)
+- Using Google login for auth
+- Has OpenAI API key ready
+
+**Tech Stack:**
+- React 19 + TypeScript + Vite
+- Tailwind CSS + Framer Motion
+- Firebase (Auth + Firestore + Cloud Functions)
+- OpenAI GPT-5 (for AI chat)
+- React Router
+
+---
+
+## 📞 Need More Details?
+
+**This file is intentionally brief.** For:
+- Detailed workflows and examples
+- Comprehensive project context
+- Step-by-step implementation guides
+- Architecture explanations
+- Troubleshooting guides
+
+**👉 Read [`AI_AGENT_GUIDE.md`](AI_AGENT_GUIDE.md) - The authoritative comprehensive guide**
+
+---
+
+**Remember:** 
+- This project has comprehensive documentation - USE IT!
+- Reading 5 minutes of docs saves 30 minutes of debugging
+- **Most important:** Keep `PROGRESS.md` updated as you work!
 
 🚀 Happy coding!
-
