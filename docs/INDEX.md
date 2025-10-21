@@ -153,7 +153,6 @@ Both features share:
 ### Project-Wide
 - `README.md` - Project overview and setup
 - `CHANGELOG.md` - Version history
-- `ROADMAP.md` - Future features
 - `AI_AGENT_GUIDE.md` - For AI assistants
 - `.cursorrules` - AI auto-load configuration
 
@@ -320,7 +319,6 @@ functions/             - Firebase Cloud Functions (AI chat)
 ### Project Documentation
 20. [README.md](../README.md) - Project overview
 21. [CHANGELOG.md](../CHANGELOG.md) - Version history
-22. [ROADMAP.md](../ROADMAP.md) - Future features
 
 ### Documentation Meta
 23. [AI Documentation System](AI_DOCUMENTATION_SYSTEM.md) - Tiered AI documentation architecture

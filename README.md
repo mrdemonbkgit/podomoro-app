@@ -137,16 +137,22 @@ podomoro-app/
 └── tailwind.config.js
 ```
 
-## Roadmap & Changelog
+## Documentation & Changelog
 
-### Future Features
-See **[ROADMAP.md](ROADMAP.md)** for detailed feature planning:
-- **V2.0** - Enhanced Experience (customization, persistence, themes)
-- **V3.0** - Productivity Suite (tasks, analytics, advanced features)
-- **Backlog** - Long-term ideas (mobile app, integrations, gamification)
+### Project Documentation
+All documentation is organized in the **[`docs/`](docs/)** directory:
+- **[docs/INDEX.md](docs/INDEX.md)** - Documentation hub and navigation
+- **[docs/zenfocus/](docs/zenfocus/)** - Timer feature documentation
+- **[docs/kamehameha/](docs/kamehameha/)** - PMO Recovery Tool (V4.0 - in development)
 
 ### Version History
 See **[CHANGELOG.md](CHANGELOG.md)** for detailed version history and changes.
+
+### Current Status
+- ✅ **V3.0** - Live (ZenFocus rebrand, task management, ambient sounds)
+- 🔄 **V4.0** - In Development (Kamehameha PMO Recovery Tool)
+  - See [docs/kamehameha/OVERVIEW.md](docs/kamehameha/OVERVIEW.md) for details
+  - Track progress at [docs/kamehameha/PROGRESS.md](docs/kamehameha/PROGRESS.md)
 
 ## Testing with AI Assistant (MCP Integration)
 

@@ -394,7 +394,7 @@ This is a **major milestone release** that transforms the Pomodoro Timer from a 
 - State includes: time, isActive, sessionType, completedSessions, timestamp
 - Elapsed time calculation: `elapsed = now - savedTimestamp`, `newTime = savedTime - elapsed`
 
-See [ROADMAP.md](ROADMAP.md) for planned features.
+See [docs/kamehameha/OVERVIEW.md](docs/kamehameha/OVERVIEW.md) for V4.0 Kamehameha feature in development.
 
 ## [1.0.0] - 2025-10-16
 
@@ -454,7 +454,7 @@ src/
 - No statistics/history tracking
 - No dark mode
 
-See [ROADMAP.md](ROADMAP.md) for planned enhancements in V2.0 and V3.0.
+V2.0 and V3.0 features have been completed. See [docs/zenfocus/OVERVIEW.md](docs/zenfocus/OVERVIEW.md) for current Timer features.
 
 ## Git History
 
