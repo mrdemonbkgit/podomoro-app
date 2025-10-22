@@ -1,6 +1,7 @@
 /**
  * Kamehameha Cloud Functions
  * Phase 4: AI Therapist Chat
+ * Phase 5: Milestones & Gamification
  */
 
 import * as functions from 'firebase-functions';
@@ -20,6 +21,9 @@ import {
   OpenAIMessage,
   AI_CONFIG,
 } from './types';
+
+// Export milestone detection function
+export {checkMilestones} from './milestones';
 
 // Load environment variables
 dotenv.config();

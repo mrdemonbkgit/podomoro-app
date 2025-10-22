@@ -4,8 +4,11 @@ import { UserProfile } from '../../auth/components/UserProfile';
 import { useStreaks } from '../hooks/useStreaks';
 import { useCheckIns } from '../hooks/useCheckIns';
 import { useRelapses } from '../hooks/useRelapses';
+import { useBadges } from '../hooks/useBadges';
 import { CheckInModal, type CheckInFormData } from '../components/CheckInModal';
 import { RelapseFlow, type RelapseFormData } from '../components/RelapseFlow';
+import { CelebrationModal } from '../components/CelebrationModal';
+import { MilestoneProgress } from '../components/MilestoneProgress';
 import { type StreakDisplay } from '../types/kamehameha.types';
 
 /**
@@ -13,6 +16,7 @@ import { type StreakDisplay } from '../types/kamehameha.types';
  * 
  * Single-timer display with tab switching.
  * Phase 3: Check-in and relapse tracking enabled.
+ * Phase 5: Milestone progress and badge celebrations.
  */
 
 type ActiveStreak = 'main' | 'discipline';
@@ -21,6 +25,7 @@ export function KamehamehaPage() {
   const { streaks, mainDisplay, disciplineDisplay, loading, error, refreshStreaks } = useStreaks();
   const { createCheckIn } = useCheckIns();
   const { createRelapse } = useRelapses();
+  const { celebrationBadge, dismissCelebration } = useBadges();
   
   // Active streak tab
   const [activeStreak, setActiveStreak] = useState<ActiveStreak>('main');
@@ -157,6 +162,16 @@ export function KamehamehaPage() {
                 </div>
               </div>
 
+              {/* Milestone Progress */}
+              {activeDisplay && (
+                <div className="w-full max-w-2xl mb-8">
+                  <MilestoneProgress 
+                    currentSeconds={activeDisplay.totalSeconds}
+                    streakType={activeStreak}
+                  />
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex items-center justify-center flex-wrap gap-4 mt-8">
                 <button
@@ -170,6 +185,12 @@ export function KamehamehaPage() {
                   className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-full shadow-lg transition-all hover:scale-105"
                 >
                   💬 AI Therapist
+                </Link>
+                <Link
+                  to="/kamehameha/badges"
+                  className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-lg font-semibold rounded-full shadow-lg transition-all hover:scale-105"
+                >
+                  🏆 View Badges
                 </Link>
                 <button
                   onClick={() => setIsRelapseOpen(true)}
@@ -209,6 +230,12 @@ export function KamehamehaPage() {
         onComplete={handleRelapseSubmit}
         mainStreak={mainDisplay}
         disciplineStreak={disciplineDisplay}
+      />
+
+      {/* Celebration Modal for Badge Milestones */}
+      <CelebrationModal
+        badge={celebrationBadge}
+        onClose={dismissCelebration}
       />
     </div>
   );

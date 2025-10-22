@@ -162,9 +162,47 @@ export interface Relapse {
 }
 
 // ============================================================================
-// Milestone Types (Phase 5)
+// Milestone & Badge Types (Phase 5)
 // ============================================================================
 
+/**
+ * Badge earned when reaching a milestone
+ * Stored in Firestore: users/{userId}/kamehameha_badges/{badgeId}
+ */
+export interface Badge {
+  /** Document ID */
+  id: string;
+  /** Which streak this badge is for */
+  streakType: 'main' | 'discipline';
+  /** Milestone threshold in seconds */
+  milestoneSeconds: number;
+  /** When the badge was earned (milliseconds) */
+  earnedAt: number;
+  /** Badge emoji (e.g., '🌱', '💪') */
+  badgeEmoji: string;
+  /** Badge name (e.g., 'First Step', 'One Week Warrior') */
+  badgeName: string;
+  /** Congratulations message */
+  congratsMessage: string;
+}
+
+/**
+ * Milestone configuration for UI
+ */
+export interface MilestoneConfig {
+  /** Milestone threshold in seconds */
+  seconds: number;
+  /** Milestone name */
+  name: string;
+  /** Badge emoji */
+  emoji: string;
+  /** Congratulations message */
+  message: string;
+}
+
+/**
+ * @deprecated Use Badge instead
+ */
 export interface Milestone {
   id: string;
   streakType: 'main' | 'discipline';
@@ -231,6 +269,19 @@ export interface UseStreaksReturn {
   resetDisciplineStreak: () => Promise<void>;
   /** Manually refresh streaks from Firestore */
   refreshStreaks: () => Promise<void>;
+}
+
+export interface UseBadgesReturn {
+  /** All earned badges */
+  badges: Badge[];
+  /** Loading state */
+  loading: boolean;
+  /** Error state */
+  error: Error | null;
+  /** Current celebration badge (if any) */
+  celebrationBadge: Badge | null;
+  /** Dismiss the celebration modal */
+  dismissCelebration: () => void;
 }
 
 // ============================================================================

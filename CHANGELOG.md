@@ -8,6 +8,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added - Kamehameha Recovery Tool 🔥
+- 🏆 **Phase 5: Milestones & Gamification** - Complete badge and celebration system:
+  - **Cloud Function Milestone Detection:**
+    - Firestore trigger on `onDocumentWritten('users/{userId}/kamehameha/streaks')`
+    - Automatically detects when streaks cross milestone thresholds
+    - Creates badge documents in `kamehameha_badges` subcollection
+    - Idempotent checks prevent duplicate badges
+    - Supports both Main and Discipline streaks
+  - **Milestone Tiers:**
+    - **Development:** 1 minute, 5 minutes (for rapid testing)
+    - **Production:** 1, 3, 7, 14, 30, 60, 90, 180, 365 days
+    - Each milestone has unique emoji, name, and congratulatory message
+    - Badge configs sync between frontend and backend
+  - **Beautiful Celebrations:**
+    - Confetti animation using canvas-confetti library
+    - Gradient modal with Framer Motion animations
+    - Badge emoji displayed at 8rem size
+    - Badge name and congratulations message
+    - Auto-closes after 5 seconds or manual close
+    - Only triggers for NEW badges (not on page load)
+  - **Real-time Badge Detection:**
+    - `useBadges` hook with Firestore `onSnapshot` listener
+    - Detects new badges added to collection
+    - `isInitialLoad` flag prevents false celebrations
+    - Badge IDs tracked in Set to prevent duplicates
+  - **Milestone Progress Component:**
+    - Shows next milestone with badge emoji and name
+    - Animated progress bar with percentage (0-100%)
+    - Time remaining display (minutes in dev, days in prod)
+    - Motivational message from badge config
+    - "Maximum Level" state for users who earned all badges
+  - **Badge Gallery:**
+    - Grid layout showing all possible badges
+    - Earned badges: Full color with earned date
+    - Locked badges: Grayscale with lock icon overlay
+    - Filter tabs: All, Main Streak, Discipline Streak
+    - Hover effects and staggered entrance animations
+  - **Dedicated Badges Page:**
+    - `/kamehameha/badges` route
+    - Shows total badges earned stat
+    - Full gallery with filtering
+    - Empty state for new users
+    - Back navigation to dashboard
+  - **Dashboard Integration:**
+    - Milestone progress component shows below timer
+    - "🏆 View Badges" button with gradient styling
+    - Celebration modal appears automatically on milestone
+    - Real-time updates as streak progresses
+  - **Development Testing Strategy:**
+    - `import.meta.env.DEV` detection for milestone selection
+    - 1-minute milestone triggers after 60 seconds
+    - 5-minute milestone triggers after 300 seconds
+    - Enables rapid testing without waiting days
+    - Production uses standard day-based milestones
+  - **Technical Implementation:**
+    - 11 new files created (frontend + backend)
+    - TypeScript types: Badge, MilestoneConfig, UseBadgesReturn
+    - Constants shared between frontend and backend
+    - All components fully typed and error-free
+  - **Documentation:**
+    - Complete Phase 5 implementation plan (1,107 lines)
+    - Step-by-step guide for all 8 parts
+    - Testing checklist and troubleshooting
+    - Timeline and cost estimates
+  - **Ready for Phase 6:** Settings and configuration
+
 - 🤖 **Phase 4: AI Therapist Chat** - Complete AI-powered support system:
   - **OpenAI GPT-4 Integration:**
     - Context-aware AI therapist with compassionate responses

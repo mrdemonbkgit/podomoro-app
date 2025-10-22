@@ -8,6 +8,7 @@ import { LoginPage } from './features/auth/components/LoginPage'
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute'
 import { KamehamehaPage } from './features/kamehameha/pages/KamehamehaPage'
 import { ChatPage } from './features/kamehameha/pages/ChatPage'
+import { BadgesPage } from './features/kamehameha/pages/BadgesPage'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -35,6 +36,14 @@ createRoot(document.getElementById('root')!).render(
             element={
               <ProtectedRoute>
                 <ChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kamehameha/badges"
+            element={
+              <ProtectedRoute>
+                <BadgesPage />
               </ProtectedRoute>
             }
           />
