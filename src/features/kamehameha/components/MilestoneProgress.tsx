@@ -84,10 +84,29 @@ export function MilestoneProgress({ currentSeconds, streakType }: MilestoneProgr
       {/* Motivational message */}
       <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
         <p className="text-sm text-purple-900 dark:text-purple-200 text-center">
-          {progressData.next.message}
+          {getMotivationalMessage(progressPercent)}
         </p>
       </div>
     </div>
   );
+}
+
+/**
+ * Get an encouraging message based on progress percentage
+ */
+function getMotivationalMessage(progressPercent: number): string {
+  if (progressPercent === 0) {
+    return "Every journey begins with a single step. You've got this! 💪";
+  } else if (progressPercent < 25) {
+    return "Great start! Keep building momentum. 🚀";
+  } else if (progressPercent < 50) {
+    return "You're making progress! Stay strong. 💪";
+  } else if (progressPercent < 75) {
+    return "Halfway there! You're doing amazing. ⭐";
+  } else if (progressPercent < 95) {
+    return "Almost there! Keep pushing forward. 🔥";
+  } else {
+    return "So close! The next milestone is within reach! 🏆";
+  }
 }
 
