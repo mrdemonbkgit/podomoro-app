@@ -65,20 +65,24 @@ async function checkStreakMilestone(
     `Milestone detected: User ${userId}, ${streakType}, ${crossedMilestone}s`
   );
 
-  // Check if a badge for this milestone+streak was earned in the last 30 seconds
+  // Check if a badge for this milestone+streak was earned recently
   // This prevents duplicate badges from being created by rapid updates
+  const cutoffTime = Date.now() - 90000;
+  console.log(`   Checking for existing ${streakType} badge (${crossedMilestone}s) after ${new Date(cutoffTime).toISOString()}`);
+  
   const recentBadges = await db
     .collection('users')
     .doc(userId)
     .collection('kamehameha_badges')
     .where('streakType', '==', streakType)
     .where('milestoneSeconds', '==', crossedMilestone)
-    .where('earnedAt', '>', Date.now() - 30000) // Last 30 seconds
+    .where('earnedAt', '>', cutoffTime) // Last 90 seconds (increased window)
     .limit(1)
     .get();
 
   if (!recentBadges.empty) {
     console.log(`⏭️ Badge already exists (earned recently), skipping duplicate`);
+    console.log(`   Found badge ID: ${recentBadges.docs[0].id}, earned ${Math.floor((Date.now() - recentBadges.docs[0].data().earnedAt) / 1000)}s ago`);
     return;
   }
 
