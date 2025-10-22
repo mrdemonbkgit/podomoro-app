@@ -176,12 +176,17 @@ export async function saveStreakState(
     const streaksRef = doc(db, getStreaksDocPath(userId));
     const now = Date.now();
     
-    // Use setDoc with merge to create document if it doesn't exist
+    // Use setDoc with merge and nested objects (NOT dot notation!)
+    // setDoc with merge: true and dot notation creates flat keys, not nested paths
     await setDoc(streaksRef, {
-      'main.currentSeconds': mainCurrent,
-      'main.lastUpdated': now,
-      'discipline.currentSeconds': disciplineCurrent,
-      'discipline.lastUpdated': now,
+      main: {
+        currentSeconds: mainCurrent,
+        lastUpdated: now,
+      },
+      discipline: {
+        currentSeconds: disciplineCurrent,
+        lastUpdated: now,
+      },
       lastUpdated: now,
     }, { merge: true });
   } catch (error) {
