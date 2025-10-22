@@ -176,13 +176,14 @@ export async function saveStreakState(
     const streaksRef = doc(db, getStreaksDocPath(userId));
     const now = Date.now();
     
-    await updateDoc(streaksRef, {
+    // Use setDoc with merge to create document if it doesn't exist
+    await setDoc(streaksRef, {
       'main.currentSeconds': mainCurrent,
       'main.lastUpdated': now,
       'discipline.currentSeconds': disciplineCurrent,
       'discipline.lastUpdated': now,
       lastUpdated: now,
-    });
+    }, { merge: true });
   } catch (error) {
     console.error('Failed to save streak state:', error);
     // Don't throw - silent fail for auto-save
