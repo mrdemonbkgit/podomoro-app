@@ -65,8 +65,23 @@ async function checkStreakMilestone(
     `Milestone detected: User ${userId}, ${streakType}, ${crossedMilestone}s`
   );
 
-  // Always create a new badge - users can earn the same milestone multiple times!
-  // This allows celebration after relapses and recognizes continued effort.
+  // Check if a badge for this milestone+streak was earned in the last 30 seconds
+  // This prevents duplicate badges from being created by rapid updates
+  const recentBadges = await db
+    .collection('users')
+    .doc(userId)
+    .collection('kamehameha_badges')
+    .where('streakType', '==', streakType)
+    .where('milestoneSeconds', '==', crossedMilestone)
+    .where('earnedAt', '>', Date.now() - 30000) // Last 30 seconds
+    .limit(1)
+    .get();
+
+  if (!recentBadges.empty) {
+    console.log(`⏭️ Badge already exists (earned recently), skipping duplicate`);
+    return;
+  }
+
   // Create badge
   const badgeConfig = getBadgeConfig(crossedMilestone);
   await db
