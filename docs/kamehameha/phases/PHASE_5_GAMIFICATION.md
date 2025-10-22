@@ -311,17 +311,165 @@ localStorage.setItem('lastShownMilestone', `${streakType}-${days}`);
 
 ## 🎯 Recommended Implementation Approach
 
-**Best approach:**
-1. ✅ Real-time detection in `useStreaks` hook
-2. ✅ Check on app load for missed milestones
-3. ✅ Idempotent check via Firestore
-4. ✅ Use refs to track day transitions
+### ⚡ Option 1: Client-Side Detection (Simple)
+
+**Pros:**
+- ✅ Simple to implement
+- ✅ No additional Cloud Function costs
+- ✅ Works immediately in emulator
+
+**Cons:**
+- ❌ Only detects when app is open
+- ❌ Requires "missed milestone" check on load
+- ❌ More client-side logic
+
+**Approach:**
+1. Real-time detection in `useStreaks` hook
+2. Check on app load for missed milestones
+3. Idempotent check via Firestore
+4. Use refs to track transitions
+
+---
+
+### 🔥 Option 2: Cloud Function Trigger (Recommended) ⭐
+
+**Pros:**
+- ✅ **More reliable** - works even if app is closed
+- ✅ **Cleaner architecture** - server-side milestone logic
+- ✅ **Automatic badge creation** - no manual save needed
+- ✅ **Centralized logic** - one place for milestone rules
+- ✅ **Scalable** - handles all users consistently
+
+**Cons:**
+- ⚠️ Requires Firestore trigger (Blaze plan already set up ✅)
+- ⚠️ Slightly more complex initial setup
+
+**Implementation:**
+
+```typescript
+// functions/src/milestones.ts
+
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import * as admin from 'firebase-admin';
+
+const MILESTONE_SECONDS = process.env.NODE_ENV === 'development'
+  ? [60, 300] // Dev: 1 min, 5 min
+  : [86400, 259200, 604800, 1209600, 2592000, 5184000, 7776000, 15552000, 31536000]; // Prod
+
+export const checkMilestones = onDocumentWritten(
+  'users/{userId}/kamehameha/streaks',
+  async (event) => {
+    const userId = event.params.userId;
+    const beforeData = event.data?.before?.data();
+    const afterData = event.data?.after?.data();
+    
+    if (!beforeData || !afterData) return;
+    
+    const db = admin.firestore();
+    
+    // Check Main Streak
+    const prevMainSeconds = beforeData.main?.currentSeconds || 0;
+    const currentMainSeconds = afterData.main?.currentSeconds || 0;
+    
+    const mainMilestone = MILESTONE_SECONDS.find(
+      m => prevMainSeconds < m && currentMainSeconds >= m
+    );
+    
+    if (mainMilestone) {
+      // Check if badge already exists
+      const badgeRef = db.collection('users').doc(userId)
+        .collection('kamehameha_badges')
+        .where('streakType', '==', 'main')
+        .where('milestoneSeconds', '==', mainMilestone);
+      
+      const existing = await badgeRef.get();
+      
+      if (existing.empty) {
+        // Create badge document
+        await db.collection('users').doc(userId)
+          .collection('kamehameha_badges').add({
+            streakType: 'main',
+            milestoneSeconds: mainMilestone,
+            earnedAt: Date.now(),
+            badgeEmoji: getBadgeEmoji(mainMilestone),
+            badgeName: getBadgeName(mainMilestone),
+          });
+        
+        console.log(`🎉 Badge earned: User ${userId}, Main Streak, ${mainMilestone}s`);
+      }
+    }
+    
+    // Check Discipline Streak (same logic)
+    const prevDisciplineSeconds = beforeData.discipline?.currentSeconds || 0;
+    const currentDisciplineSeconds = afterData.discipline?.currentSeconds || 0;
+    
+    const disciplineMilestone = MILESTONE_SECONDS.find(
+      m => prevDisciplineSeconds < m && currentDisciplineSeconds >= m
+    );
+    
+    if (disciplineMilestone) {
+      const badgeRef = db.collection('users').doc(userId)
+        .collection('kamehameha_badges')
+        .where('streakType', '==', 'discipline')
+        .where('milestoneSeconds', '==', disciplineMilestone);
+      
+      const existing = await badgeRef.get();
+      
+      if (existing.empty) {
+        await db.collection('users').doc(userId)
+          .collection('kamehameha_badges').add({
+            streakType: 'discipline',
+            milestoneSeconds: disciplineMilestone,
+            earnedAt: Date.now(),
+            badgeEmoji: getBadgeEmoji(disciplineMilestone),
+            badgeName: getBadgeName(disciplineMilestone),
+          });
+        
+        console.log(`🎉 Badge earned: User ${userId}, Discipline Streak, ${disciplineMilestone}s`);
+      }
+    }
+  }
+);
+```
+
+**Frontend (Simplified):**
+
+```typescript
+// Frontend just checks for new badges
+useEffect(() => {
+  if (!user) return;
+  
+  // Real-time listener for new badges
+  const unsubscribe = onSnapshot(
+    collection(db, `users/${user.uid}/kamehameha_badges`),
+    (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const badge = change.doc.data();
+          // Show celebration!
+          showCelebrationModal(badge);
+        }
+      });
+    }
+  );
+  
+  return unsubscribe;
+}, [user]);
+```
+
+**Why This Is Better:**
+1. **Automatic** - Badges created when Firestore updates (every minute auto-save)
+2. **Reliable** - Works even if user closes app
+3. **No missed milestones** - Always catches them server-side
+4. **Cleaner frontend** - Just listen for badge creation, show celebration
+5. **Testable** - Easy to test by updating Firestore directly
 
 **This ensures:**
-- ✅ User sees celebration immediately when milestone is reached
-- ✅ User sees celebration even if app was closed
-- ✅ Celebration only shows once per milestone
-- ✅ No false positives (badge already earned)
+- ✅ User sees celebration immediately via real-time listener
+- ✅ Badges created even if app is closed
+- ✅ Celebration only shows once per milestone (idempotent)
+- ✅ No complex client-side logic
+- ✅ Scales to many users
 
 ---
 
