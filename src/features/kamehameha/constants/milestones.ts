@@ -162,7 +162,7 @@ export function getMilestoneProgress(currentSeconds: number): {
 }
 
 /**
- * Format seconds for milestone display
+ * Format seconds for milestone display (used for milestone names)
  */
 export function formatMilestoneTime(seconds: number): string {
   if (isDevelopment) {
@@ -174,6 +174,40 @@ export function formatMilestoneTime(seconds: number): string {
   // Production: show in days
   const days = Math.floor(seconds / 86400);
   return days === 1 ? '1 day' : `${days} days`;
+}
+
+/**
+ * Format remaining time with precision based on duration
+ */
+export function formatRemainingTime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  // Less than 1 minute: show seconds only
+  if (seconds < 60) {
+    return secs === 1 ? '1 second' : `${secs} seconds`;
+  }
+
+  // Less than 1 hour: show minutes and seconds
+  if (seconds < 3600) {
+    const minText = minutes === 1 ? '1 minute' : `${minutes} minutes`;
+    const secText = secs === 1 ? '1 second' : `${secs} seconds`;
+    return `${minText} ${secText}`;
+  }
+
+  // Less than 1 day: show hours and minutes
+  if (seconds < 86400) {
+    const hourText = hours === 1 ? '1 hour' : `${hours} hours`;
+    const minText = minutes === 1 ? '1 minute' : `${minutes} minutes`;
+    return `${hourText} ${minText}`;
+  }
+
+  // 1 day or more: show days and hours
+  const dayText = days === 1 ? '1 day' : `${days} days`;
+  const hourText = hours === 1 ? '1 hour' : `${hours} hours`;
+  return `${dayText} ${hourText}`;
 }
 
 /**
@@ -193,7 +227,7 @@ export function getTimeToNextMilestone(currentSeconds: number): {
 
   return {
     seconds: remainingSeconds,
-    formatted: formatMilestoneTime(remainingSeconds),
+    formatted: formatRemainingTime(remainingSeconds),
   };
 }
 
