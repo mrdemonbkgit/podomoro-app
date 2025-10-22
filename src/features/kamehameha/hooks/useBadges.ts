@@ -44,8 +44,11 @@ export function useBadges(): UseBadgesReturn {
 
             badgesList.push(badge);
 
-            // Only celebrate NEW badges after initial load
-            if (!isInitialLoad.current && !seenBadgeIds.current.has(badge.id)) {
+            // Only celebrate badges earned in the last 10 seconds (prevents old badges from celebrating on remount)
+            const wasEarnedRecently = Date.now() - badge.earnedAt < 10000; // 10 seconds
+            
+            // Only celebrate NEW badges after initial load AND recently earned
+            if (!isInitialLoad.current && !seenBadgeIds.current.has(badge.id) && wasEarnedRecently) {
               console.log('🎉 New badge detected:', badge.badgeName);
               setCelebrationBadge(badge);
             }
