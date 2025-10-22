@@ -106,15 +106,16 @@ export function useStreaks(): UseStreaksReturn {
     if (!user || !streaks) return;
     
     try {
-      const mainCurrent = mainDisplay?.totalSeconds || 0;
-      const disciplineCurrent = disciplineDisplay?.totalSeconds || 0;
+      // Calculate current seconds directly from start date to avoid dependency issues
+      const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
+      const disciplineCurrent = Math.floor((Date.now() - streaks.discipline.startDate) / 1000);
       
       await saveStreakState(user.uid, mainCurrent, disciplineCurrent);
     } catch (err) {
       console.error('Failed to auto-save streaks:', err);
       // Don't set error state - this is a background operation
     }
-  }, [user, streaks, mainDisplay, disciplineDisplay]);
+  }, [user, streaks]); // Removed mainDisplay and disciplineDisplay dependencies!
   
   // ============================================================================
   // Update Longest Streak (Every 5 Minutes)
@@ -124,16 +125,20 @@ export function useStreaks(): UseStreaksReturn {
     if (!user || !streaks) return;
     
     try {
-      if (mainDisplay && mainDisplay.totalSeconds > streaks.main.longestSeconds) {
-        await updateLongestStreak(user.uid, 'main', mainDisplay.totalSeconds);
+      // Calculate current seconds directly from start date to avoid dependency issues
+      const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
+      const disciplineCurrent = Math.floor((Date.now() - streaks.discipline.startDate) / 1000);
+      
+      if (mainCurrent > streaks.main.longestSeconds) {
+        await updateLongestStreak(user.uid, 'main', mainCurrent);
       }
-      if (disciplineDisplay && disciplineDisplay.totalSeconds > streaks.discipline.longestSeconds) {
-        await updateLongestStreak(user.uid, 'discipline', disciplineDisplay.totalSeconds);
+      if (disciplineCurrent > streaks.discipline.longestSeconds) {
+        await updateLongestStreak(user.uid, 'discipline', disciplineCurrent);
       }
     } catch (err) {
       console.error('Failed to update longest streaks:', err);
     }
-  }, [user, streaks, mainDisplay, disciplineDisplay]);
+  }, [user, streaks]); // Removed mainDisplay and disciplineDisplay dependencies!
   
   // ============================================================================
   // Reset Streak Functions
