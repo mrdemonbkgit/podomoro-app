@@ -27,6 +27,55 @@ This phase adds motivation through milestones and achievements:
 - Build badge gallery
 - Add progress visualizations
 
+### 🧪 Development Testing Strategy
+
+**For rapid testing, use shorter milestone intervals:**
+
+**Production Milestones (Days):**
+```typescript
+const PROD_MILESTONES = [1, 3, 7, 14, 30, 60, 90, 180, 365]; // in days
+```
+
+**Development Milestones (Minutes):**
+```typescript
+const DEV_MILESTONES = [1, 5]; // in minutes (60 seconds, 300 seconds)
+```
+
+**Implementation:**
+```typescript
+// In streakCalculations.ts or milestoneService.ts
+export const MILESTONE_DAYS = import.meta.env.DEV 
+  ? [1/1440, 5/1440] // Convert minutes to fractional days (1min = 1/1440 day)
+  : [1, 3, 7, 14, 30, 60, 90, 180, 365]; // Production: days
+
+// OR better: work in seconds
+export const MILESTONE_SECONDS = import.meta.env.DEV
+  ? [60, 300] // Dev: 1 min, 5 min
+  : [86400, 259200, 604800, 1209600, 2592000, 5184000, 7776000, 15552000, 31536000]; // Prod: days in seconds
+```
+
+**Badge Names (Development):**
+```typescript
+const DEV_BADGE_NAMES = {
+  60: { name: "One Minute Wonder", emoji: "⚡" },
+  300: { name: "Five Minute Fighter", emoji: "💪" },
+};
+
+const PROD_BADGE_NAMES = {
+  1: { name: "First Step", emoji: "🌱" },
+  3: { name: "Building Momentum", emoji: "💪" },
+  7: { name: "One Week Warrior", emoji: "⚔️" },
+  // ... etc
+};
+```
+
+**Why This Matters:**
+- ✅ Test celebration animations immediately (wait 1 minute, not 1 day!)
+- ✅ Verify badge saving/loading works correctly
+- ✅ Test "missed milestone" detection on app reload
+- ✅ Iterate quickly on confetti animations and modal design
+- ✅ Switch to production milestones when deploying
+
 ---
 
 ## 🎯 Celebration Trigger Events
@@ -41,69 +90,103 @@ The celebration triggers when the streak **transitions through a milestone thres
 useEffect(() => {
   if (!mainDisplay || !disciplineDisplay) return;
   
-  // Calculate current days
-  const mainDays = Math.floor(mainDisplay.totalSeconds / 86400);
-  const disciplineDays = Math.floor(disciplineDisplay.totalSeconds / 86400);
+  // Work in seconds for more flexibility (supports dev milestones)
+  const mainSeconds = mainDisplay.totalSeconds;
+  const disciplineSeconds = disciplineDisplay.totalSeconds;
   
-  // Previous days (from ref to detect transition)
-  const prevMainDays = prevMainDaysRef.current;
-  const prevDisciplineDays = prevDisciplineDaysRef.current;
+  // Previous seconds (from ref to detect transition)
+  const prevMainSeconds = prevMainSecondsRef.current;
+  const prevDisciplineSeconds = prevDisciplineSecondsRef.current;
   
-  // Check if we just crossed a milestone
-  const milestones = [1, 3, 7, 14, 30, 60, 90, 180, 365];
+  // Milestones in seconds (switches based on environment)
+  const milestones = import.meta.env.DEV
+    ? [60, 300] // Dev: 1 min, 5 min
+    : [86400, 259200, 604800, 1209600, 2592000, 5184000, 7776000, 15552000, 31536000]; // Prod: days
   
   // Main streak milestone check
-  if (prevMainDays !== null && mainDays > prevMainDays) {
-    if (milestones.includes(mainDays)) {
+  if (prevMainSeconds !== null) {
+    // Check if we crossed any milestone
+    const crossedMilestone = milestones.find(
+      m => prevMainSeconds < m && mainSeconds >= m
+    );
+    
+    if (crossedMilestone) {
       // 🎉 TRIGGER CELEBRATION!
-      checkAndShowCelebration('main', mainDays);
+      checkAndShowCelebration('main', crossedMilestone);
     }
   }
   
   // Discipline streak milestone check
-  if (prevDisciplineDays !== null && disciplineDays > prevDisciplineDays) {
-    if (milestones.includes(disciplineDays)) {
+  if (prevDisciplineSeconds !== null) {
+    const crossedMilestone = milestones.find(
+      m => prevDisciplineSeconds < m && disciplineSeconds >= m
+    );
+    
+    if (crossedMilestone) {
       // 🎉 TRIGGER CELEBRATION!
-      checkAndShowCelebration('discipline', disciplineDays);
+      checkAndShowCelebration('discipline', crossedMilestone);
     }
   }
   
   // Update refs for next check
-  prevMainDaysRef.current = mainDays;
-  prevDisciplineDaysRef.current = disciplineDays;
+  prevMainSecondsRef.current = mainSeconds;
+  prevDisciplineSecondsRef.current = disciplineSeconds;
   
 }, [mainDisplay, disciplineDisplay]); // Runs every second!
 ```
+
+**Key Changes for Dev Testing:**
+- ✅ Use `totalSeconds` instead of calculating days
+- ✅ Check for any milestone crossed (not just day boundaries)
+- ✅ Pass milestone value (in seconds) to celebration function
+- ✅ Badge service converts seconds to appropriate display (1 min vs 1 day)
 
 ### Specific Trigger Scenarios
 
 #### 1. Real-Time While App is Open ⭐ (Most Common)
 **When:** User is actively using the app and their streak naturally increments
 
-**Example:**
+**Production Example:**
 - User's Main Streak: 6 days, 23 hours, 59 minutes, 58 seconds
 - One second passes...
 - **Now: 7 days exactly** → 🎉 **CELEBRATION TRIGGERS!**
 
+**Development Example (1 min milestone):**
+- User's Main Streak: 59 seconds
+- One second passes...
+- **Now: 60 seconds (1 minute)** → 🎉 **CELEBRATION TRIGGERS!**
+
 #### 2. On App Load 📱 (Catch Missed Milestones)
 **When:** User opens the app and has reached a milestone while away
 
-**Example:**
+**Production Example:**
 - User last opened app at Day 6
 - User returns 3 days later (now Day 9)
 - Missed milestone: Day 7
 - **Show celebration for Day 7** on app load
 
+**Development Example (Testing):**
+- Start timer, wait 30 seconds
+- Close browser tab
+- Wait 35 more seconds (total: 65 seconds, passed 1 min milestone)
+- Reopen app
+- **Show celebration for 1 minute milestone** on app load
+
 ```typescript
 useEffect(() => {
   const checkMissedMilestones = async () => {
     const earnedBadges = await getEarnedBadges(userId);
-    const currentDays = Math.floor(mainDisplay.totalSeconds / 86400);
+    const currentSeconds = mainDisplay.totalSeconds;
+    
+    // Get milestones in seconds (dev or prod)
+    const milestones = import.meta.env.DEV
+      ? [60, 300] // Dev: 1 min, 5 min
+      : [86400, 259200, 604800, 1209600, 2592000, 5184000, 7776000, 15552000, 31536000]; // Prod: days
     
     // Find any milestones between last earned and current
-    const lastEarnedDay = Math.max(...earnedBadges.map(b => b.milestoneDay), 0);
-    const missedMilestones = MILESTONE_DAYS.filter(
-      m => m > lastEarnedDay && m <= currentDays
+    const lastEarnedSeconds = Math.max(...earnedBadges.map(b => b.milestoneSeconds), 0);
+    const missedMilestones = milestones.filter(
+      m => m > lastEarnedSeconds && m <= currentSeconds
     );
     
     // Show celebrations for missed milestones (with delay between)
@@ -142,27 +225,27 @@ Already handled by real-time detection above.
 ```typescript
 async function checkAndShowCelebration(
   streakType: 'main' | 'discipline',
-  days: number
+  milestoneSeconds: number // Pass seconds (60, 300, or 86400, etc.)
 ) {
   // Check if badge already earned
-  const badgeExists = await checkBadgeExists(userId, streakType, days);
+  const badgeExists = await checkBadgeExists(userId, streakType, milestoneSeconds);
   
   if (badgeExists) {
-    console.log(`Badge for ${streakType} Day ${days} already earned`);
+    console.log(`Badge for ${streakType} at ${milestoneSeconds}s already earned`);
     return; // Don't show again!
   }
   
   // Show celebration
   showCelebrationModal({
     streakType,
-    days,
-    badgeEmoji: getBadgeEmoji(days),
-    badgeName: getBadgeName(days),
-    message: getCongratulationsMessage(days),
+    milestoneSeconds,
+    badgeEmoji: getBadgeEmoji(milestoneSeconds),
+    badgeName: getBadgeName(milestoneSeconds),
+    message: getCongratulationsMessage(milestoneSeconds),
   });
   
   // Save badge to Firestore
-  await saveBadge(userId, streakType, days);
+  await saveBadge(userId, streakType, milestoneSeconds);
 }
 ```
 
@@ -194,17 +277,20 @@ async function checkAndShowCelebration(
 
 ## 💡 Implementation Best Practices
 
-**1. Use a Ref to Track Previous Days**
+**1. Use a Ref to Track Previous Seconds**
 ```typescript
-const prevMainDaysRef = useRef<number | null>(null);
-const prevDisciplineDaysRef = useRef<number | null>(null);
+const prevMainSecondsRef = useRef<number | null>(null);
+const prevDisciplineSecondsRef = useRef<number | null>(null);
 ```
 
-**2. Debounce the Check**
+**2. Check for Threshold Crossing**
 ```typescript
-// Only check on day transitions, not every second
-if (mainDays !== prevMainDays) {
-  checkMilestone();
+// Detect when streak crosses a milestone threshold
+const crossedMilestone = milestones.find(
+  m => prevSeconds < m && currentSeconds >= m
+);
+if (crossedMilestone) {
+  checkAndShowCelebration(streakType, crossedMilestone);
 }
 ```
 
