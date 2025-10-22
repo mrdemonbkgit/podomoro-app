@@ -158,13 +158,19 @@ export function KamehamehaPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-center gap-4 mt-8">
+              <div className="flex items-center justify-center flex-wrap gap-4 mt-8">
                 <button
                   onClick={() => setIsCheckInOpen(true)}
                   className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white text-lg font-semibold rounded-full shadow-lg transition-all hover:scale-105"
                 >
                   📝 Daily Check-In
                 </button>
+                <Link
+                  to="/kamehameha/chat"
+                  className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-full shadow-lg transition-all hover:scale-105"
+                >
+                  💬 AI Therapist
+                </Link>
                 <button
                   onClick={() => setIsRelapseOpen(true)}
                   className="px-8 py-4 bg-white/20 hover:bg-white/30 border-2 border-white/40 text-white text-lg font-semibold rounded-full shadow-lg transition-all hover:scale-105"

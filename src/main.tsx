@@ -7,6 +7,7 @@ import { AuthProvider } from './features/auth/context/AuthContext'
 import { LoginPage } from './features/auth/components/LoginPage'
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute'
 import { KamehamehaPage } from './features/kamehameha/pages/KamehamehaPage'
+import { ChatPage } from './features/kamehameha/pages/ChatPage'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -26,6 +27,14 @@ createRoot(document.getElementById('root')!).render(
             element={
               <ProtectedRoute>
                 <KamehamehaPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kamehameha/chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
               </ProtectedRoute>
             }
           />

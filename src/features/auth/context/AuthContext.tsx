@@ -22,23 +22,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Subscribe to auth state changes
   useEffect(() => {
-    // Check for dev mode mock auth first
-    const isDev = import.meta.env.DEV;
-    const mockAuthUser = localStorage.getItem('mockAuthUser');
-    
-    if (isDev && mockAuthUser) {
-      try {
-        const mockUser = JSON.parse(mockAuthUser);
-        setUser(mockUser);
-        setLoading(false);
-        console.log('🧪 DEV MODE: Using mock auth user:', mockUser.email);
-        return;
-      } catch (e) {
-        console.error('Failed to parse mock auth user:', e);
-        localStorage.removeItem('mockAuthUser');
-      }
-    }
-
     // Check for redirect result first (after redirect from Google sign-in)
     getRedirectResult(auth)
       .then((result) => {
@@ -84,15 +67,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = async () => {
     try {
       setError(null);
-      
-      // Clear mock auth if in dev mode
-      if (import.meta.env.DEV && localStorage.getItem('mockAuthUser')) {
-        localStorage.removeItem('mockAuthUser');
-        setUser(null);
-        console.log('🧪 DEV MODE: Cleared mock auth user');
-        return;
-      }
-      
       await firebaseSignOut(auth);
     } catch (err) {
       const error = err as Error;
@@ -102,23 +76,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  // DEV MODE ONLY: Mock sign-in for testing
+  // DEV MODE ONLY: Sign in to emulator for testing
   const devSignIn = async () => {
     if (!import.meta.env.DEV) {
       throw new Error('Dev sign-in only available in development mode');
     }
     
-    const mockUser = {
-      uid: 'dev-test-user-12345',
-      email: 'test@zenfocus.dev',
-      displayName: 'Test User',
-      photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test',
-      emailVerified: true
-    };
-    
-    localStorage.setItem('mockAuthUser', JSON.stringify(mockUser));
-    setUser(mockUser);
-    console.log('🧪 DEV MODE: Mock user signed in:', mockUser.email);
+    try {
+      // Import signInAnonymously dynamically to use it here
+      const { signInAnonymously } = await import('firebase/auth');
+      
+      // Sign in anonymously to the Firebase Auth Emulator
+      // This creates a real auth token that Cloud Functions can verify
+      const userCredential = await signInAnonymously(auth);
+      
+      console.log('🧪 DEV MODE: Signed in to emulator as anonymous user:', userCredential.user.uid);
+      
+      // The onAuthStateChanged listener will automatically update the user state
+    } catch (err) {
+      const error = err as Error;
+      console.error('Dev sign-in error:', error);
+      setError(error);
+      throw error;
+    }
   };
 
   const value: AuthContextType = {

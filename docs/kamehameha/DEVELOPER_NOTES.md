@@ -654,6 +654,249 @@ Kamehameha is deeply personal recovery software. Users will trust us with sensit
 
 ---
 
+---
+
+## 🤖 Phase 4: AI Therapist Chat - Lessons Learned
+
+### Issue #1: Authentication 401 Unauthorized in Cloud Functions
+
+**Problem:** Cloud Functions rejected requests with `request.auth` undefined, returning 401 errors.
+
+**Root Cause:** The `devSignIn()` function used mock localStorage auth, which doesn't create real Firebase auth tokens. The frontend thought the user was authenticated, but Cloud Functions couldn't verify the token.
+
+**Solution:** Changed `devSignIn()` to use `signInAnonymously(auth)` instead of mock localStorage:
+
+```typescript
+// Before (didn't work with Cloud Functions)
+const mockUser = { uid: 'dev-test-user-12345', email: 'test@zenfocus.dev', ... };
+localStorage.setItem('mockAuthUser', JSON.stringify(mockUser));
+setUser(mockUser);
+
+// After (works with Cloud Functions)
+import { signInAnonymously } from 'firebase/auth';
+await signInAnonymously(auth);
+// Creates real Firebase auth token that Cloud Functions can verify
+```
+
+**Files Changed:** `src/features/auth/context/AuthContext.tsx`
+
+**Lesson Learned:** Cloud Functions require real Firebase auth tokens. Anonymous auth is perfect for emulator testing without needing Google OAuth.
+
+---
+
+### Issue #2: OpenAI API Key Not Found
+
+**Problem:** Cloud Functions threw `HttpsError: OpenAI API key not configured` when calling the API.
+
+**Root Cause:** No `.env` file in the `functions/` directory. The OpenAI SDK couldn't find `process.env.OPENAI_API_KEY`.
+
+**Solution:** Created `functions/.env` with the API key:
+
+```bash
+# In functions/.env
+OPENAI_API_KEY=sk-proj-...
+```
+
+**Important:** The `.env` file must be in the `functions/` directory, not the project root. Firebase Functions uses `dotenv` to load environment variables from this location.
+
+**Alternative for Production:** Use Firebase Functions config:
+```bash
+firebase functions:config:set openai.key="sk-..."
+```
+
+**Lesson Learned:** Environment variables for Cloud Functions are separate from frontend environment variables. Keep API keys in `functions/.env` for local development.
+
+---
+
+### Issue #3: Firestore Connection Refused
+
+**Problem:** Firestore queries failed with `ERR_CONNECTION_REFUSED` and "Could not reach Cloud Firestore backend" errors.
+
+**Root Cause:** Only the Functions emulator was running. The Firebase emulators needed Auth and Firestore emulators to be explicitly configured in `firebase.json`.
+
+**Solution:** Added emulator configuration to `firebase.json`:
+
+```json
+{
+  "emulators": {
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8080 },
+    "functions": { "port": 5001 },
+    "ui": { "enabled": true, "port": 4000 }
+  }
+}
+```
+
+Then restarted emulators: `firebase emulators:start`
+
+**Lesson Learned:** Firebase emulators don't auto-detect which services you need. You must explicitly configure them in `firebase.json`. Always include Auth, Firestore, and Functions when testing Cloud Functions.
+
+---
+
+### Issue #4: Java Required for Firestore Emulator
+
+**Problem:** `firebase emulators:start` failed with "Could not spawn \`java -version\`".
+
+**Root Cause:** The Firestore emulator runs on Java, which wasn't installed on the system.
+
+**Solution:** Installed Java 11+ (used Java 25 from Adoptium):
+1. Download from https://adoptium.net/temurin/releases/
+2. Select: Operating System = Windows, Architecture = x64, Package Type = JDK, Version = 11+ (used 25)
+3. Run the `.msi` installer
+4. Make sure "Set JAVA_HOME variable" and "Add to PATH" are checked
+5. Close all terminals and restart
+6. Verify: `java -version`
+
+**Lesson Learned:** Firestore emulator has a Java dependency. This is a one-time setup, but good to document for other developers.
+
+---
+
+### Issue #5: Emulator Port Conflicts
+
+**Problem:** Emulators failed to start with "Port 4000 is not open on localhost" and "Port taken" errors.
+
+**Root Cause:** Old emulator processes were still running from previous sessions.
+
+**Solution:** Kill the old processes and restart:
+
+```powershell
+# Find processes using emulator ports
+netstat -ano | findstr ":4000 :5001 :8080 :9099"
+
+# Kill the process IDs
+taskkill /PID <pid> /F
+
+# Restart emulators
+firebase emulators:start
+```
+
+**Prevention:** Always stop emulators cleanly with `Ctrl+C` instead of closing the terminal window.
+
+**Lesson Learned:** Port conflicts are common during development. Keep a script handy to check and kill stuck processes.
+
+---
+
+### Firebase Cloud Functions Best Practices
+
+**1. Environment Variables:**
+- Use `functions/.env` for local development
+- Use `firebase functions:config:set` for production
+- Never commit `.env` files (add to `.gitignore`)
+- Load with `dotenv.config()` at the top of `index.ts`
+
+**2. Error Handling:**
+- Use `HttpsError` for user-facing errors
+- Always wrap in try/catch
+- Log errors with context: `console.error('Error in chatWithAI:', error)`
+- Return meaningful error messages
+
+**3. Cost Control:**
+- Set `maxInstances` to limit concurrent invocations
+- Set `timeoutSeconds` to prevent runaway functions
+- Use `memory` to limit resources
+- Implement rate limiting in your functions
+
+**4. Testing:**
+- Always test with emulators first
+- Use anonymous auth for automated testing
+- Check function logs: `firebase functions:log`
+- Monitor costs in Firebase Console
+
+---
+
+### OpenAI Integration Tips
+
+**1. Cost Management:**
+- Use `max_tokens` to limit response length
+- Set appropriate `temperature` (0.7 is a good balance)
+- Include only necessary context (last 10 messages, not all)
+- Implement rate limiting (we used 10 messages/minute)
+
+**2. Context Building:**
+```typescript
+// Good: Send only recent, relevant data
+const context = {
+  streaks: getUserStreaks(), // Current values only
+  recentCheckIns: getCheckIns(limit: 10), // Last 10, not all
+  recentRelapses: getRelapses(limit: 5), // Last 5, not all
+  chatHistory: getMessages(limit: 10) // Last 10, not all
+};
+```
+
+**3. Prompt Engineering:**
+- Be specific about the AI's role and tone
+- Include safety instructions (crisis resources for emergency mode)
+- Provide examples of desired responses
+- Test prompts thoroughly before deployment
+
+**4. Error Handling:**
+- Handle OpenAI rate limits (429 errors)
+- Handle network timeouts
+- Provide fallback responses
+- Log errors for monitoring
+
+---
+
+### Firebase Emulator Workflow
+
+**Best Practice Setup:**
+
+1. **Terminal 1: Firebase Emulators**
+```bash
+firebase emulators:start
+```
+
+2. **Terminal 2: Dev Server**
+```bash
+npm run dev
+```
+
+3. **Browser DevTools:** Keep console open to catch errors
+
+**Environment Variables:**
+```env
+# .env.local (frontend)
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_USE_FIREBASE_EMULATOR=true
+
+# functions/.env (Cloud Functions)
+OPENAI_API_KEY=sk-...
+```
+
+**Emulator UI:** Access at http://localhost:4000
+- View Auth users
+- Browse Firestore data
+- Test security rules
+- Monitor function invocations
+
+---
+
+### Cost Estimates (Real Data from Phase 4)
+
+**OpenAI GPT-4:**
+- Input: $5 per 1M tokens
+- Output: $15 per 1M tokens
+- Average message: ~300 tokens in + ~150 tokens out
+- **Cost per message: ~$0.004** (less than half a cent)
+
+**With Rate Limiting (10 msg/min):**
+- Max cost per hour per user: ~$2.40/hr
+- Realistic usage: ~$0.10-0.50/day per active user
+
+**Firebase (Blaze Plan):**
+- Cloud Functions: 2M invocations/month free
+- Firestore: 50K reads/day free, 20K writes/day free
+- For small user base (10-100 users): Well within free tier
+
+**Budget Tip:** Set up billing alerts in both Firebase and OpenAI dashboards.
+
+---
+
 **Remember:** You're building something meaningful. Take time to do it right. 💪
 
 **Good luck!** 🚀
