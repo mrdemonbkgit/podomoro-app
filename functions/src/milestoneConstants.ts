@@ -2,8 +2,11 @@
  * Milestone definitions for badge system
  */
 
+// Check if running in emulator (for development)
+const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
+
 // Milestone tiers in seconds
-export const MILESTONE_SECONDS = process.env.NODE_ENV === 'development'
+export const MILESTONE_SECONDS = isEmulator
   ? [60, 300] // Dev: 1 min, 5 min
   : [
       86400,    // 1 day
