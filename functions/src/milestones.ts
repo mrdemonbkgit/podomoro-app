@@ -65,21 +65,8 @@ async function checkStreakMilestone(
     `Milestone detected: User ${userId}, ${streakType}, ${crossedMilestone}s`
   );
 
-  // Check if badge already exists (idempotent)
-  const existingBadges = await db
-    .collection('users')
-    .doc(userId)
-    .collection('kamehameha_badges')
-    .where('streakType', '==', streakType)
-    .where('milestoneSeconds', '==', crossedMilestone)
-    .limit(1)
-    .get();
-
-  if (!existingBadges.empty) {
-    console.log('Badge already exists, skipping');
-    return; // Badge already earned
-  }
-
+  // Always create a new badge - users can earn the same milestone multiple times!
+  // This allows celebration after relapses and recognizes continued effort.
   // Create badge
   const badgeConfig = getBadgeConfig(crossedMilestone);
   await db
