@@ -17,7 +17,6 @@ import {
 } from '../services/firestoreService';
 import {
   calculateStreakFromStart,
-  updateStreakData,
 } from '../services/streakCalculations';
 
 // ============================================================================
@@ -87,15 +86,9 @@ export function useStreaks(): UseStreaksReturn {
     setMainDisplay(mainDisp);
     setDisciplineDisplay(discDisp);
     
-    // Update streak data object (for longest tracking)
-    const updatedMain = updateStreakData(streaks.main);
-    const updatedDiscipline = updateStreakData(streaks.discipline);
-    
-    setStreaks({
-      main: updatedMain,
-      discipline: updatedDiscipline,
-      lastUpdated: Date.now(),
-    });
+    // DON'T update streaks state here - it causes the save interval to reset every second!
+    // The streaks state only needs to update when loading from Firestore or resetting.
+    // For longest streak tracking, we'll check at save time using current calculated values.
   }, [streaks]);
   
   // ============================================================================
@@ -130,11 +123,23 @@ export function useStreaks(): UseStreaksReturn {
       const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
       const disciplineCurrent = Math.floor((Date.now() - streaks.discipline.startDate) / 1000);
       
+      let needsUpdate = false;
+      const updatedStreaks = { ...streaks };
+      
       if (mainCurrent > streaks.main.longestSeconds) {
         await updateLongestStreak(user.uid, 'main', mainCurrent);
+        updatedStreaks.main = { ...updatedStreaks.main, longestSeconds: mainCurrent };
+        needsUpdate = true;
       }
       if (disciplineCurrent > streaks.discipline.longestSeconds) {
         await updateLongestStreak(user.uid, 'discipline', disciplineCurrent);
+        updatedStreaks.discipline = { ...updatedStreaks.discipline, longestSeconds: disciplineCurrent };
+        needsUpdate = true;
+      }
+      
+      // Only update state if longest actually changed
+      if (needsUpdate) {
+        setStreaks(updatedStreaks);
       }
     } catch (err) {
       console.error('Failed to update longest streaks:', err);
