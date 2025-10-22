@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { UserProfile } from '../../auth/components/UserProfile';
-import { useStreaks } from '../hooks/useStreaks';
+import { useStreaksContext } from '../context/StreaksContext';
 import { useCheckIns } from '../hooks/useCheckIns';
 import { useRelapses } from '../hooks/useRelapses';
 import { useBadges } from '../hooks/useBadges';
@@ -22,7 +22,7 @@ import { type StreakDisplay } from '../types/kamehameha.types';
 type ActiveStreak = 'main' | 'discipline';
 
 export function KamehamehaPage() {
-  const { streaks, mainDisplay, disciplineDisplay, loading, error, refreshStreaks } = useStreaks();
+  const { streaks, mainDisplay, disciplineDisplay, loading, error, refreshStreaks } = useStreaksContext();
   const { createCheckIn } = useCheckIns();
   const { createRelapse } = useRelapses();
   const { celebrationBadge, dismissCelebration } = useBadges();

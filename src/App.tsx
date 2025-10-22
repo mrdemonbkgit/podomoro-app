@@ -14,13 +14,13 @@ import { SoundsPanel } from './components/SoundsPanel';
 import { TasksModal } from './components/TasksModal';
 import { StreakBadge } from './shared/components/StreakBadge';
 import { useAuth } from './features/auth/context/AuthContext';
-import { useStreaks } from './features/kamehameha/hooks/useStreaks';
+import { StreaksProvider, useStreaksContext } from './features/kamehameha/context/StreaksContext';
 import './App.css';
 import './styles/glass.css';
 
-// Wrapper component to only call useStreaks when authenticated
+// Wrapper component to display streak badge (uses shared context)
 function StreakBadgeWrapper() {
-  const { mainDisplay } = useStreaks();
+  const { mainDisplay } = useStreaksContext();
   return <StreakBadge display={mainDisplay} isVisible={true} />;
 }
 
@@ -111,7 +111,7 @@ function App() {
     }
   };
 
-  return (
+  const appContent = (
     <div className={`min-h-screen ${getBackgroundGradient()} animate-gradient transition-all duration-500 relative overflow-hidden`}>
       {/* Streak Badge (top-left, visible when authenticated) */}
       {user && <StreakBadgeWrapper />}
@@ -238,6 +238,13 @@ function App() {
       />
     </div>
   );
+  
+  // Wrap with StreaksProvider only when authenticated to share streak data
+  return user ? (
+    <StreaksProvider>
+      {appContent}
+    </StreaksProvider>
+  ) : appContent;
 }
 
 export default App;
