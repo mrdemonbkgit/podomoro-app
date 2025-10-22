@@ -110,6 +110,7 @@ export function useStreaks(): UseStreaksReturn {
       const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
       const disciplineCurrent = Math.floor((Date.now() - streaks.discipline.startDate) / 1000);
       
+      console.log('[useStreaks] Auto-saving to Firestore:', new Date().toLocaleTimeString());
       await saveStreakState(user.uid, mainCurrent, disciplineCurrent);
     } catch (err) {
       console.error('Failed to auto-save streaks:', err);
