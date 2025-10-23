@@ -25,7 +25,7 @@ export function KamehamehaPage() {
   const { streaks, mainDisplay, currentJourneyId, loading, error, refreshStreaks } = useStreaksContext();
   const { createCheckIn } = useCheckIns();
   const { createRelapse } = useRelapses();
-  const { celebrationBadge, dismissCelebration } = useBadges(currentJourneyId); // ← Phase 5.1: Pass journeyId
+  const { celebrationBadge, dismissCelebration } = useBadges(); // Loads all badges (permanent records)
   const { journeyNumber, loading: journeyLoading } = useJourneyInfo(currentJourneyId); // ← Phase 5.1
   
   // Modal state

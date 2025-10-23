@@ -20,7 +20,6 @@ import {
   orderBy,
   limit,
   increment,
-  deleteDoc,
 } from 'firebase/firestore';
 import type { Journey, Relapse } from '../types/kamehameha.types';
 
@@ -67,7 +66,7 @@ export async function createJourney(userId: string): Promise<Journey> {
 
 /**
  * End the current journey (called on PMO relapse)
- * Deletes all badges for this journey since they're temporary
+ * Badges are preserved as historical records
  * 
  * @param userId - User ID
  * @param journeyId - Journey ID to end
@@ -98,78 +97,9 @@ export async function endJourney(
     updatedAt: Date.now(),
   });
 
-  // Delete all badges for this journey (badges are temporary)
-  console.log('🗑️ Starting badge deletion for journey:', journeyId);
-  await deleteBadgesForJourney(userId, journeyId);
-  
-  // Verify badges are deleted
-  const remainingBadgesQuery = query(
-    collection(db, `users/${userId}/kamehameha_badges`),
-    where('journeyId', '==', journeyId)
-  );
-  const remainingBadges = await getDocs(remainingBadgesQuery);
-  if (remainingBadges.size > 0) {
-    console.error(`⚠️ WARNING: ${remainingBadges.size} badge(s) still exist for journey ${journeyId} after deletion!`);
-    remainingBadges.forEach(doc => {
-      console.error(`   Remaining badge: ${doc.id}`, doc.data());
-    });
-  } else {
-    console.log('✅ Verified: All badges deleted for journey:', journeyId);
-  }
-
-  console.log('✅ Journey ended:', journeyId);
+  console.log('✅ Journey ended:', journeyId, '(badges preserved for history)');
 }
 
-/**
- * Delete all badges for a specific journey
- * Called when a journey ends (badges are temporary)
- * 
- * IMPORTANT: This deletes badges in two passes:
- * 1. Badges with matching journeyId
- * 2. Badges without journeyId (legacy badges from before Phase 5.1)
- * 
- * @param userId - User ID
- * @param journeyId - Journey ID
- */
-async function deleteBadgesForJourney(userId: string, journeyId: string): Promise<void> {
-  const db = getFirestore();
-  const badgesRef = collection(db, `users/${userId}/kamehameha_badges`);
-  
-  console.log(`🗑️ Deleting badges for journey: ${journeyId}`);
-  
-  // Pass 1: Delete badges with matching journeyId
-  const qWithJourney = query(badgesRef, where('journeyId', '==', journeyId));
-  const snapshotWithJourney = await getDocs(qWithJourney);
-  
-  console.log(`   Found ${snapshotWithJourney.size} badge(s) with journeyId`);
-  
-  if (snapshotWithJourney.size > 0) {
-    const deletePromises = snapshotWithJourney.docs.map(doc => {
-      console.log(`   Deleting badge: ${doc.id} (${doc.data().badgeName})`);
-      return deleteDoc(doc.ref);
-    });
-    await Promise.all(deletePromises);
-    console.log(`   ✅ Deleted ${snapshotWithJourney.size} badge(s) with journeyId`);
-  }
-  
-  // Pass 2: Delete ALL badges without journeyId (legacy cleanup)
-  // These are orphaned badges from before the journey system
-  const allBadgesSnapshot = await getDocs(badgesRef);
-  const badgesWithoutJourney = allBadgesSnapshot.docs.filter(doc => !doc.data().journeyId);
-  
-  if (badgesWithoutJourney.length > 0) {
-    console.log(`   Found ${badgesWithoutJourney.length} legacy badge(s) without journeyId`);
-    const deletePromises = badgesWithoutJourney.map(doc => {
-      console.log(`   Deleting legacy badge: ${doc.id} (${doc.data().badgeName})`);
-      return deleteDoc(doc.ref);
-    });
-    await Promise.all(deletePromises);
-    console.log(`   ✅ Deleted ${badgesWithoutJourney.length} legacy badge(s)`);
-  }
-  
-  const totalDeleted = snapshotWithJourney.size + badgesWithoutJourney.length;
-  console.log(`✅ Total badges deleted: ${totalDeleted}`);
-}
 
 /**
  * Get the current active journey for a user

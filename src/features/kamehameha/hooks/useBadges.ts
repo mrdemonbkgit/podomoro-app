@@ -2,20 +2,19 @@
  * useBadges Hook
  * 
  * Listens to user's badge collection and detects new badges for celebration
- * Phase 5.1: Only loads badges for the current journey
+ * Badges are permanent historical records, stored with their journeyId
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
 import { useAuth } from '../../auth/context/AuthContext';
 import type { Badge, UseBadgesReturn } from '../types/kamehameha.types';
 
 /**
- * Hook to manage badges for the current journey
- * @param currentJourneyId - Current journey ID (Phase 5.1)
+ * Hook to manage ALL badges (permanent records)
  */
-export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
+export function useBadges(): UseBadgesReturn {
   const { user } = useAuth();
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,19 +26,18 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    if (!user?.uid || !currentJourneyId) {
+    if (!user?.uid) {
       setLoading(false);
       return;
     }
 
-    console.log('useBadges: Listening for badges in journey:', currentJourneyId);
+    console.log('useBadges: Listening for ALL badges (permanent records)');
 
     const badgesRef = collection(db, 'users', user.uid, 'kamehameha_badges');
     
-    // Phase 5.1: Only load badges for current journey
+    // Load ALL badges (permanent historical records)
     const q = query(
       badgesRef,
-      where('journeyId', '==', currentJourneyId),
       orderBy('earnedAt', 'desc')
     );
 
@@ -88,21 +86,7 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
     );
 
     return () => unsubscribe();
-  }, [user?.uid, currentJourneyId]); // ← Phase 5.1: Also depend on currentJourneyId
-  
-  // Phase 5.1: Reset seen badges when journey changes
-  useEffect(() => {
-    if (currentJourneyId) {
-      console.log('useBadges: Journey changed, resetting seen badges:', currentJourneyId);
-      seenBadgeIds.current.clear();
-      isInitialLoad.current = true;
-      // CRITICAL: Clear badges immediately when journey changes
-      // The new listener will populate it with the correct badges
-      setBadges([]);
-      setLoading(true);
-      console.log('   Cleared badges state, waiting for new journey badges...');
-    }
-  }, [currentJourneyId]);
+  }, [user?.uid]);
 
   const dismissCelebration = () => {
     setCelebrationBadge(null);

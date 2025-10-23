@@ -24,11 +24,12 @@
 
 **Latest Updates:**
 - 🔧 Phase 5.1 In Progress - Journey System Refactor
-- 🏷️ **NEW:** Badges are now temporary - deleted when journey ends (clean slate)
+- 🏷️ **CRITICAL FIX:** Badges are now permanent historical records (NOT deleted on journey end)
+- 📊 Multiple badges can exist across multiple journeys for complete history
 - 📖 Documentation updated (SPEC.md, DATA_SCHEMA.md, PROGRESS.md)
 - 🗺️ Simplified journey model: One PMO journey, violations for info only
 - 📊 Dashboard updated: Journey info + simplified display
-- 🎯 Goal: Fix celebration bug, enable journey history
+- 🔍 Investigating: New journey showing achievementsCount = 1 at 0 minutes
 
 **Working on:** Backend implementation (journey service, Cloud Functions)
 

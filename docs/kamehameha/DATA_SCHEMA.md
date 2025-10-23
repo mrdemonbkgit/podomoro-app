@@ -357,8 +357,9 @@ interface Badge {
 
 **Note (Phase 5.1):** 
 - Removed `milestoneType` field - all badges are for PMO journey (main streak)
-- **Badges are temporary** - when a journey ends (PMO relapse), all badges for that journey are automatically deleted
-- This ensures a clean slate for each new journey and prevents old badges from triggering celebrations
+- **Badges are permanent historical records** - stored with their `journeyId` to track which journey they were earned in
+- Multiple badges can exist across multiple journeys
+- This allows users to view their complete achievement history across all journeys
 
 ---
 

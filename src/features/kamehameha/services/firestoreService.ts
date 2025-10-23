@@ -216,7 +216,7 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
     if (currentJourneyId) {
       console.log('⚠️ Ending journey due to PMO relapse:', currentJourneyId, `(${previousSeconds}s)`);
       await endJourney(userId, currentJourneyId, previousSeconds);
-      console.log('✅ Journey ended and badges deleted:', currentJourneyId);
+      console.log('✅ Journey ended:', currentJourneyId);
     } else {
       console.warn('⚠️ No currentJourneyId found! Creating first journey.');
     }

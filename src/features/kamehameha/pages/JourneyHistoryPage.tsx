@@ -31,11 +31,20 @@ export function JourneyHistoryPage() {
         setJourneys(history);
         console.log('✅ Loaded journeys:', history.length, 'journeys');
         if (history.length > 0) {
+          const latest = history[0];
+          const duration = latest.endDate 
+            ? latest.finalSeconds || 0
+            : Math.floor((Date.now() - latest.startDate) / 1000);
+          const minutes = Math.floor(duration / 60);
+          const seconds = duration % 60;
           console.log('   Latest journey:', {
-            id: history[0].id,
-            achievementsCount: history[0].achievementsCount,
-            violationsCount: history[0].violationsCount,
-            endReason: history[0].endReason
+            id: latest.id,
+            achievementsCount: latest.achievementsCount,
+            violationsCount: latest.violationsCount,
+            endReason: latest.endReason,
+            durationSeconds: duration,
+            durationDisplay: `${minutes}m ${seconds}s`,
+            isActive: !latest.endDate
           });
         }
       } catch (error) {

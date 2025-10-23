@@ -7,13 +7,11 @@
 
 import { Link } from 'react-router-dom';
 import { UserProfile } from '../../auth/components/UserProfile';
-import { useStreaksContext } from '../context/StreaksContext';
 import { useBadges } from '../hooks/useBadges';
 import { BadgeGallery } from '../components/BadgeGallery';
 
 export function BadgesPage() {
-  const { currentJourneyId } = useStreaksContext(); // ← Phase 5.1
-  const { badges, loading } = useBadges(currentJourneyId); // ← Phase 5.1: Pass journeyId
+  const { badges, loading } = useBadges(); // Loads all badges (permanent records)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">

@@ -736,14 +736,14 @@ Implement a journey-based achievement system where each streak period is treated
   - Violation count (discipline relapses)
 - Discipline violations are logged events WITHIN the journey (informational only)
 
-**FR-5.1.2: Badge-Journey Linking (Temporary Badges)**
+**FR-5.1.2: Badge-Journey Linking (Permanent Historical Records)**
 - All badges must have a `journeyId` field
-- Badges are **temporary** - they only exist for the current journey
-- When a journey ends (PMO relapse), **all badges for that journey are deleted**
-- Only badges from current journey are shown in badge gallery
-- Only badges from current journey trigger celebrations
+- Badges are **permanent historical records**
+- When a journey ends (PMO relapse), **badges are preserved in the database**
+- Badge gallery shows ALL badges earned across all journeys
+- Only newly-earned badges (within 10 seconds) trigger celebrations
 - Remove `streakType` field (all badges are PMO milestones)
-- **Rationale:** Simplifies the system and ensures clean slate for each new journey
+- **Rationale:** Provides complete achievement history and context for past journeys
 
 **FR-5.1.3: Violation-Journey Linking**
 - All relapses must have a `journeyId` field
