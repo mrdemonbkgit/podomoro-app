@@ -244,6 +244,22 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
     const streaksRef = doc(db, getStreaksDocPath(userId));
     await setDoc(streaksRef, updatedStreaks);
     
+    // Verify new journey state after streaks update
+    const journeyVerifyRef = doc(db, `users/${userId}/kamehameha_journeys/${newJourney.id}`);
+    const journeyVerifySnap = await getDoc(journeyVerifyRef);
+    if (journeyVerifySnap.exists()) {
+      const journeyData = journeyVerifySnap.data();
+      console.log('🔍 Verifying new journey state:', {
+        id: newJourney.id,
+        achievementsCount: journeyData.achievementsCount,
+        violationsCount: journeyData.violationsCount
+      });
+      
+      if (journeyData.achievementsCount !== 0) {
+        console.error(`⚠️ BUG DETECTED: New journey has achievementsCount = ${journeyData.achievementsCount} (expected 0)!`);
+      }
+    }
+    
     console.log('✅ resetMainStreak COMPLETE - New journey:', newJourney.id);
     
     return updatedStreaks;

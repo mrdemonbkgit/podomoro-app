@@ -81,7 +81,14 @@ export async function endJourney(
   const db = getFirestore();
   const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`);
 
-  console.log('Ending journey:', journeyId, 'Duration:', finalSeconds, 'seconds');
+  console.log('⏹️ Ending journey:', journeyId, 'Duration:', finalSeconds, 'seconds');
+
+  // Read current journey data before ending
+  const journeySnap = await getDoc(journeyRef);
+  if (journeySnap.exists()) {
+    const currentData = journeySnap.data();
+    console.log('   Current journey achievementsCount:', currentData.achievementsCount);
+  }
 
   // Update journey document
   await updateDoc(journeyRef, {
@@ -92,10 +99,25 @@ export async function endJourney(
   });
 
   // Delete all badges for this journey (badges are temporary)
-  console.log('Deleting badges for journey:', journeyId);
+  console.log('🗑️ Starting badge deletion for journey:', journeyId);
   await deleteBadgesForJourney(userId, journeyId);
+  
+  // Verify badges are deleted
+  const remainingBadgesQuery = query(
+    collection(db, `users/${userId}/kamehameha_badges`),
+    where('journeyId', '==', journeyId)
+  );
+  const remainingBadges = await getDocs(remainingBadgesQuery);
+  if (remainingBadges.size > 0) {
+    console.error(`⚠️ WARNING: ${remainingBadges.size} badge(s) still exist for journey ${journeyId} after deletion!`);
+    remainingBadges.forEach(doc => {
+      console.error(`   Remaining badge: ${doc.id}`, doc.data());
+    });
+  } else {
+    console.log('✅ Verified: All badges deleted for journey:', journeyId);
+  }
 
-  console.log('Journey ended:', journeyId);
+  console.log('✅ Journey ended:', journeyId);
 }
 
 /**
