@@ -1,8 +1,8 @@
 # Kamehameha - Complete Specification
 
 **Last Updated:** October 22, 2025  
-**Version:** 1.3  
-**Status:** Phases 1-5 Complete
+**Version:** 1.4  
+**Status:** Phases 1-5 Complete, Phase 5.1 In Progress
 
 ## Document Purpose
 
@@ -28,6 +28,14 @@ This document provides complete requirements for the Kamehameha PMO recovery too
 - Glass morphism UI with dark mode
 - Badge system with celebrations
 - Progress visualization
+
+**🔧 In Progress (Phase 5.1):**
+- Feature 5.1: Journey System Refactor
+- Journey-based achievement tracking
+- Violation history per journey
+- Dashboard journey information
+- Journey history page
+- **Goal:** Fix celebration bug, enable journey insights
 
 **🔜 Next (Phase 6):**
 - Feature 6: Configuration & Settings
@@ -689,6 +697,194 @@ Kamehameha provides a comprehensive, compassionate recovery companion for indivi
 - [ ] Progress bars show accurate percentage
 - [ ] Works for both main and discipline streaks
 - [ ] Locked badges shown but disabled
+
+---
+
+### Feature 5.1: Journey System Refactor (Phase 5.1)
+
+**Status:** 🔧 IN PROGRESS (October 22, 2025)  
+**Priority:** P0 (Critical Bug Fix)  
+**Type:** Refactor + Enhancement
+
+#### Problem
+
+After Phase 5 implementation, a critical bug was discovered:
+- Badges persist globally across relapses
+- When user relapses and reaches the same milestone again, the old badge triggers a celebration
+- Creates confusing UX: "Why am I celebrating a 1-minute milestone I already earned?"
+- Breaks the gamification experience
+
+#### Solution
+
+Implement a journey-based achievement system where each streak period is treated as a separate "journey":
+- Each journey has its own set of achievements (badges)
+- Journeys track violations (discipline relapses) for context and analysis
+- Only PMO relapse ends a journey and starts a new one
+- Old journey badges don't celebrate in new journeys
+- Journey history provides valuable context for recovery patterns
+
+#### Requirements
+
+**FR-5.1.1: Journey Data Model (Simplified)**
+- ONE journey type: PMO journey (main streak only)
+- Journey starts when main streak begins
+- Journey ends when PMO relapse occurs
+- Each journey has:
+  - Start date and end date
+  - Duration in seconds
+  - Achievement count (badges earned)
+  - Violation count (discipline relapses)
+- Discipline violations are logged events WITHIN the journey (informational only)
+
+**FR-5.1.2: Badge-Journey Linking (Temporary Badges)**
+- All badges must have a `journeyId` field
+- Badges are **temporary** - they only exist for the current journey
+- When a journey ends (PMO relapse), **all badges for that journey are deleted**
+- Only badges from current journey are shown in badge gallery
+- Only badges from current journey trigger celebrations
+- Remove `streakType` field (all badges are PMO milestones)
+- **Rationale:** Simplifies the system and ensures clean slate for each new journey
+
+**FR-5.1.3: Violation-Journey Linking**
+- All relapses must have a `journeyId` field
+- Violations are categorized:
+  - `type: 'main'` = PMO relapse (ends journey)
+  - `type: 'discipline'` = Violation event (logged in journey)
+- Journey tracks violation count for analysis
+
+**FR-5.1.4: Dashboard UI (Option B)**
+Display journey information above the main timer:
+```
+Journey #5: 15 days
+├─ 8 days since last violation
+└─ 2 violations total
+```
+
+**FR-5.1.5: Journey History Page**
+- List all journeys (current + past)
+- For each journey, show:
+  - Journey number (#1, #2, etc.)
+  - Date range (start - end)
+  - Duration
+  - Achievement count
+  - Violation count
+  - Expandable list of violations with full details
+- Current journey marked with indicator
+- Route: `/kamehameha/history`
+
+#### UI Mockups
+
+**Dashboard (Journey Info):**
+```
+┌─────────────────────────────────────────┐
+│  Journey #5: 15 days                    │
+│  ├─ 8 days since last violation         │
+│  └─ 2 violations total                  │
+│                                         │
+│  [Main | Discipline]  (tabs)            │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │        15:05:23:47                │  │
+│  │     D : HH : MM : SS              │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  🏆 Badges Earned (5)                   │
+│  ⚡ 🌱 💪 ⚔️ 👑                       │
+│                                         │
+│  [📅 Daily Check-In]                    │
+│  [💬 AI Therapist]                      │
+│  [🏆 View Badges]                       │
+│  [📖 Journey History]  ← NEW           │
+│  [⚠️ Report Relapse]                    │
+└─────────────────────────────────────────┘
+```
+
+**Journey History Page:**
+```
+┌─────────────────────────────────────────────┐
+│  ← Back to Dashboard                        │
+│                                             │
+│  Journey History                            │
+│                                             │
+│  ► Journey #5 (Current)                     │
+│    Oct 22 - Present | 15 days               │
+│    Achievements: 5 badges                   │
+│    Violations: 2                            │
+│                                             │
+│    ▼ Violations                             │
+│     • Oct 24 (Day 3)                        │
+│       Viewed pornography, Idle time         │
+│       "Was bored after work..."             │
+│                                             │
+│     • Oct 29 (Day 8)                        │
+│       Social media triggers                 │
+│       "Scrolling late at night..."          │
+│                                             │
+│  ○ Journey #4                               │
+│    Oct 10 - Oct 22 | 12 days                │
+│    Achievements: 4 badges                   │
+│    Violations: 1                            │
+│    [Expand]                                 │
+│                                             │
+│  ○ Journey #3                               │
+│    Oct 3 - Oct 10 | 7 days                  │
+│    Achievements: 3 badges                   │
+│    Violations: 3                            │
+│    [Expand]                                 │
+└─────────────────────────────────────────────┘
+```
+
+#### Acceptance Criteria
+
+- [ ] Journey created automatically when user initializes streaks
+- [ ] PMO relapse ends current journey and creates new journey
+- [ ] Discipline relapse increments journey violation count
+- [ ] Badges linked to journey via `journeyId`
+- [ ] Only current journey badges trigger celebrations
+- [ ] Dashboard shows journey number, duration, violations
+- [ ] Journey history page displays all journeys
+- [ ] Violations expandable in journey history
+- [ ] Journey numbering sequential (#1, #2, etc.)
+- [ ] No celebration bugs after relapse
+- [ ] Data migration handles existing users (if applicable)
+
+#### Technical Implementation
+
+**New Collection:**
+- `users/{userId}/kamehameha_journeys/{journeyId}`
+
+**Updated Collections:**
+- `users/{userId}/kamehameha_badges/{badgeId}` - add `journeyId`
+- `users/{userId}/kamehameha_relapses/{relapseId}` - add `journeyId`
+- `users/{userId}/kamehameha/streaks` - add `currentJourneyId`
+
+**New Service:**
+- `src/features/kamehameha/services/journeyService.ts`
+
+**Updated Services:**
+- `src/features/kamehameha/services/firestoreService.ts`
+- `functions/src/milestones.ts`
+
+**New Components:**
+- `src/features/kamehameha/pages/JourneyHistoryPage.tsx`
+- `src/features/kamehameha/components/JourneyInfo.tsx` (dashboard widget)
+
+**Updated Components:**
+- `src/features/kamehameha/pages/KamehamehaPage.tsx` - add journey info
+- `src/features/kamehameha/hooks/useBadges.ts` - filter by journeyId
+
+#### Success Metrics
+
+- **P0:** Celebration bug fixed (no old badge celebrations)
+- **UX:** Users understand journey concept
+- **Engagement:** Users explore journey history
+- **Analytics:** Journey data provides recovery insights
+
+#### Design Documentation
+
+- [`docs/kamehameha/JOURNEY_SYSTEM_REFACTOR.md`](JOURNEY_SYSTEM_REFACTOR.md) - Full design doc
+- [`docs/kamehameha/DATA_SCHEMA.md`](DATA_SCHEMA.md) - Updated schema
+- [`docs/kamehameha/PROGRESS.md`](PROGRESS.md) - Implementation tracking
 
 ---
 

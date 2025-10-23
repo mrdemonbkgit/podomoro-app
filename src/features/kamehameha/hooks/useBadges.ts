@@ -2,15 +2,20 @@
  * useBadges Hook
  * 
  * Listens to user's badge collection and detects new badges for celebration
+ * Phase 5.1: Only loads badges for the current journey
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
 import { useAuth } from '../../auth/context/AuthContext';
 import type { Badge, UseBadgesReturn } from '../types/kamehameha.types';
 
-export function useBadges(): UseBadgesReturn {
+/**
+ * Hook to manage badges for the current journey
+ * @param currentJourneyId - Current journey ID (Phase 5.1)
+ */
+export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
   const { user } = useAuth();
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,13 +27,21 @@ export function useBadges(): UseBadgesReturn {
   const isInitialLoad = useRef(true);
 
   useEffect(() => {
-    if (!user?.uid) {
+    if (!user?.uid || !currentJourneyId) {
       setLoading(false);
       return;
     }
 
+    console.log('useBadges: Listening for badges in journey:', currentJourneyId);
+
     const badgesRef = collection(db, 'users', user.uid, 'kamehameha_badges');
-    const q = query(badgesRef, orderBy('earnedAt', 'desc'));
+    
+    // Phase 5.1: Only load badges for current journey
+    const q = query(
+      badgesRef,
+      where('journeyId', '==', currentJourneyId),
+      orderBy('earnedAt', 'desc')
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -75,7 +88,16 @@ export function useBadges(): UseBadgesReturn {
     );
 
     return () => unsubscribe();
-  }, [user?.uid]);
+  }, [user?.uid, currentJourneyId]); // ← Phase 5.1: Also depend on currentJourneyId
+  
+  // Phase 5.1: Reset seen badges when journey changes
+  useEffect(() => {
+    if (currentJourneyId) {
+      console.log('useBadges: Journey changed, resetting seen badges:', currentJourneyId);
+      seenBadgeIds.current.clear();
+      isInitialLoad.current = true;
+    }
+  }, [currentJourneyId]);
 
   const dismissCelebration = () => {
     setCelebrationBadge(null);

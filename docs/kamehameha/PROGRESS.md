@@ -1,7 +1,7 @@
 # Kamehameha - Progress Tracker
 
-**Last Updated:** October 22, 2025 @ 7:15 PM  
-**Current Phase:** Phase 5 Complete! 🎉  
+**Last Updated:** October 22, 2025 @ 10:30 PM  
+**Current Phase:** Phase 5.1 - Journey System Refactor (In Progress)  
 **Next Phase:** Phase 6 - Settings & Configuration
 
 ---
@@ -23,15 +23,21 @@
 - ✅ Zero console errors
 
 **Latest Updates:**
-- 🎉 Phase 5 Complete! Milestones & Gamification fully implemented
+- 🔧 Phase 5.1 In Progress - Journey System Refactor
+- 🏷️ **NEW:** Badges are now temporary - deleted when journey ends (clean slate)
+- 📖 Documentation updated (SPEC.md, DATA_SCHEMA.md, PROGRESS.md)
+- 🗺️ Simplified journey model: One PMO journey, violations for info only
+- 📊 Dashboard updated: Journey info + simplified display
+- 🎯 Goal: Fix celebration bug, enable journey history
+
+**Working on:** Backend implementation (journey service, Cloud Functions)
+
+**Previously:** Phase 5 Complete! ✅
 - 🏆 Automatic badge detection via Cloud Function trigger
 - 🎊 Beautiful celebration modal with confetti animation
 - 📊 Real-time progress bars showing next milestone
 - 🖼️ Badge gallery with earned/locked states
 - ⚡ Dev milestones (1 min, 5 min) for easy testing
-- 🔥 Seamless integration with dashboard
-
-**Ready for:** Phase 6 - Settings & Configuration
 
 ---
 
@@ -748,4 +754,147 @@ None
 ---
 
 **Remember:** Update this file as you work! It's your progress journal. 📖
+
+---
+
+## 🔄 Phase 5.1: Journey System Refactor
+
+**Status:** 🔧 IN PROGRESS  
+**Started:** October 22, 2025 @ 10:00 PM  
+**Estimated Duration:** 11-16 hours  
+**Progress:** 2 / 10 tasks (20%)
+
+### Problem Statement
+
+After completing Phase 5, a critical bug was discovered:
+- **Bug:** After reporting a relapse, the 1-minute milestone celebration appears instantly
+- **Root Cause:** Badges are global and persist across relapses, causing old achievements to celebrate in new streaks
+- **Impact:** Confusing UX, breaks the gamification experience
+
+### Solution: Journey-Based Achievement System (Simplified)
+
+**Design Decision:** Full Journey System with simplifications
+- **ONE journey type:** PMO journey (main streak only)
+- **Discipline violations:** Logged within journey for analysis (informational only)
+- **Dashboard layout:** Option B (journey info, days since last violation, violation count)
+- **Journey history:** Shows full violation details for each journey
+
+### Data Schema Changes
+
+1. **New Collection:** `kamehameha_journeys/{journeyId}`
+   - Links each streak period to its achievements and violations
+   - Tracks journey duration, achievement count, violation count
+
+2. **Updated Collections:**
+   - `kamehameha_badges`: Add `journeyId` field, remove `streakType`
+   - `kamehameha_relapses`: Add `journeyId` field
+   - `kamehameha/streaks`: Add `currentJourneyId` field (top-level)
+
+### Tasks
+
+#### Documentation (2 / 2) ✅
+- [x] Create JOURNEY_SYSTEM_REFACTOR.md with design plan
+- [x] Update DATA_SCHEMA.md with journey structure
+- [ ] Update PROGRESS.md (this file)
+- [ ] Update SPEC.md with journey system details
+
+#### Backend Implementation (0 / 3)
+- [ ] Create `src/features/kamehameha/services/journeyService.ts`
+  - `createJourney()` - Start new journey
+  - `endJourney()` - End journey on PMO relapse
+  - `getCurrentJourney()` - Get active journey
+  - `getJourneyHistory()` - Get all journeys
+  - `incrementJourneyViolations()` - Track violations
+  - `getJourneyViolations()` - Get violations for journey
+
+- [ ] Update `src/features/kamehameha/services/firestoreService.ts`
+  - `initializeUserStreaks()` - Create initial journey
+  - `resetMainStreak()` - End journey, create new journey
+  - `resetDisciplineStreak()` - Increment journey violations
+  - `createRelapse()` - Add journeyId to relapse document
+
+- [ ] Update `functions/src/milestones.ts`
+  - Read `currentJourneyId` from streaks document
+  - Add `journeyId` to badge when created
+  - Remove discipline milestone checking
+
+#### Frontend Implementation (0 / 4)
+- [ ] Update `src/features/kamehameha/types/kamehameha.types.ts`
+  - Add `Journey` interface
+  - Update `Badge` interface (add journeyId, remove streakType)
+  - Update `Relapse` interface (add journeyId)
+  - Update `Streaks` interface (add currentJourneyId)
+
+- [ ] Update `src/features/kamehameha/hooks/useBadges.ts`
+  - Only listen to badges for current journey
+  - Prevent celebrations for old journeys
+
+- [ ] Update Dashboard UI (Option B)
+  - Show journey number and duration
+  - Show days since last violation
+  - Show total violations count
+  - Update `src/features/kamehameha/pages/KamehamehaPage.tsx`
+
+- [ ] Create Journey History Page
+  - List all journeys (current + past)
+  - Show duration, achievements, violations for each
+  - Expandable violation details
+  - Create `src/features/kamehameha/pages/JourneyHistoryPage.tsx`
+  - Add route in `src/main.tsx`
+
+#### Testing (0 / 1)
+- [ ] End-to-end testing
+  - Start streak → journey created
+  - Reach milestone → badge linked to journey
+  - Discipline relapse → violation logged, journey continues
+  - PMO relapse → journey ends, new journey starts
+  - Verify no old badge celebrations
+  - Journey history displays correctly
+
+### Blockers
+
+None currently
+
+### Benefits
+
+1. **Fixes Critical Bug:** Old achievements won't celebrate in new streaks
+2. **Clear Mental Model:** Each attempt is a distinct journey
+3. **Journey History:** Users can see improvement across attempts
+4. **Better Analytics:** Rich data for AI context and pattern analysis
+5. **Motivational:** "Journey #5 was my best! 15 days, only 2 violations!"
+6. **Scalable:** Easy to add journey-specific features later
+
+### Design Files
+
+- [`docs/kamehameha/JOURNEY_SYSTEM_REFACTOR.md`](JOURNEY_SYSTEM_REFACTOR.md) - Complete design doc
+- [`docs/kamehameha/DATA_SCHEMA.md`](DATA_SCHEMA.md) - Updated schema
+
+### Notes
+
+**Key Design Simplifications:**
+- Only ONE journey type (PMO journey)
+- No separate discipline journey
+- Violations are informational events within the journey
+- Only PMO relapse ends a journey
+- Discipline tracking continues for "days since last violation" display
+
+**Badge Lifecycle Update (October 23, 2025):**
+- ✅ **Badges are now temporary** - they only exist for the current journey
+- ✅ When a journey ends (PMO relapse), all badges for that journey are automatically deleted
+- ✅ Implemented `deleteBadgesForJourney()` in `journeyService.ts`
+- ✅ Updated `endJourney()` to delete badges before closing journey
+- ✅ **Removed all discipline streak badges** - only PMO journey badges exist now
+- ✅ Updated UI components:
+  - `BadgeGallery.tsx` - Removed filter tabs, simplified to single badge list
+  - `CelebrationModal.tsx` - Removed streak type indicator
+  - `MilestoneProgress.tsx` - Removed streak type parameter
+  - `KamehamehaPage.tsx` - Removed streakType prop from MilestoneProgress
+- ✅ Documentation updated (SPEC.md, DATA_SCHEMA.md, PROGRESS.md)
+- **Rationale:** Simplifies the badge system and ensures each journey starts with a clean slate
+
+**Migration Strategy:**
+- For dev/testing: Reset all data
+- For production: Create legacy journey for existing badges/relapses, then create new journey
+
+---
 

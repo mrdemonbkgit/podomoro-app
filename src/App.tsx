@@ -14,11 +14,11 @@ import { SoundsPanel } from './components/SoundsPanel';
 import { TasksModal } from './components/TasksModal';
 import { StreakBadge } from './shared/components/StreakBadge';
 import { useAuth } from './features/auth/context/AuthContext';
-import { StreaksProvider, useStreaksContext } from './features/kamehameha/context/StreaksContext';
+import { useStreaksContext } from './features/kamehameha/context/StreaksContext';
 import './App.css';
 import './styles/glass.css';
 
-// Wrapper component to display streak badge (uses shared context)
+// Wrapper component to display streak badge (uses shared context from top-level provider)
 function StreakBadgeWrapper() {
   const { mainDisplay } = useStreaksContext();
   return <StreakBadge display={mainDisplay} isVisible={true} />;
@@ -239,12 +239,8 @@ function App() {
     </div>
   );
   
-  // Wrap with StreaksProvider only when authenticated to share streak data
-  return user ? (
-    <StreaksProvider>
-      {appContent}
-    </StreaksProvider>
-  ) : appContent;
+  // No need to wrap - StreaksProvider is at top level in main.tsx
+  return appContent;
 }
 
 export default App;

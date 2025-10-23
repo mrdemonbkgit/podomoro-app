@@ -26,6 +26,8 @@ export interface StreakData {
  * Complete streaks document structure
  */
 export interface Streaks {
+  /** Current journey ID (Phase 5.1) */
+  currentJourneyId?: string;
   /** PMO (Porn, Masturbation, Orgasm) main recovery streak */
   main: StreakData;
   /** Discipline streak (resets on any rule violation) */
@@ -140,6 +142,8 @@ export const DEFAULT_RULE_VIOLATIONS = [
 export interface Relapse {
   /** Unique ID */
   id: string;
+  /** Journey this relapse belongs to (Phase 5.1) */
+  journeyId?: string;
   /** When relapse occurred (milliseconds) */
   timestamp: number;
   /** Type of relapse */
@@ -172,8 +176,10 @@ export interface Relapse {
 export interface Badge {
   /** Document ID */
   id: string;
-  /** Which streak this badge is for */
-  streakType: 'main' | 'discipline';
+  /** Journey this badge belongs to (Phase 5.1) */
+  journeyId?: string;
+  /** Which streak this badge is for (deprecated - all badges are for main streak now) */
+  streakType?: 'main' | 'discipline';
   /** Milestone threshold in seconds */
   milestoneSeconds: number;
   /** When the badge was earned (milliseconds) */
@@ -211,6 +217,36 @@ export interface Milestone {
   badge: string; // Badge emoji/icon
   title: string;
   description: string;
+}
+
+// ============================================================================
+// Journey Types (Phase 5.1)
+// ============================================================================
+
+/**
+ * Journey represents one complete PMO streak period from start to end
+ * Each journey has its own badges and tracks violations for context
+ * Stored in Firestore: users/{userId}/kamehameha_journeys/{journeyId}
+ */
+export interface Journey {
+  /** Document ID */
+  id: string;
+  /** When journey started (milliseconds) */
+  startDate: number;
+  /** When journey ended (null if currently active) */
+  endDate: number | null;
+  /** Why the journey ended */
+  endReason: 'active' | 'relapse';
+  /** Final duration in seconds */
+  finalSeconds: number;
+  /** Number of badges earned during this journey */
+  achievementsCount: number;
+  /** Number of discipline violations during this journey */
+  violationsCount: number;
+  /** Firestore creation timestamp */
+  createdAt: number;
+  /** Firestore last update timestamp */
+  updatedAt: number;
 }
 
 // ============================================================================
@@ -259,6 +295,8 @@ export interface UseStreaksReturn {
   mainDisplay: StreakDisplay | null;
   /** Formatted discipline streak for display */
   disciplineDisplay: StreakDisplay | null;
+  /** Current journey ID (Phase 5.1) */
+  currentJourneyId: string | null;
   /** Loading state */
   loading: boolean;
   /** Error state */

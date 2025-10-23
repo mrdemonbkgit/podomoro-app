@@ -2,11 +2,11 @@
  * BadgeGallery Component
  * 
  * Displays all earned and locked badges in a beautiful grid layout
+ * Phase 5.1: Only shows PMO journey badges (no discipline badges)
  */
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import type { Badge, StreakType } from '../types/kamehameha.types';
+import type { Badge } from '../types/kamehameha.types';
 import { MILESTONE_CONFIGS, formatMilestoneTime } from '../constants/milestones';
 
 interface BadgeGalleryProps {
@@ -14,35 +14,19 @@ interface BadgeGalleryProps {
   loading?: boolean;
 }
 
-type FilterType = 'all' | 'main' | 'discipline';
-
 export function BadgeGallery({ badges, loading = false }: BadgeGalleryProps) {
-  const [filter, setFilter] = useState<FilterType>('all');
-
   // Get all possible badges (earned + locked)
   const allPossibleBadges = Object.entries(MILESTONE_CONFIGS).map(([seconds, config]) => {
-    // Check if this badge has been earned (for main and discipline)
-    const mainBadge = badges.find(
-      (b) => b.milestoneSeconds === Number(seconds) && b.streakType === 'main'
-    );
-    const disciplineBadge = badges.find(
-      (b) => b.milestoneSeconds === Number(seconds) && b.streakType === 'discipline'
+    // Check if this badge has been earned
+    const earnedBadge = badges.find(
+      (b) => b.milestoneSeconds === Number(seconds)
     );
 
     return {
       seconds: Number(seconds),
       config,
-      mainBadge,
-      disciplineBadge,
+      badge: earnedBadge,
     };
-  });
-
-  // Filter badges based on selected filter
-  const filteredBadges = allPossibleBadges.filter((item) => {
-    if (filter === 'all') return true;
-    if (filter === 'main') return item.mainBadge !== undefined;
-    if (filter === 'discipline') return item.disciplineBadge !== undefined;
-    return true;
   });
 
   if (loading) {
@@ -55,54 +39,20 @@ export function BadgeGallery({ badges, loading = false }: BadgeGalleryProps) {
 
   return (
     <div className="space-y-6">
-      {/* Filter tabs */}
-      <div className="flex gap-2 justify-center">
-        {(['all', 'main', 'discipline'] as FilterType[]).map((filterType) => (
-          <button
-            key={filterType}
-            onClick={() => setFilter(filterType)}
-            className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 ${
-              filter === filterType
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            {filterType === 'all' && '🎖️ All Badges'}
-            {filterType === 'main' && '🔥 Main Streak'}
-            {filterType === 'discipline' && '⚔️ Discipline'}
-          </button>
-        ))}
-      </div>
-
       {/* Badge grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {filteredBadges.map((item, index) => (
-          <div key={item.seconds} className="space-y-2">
-            {/* Main streak badge */}
-            {(filter === 'all' || filter === 'main') && (
-              <BadgeCard
-                badge={item.mainBadge}
-                config={item.config}
-                streakType="main"
-                index={index}
-              />
-            )}
-
-            {/* Discipline streak badge */}
-            {(filter === 'all' || filter === 'discipline') && (
-              <BadgeCard
-                badge={item.disciplineBadge}
-                config={item.config}
-                streakType="discipline"
-                index={index}
-              />
-            )}
-          </div>
+        {allPossibleBadges.map((item, index) => (
+          <BadgeCard
+            key={item.seconds}
+            badge={item.badge}
+            config={item.config}
+            index={index}
+          />
         ))}
       </div>
 
       {/* Empty state */}
-      {filteredBadges.length === 0 && (
+      {badges.length === 0 && (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <p className="text-xl mb-2">No badges yet!</p>
           <p>Keep going to earn your first milestone badge.</p>
@@ -115,11 +65,10 @@ export function BadgeGallery({ badges, loading = false }: BadgeGalleryProps) {
 interface BadgeCardProps {
   badge: Badge | undefined;
   config: { seconds: number; emoji: string; name: string; message: string };
-  streakType: StreakType;
   index: number;
 }
 
-function BadgeCard({ badge, config, streakType, index }: BadgeCardProps) {
+function BadgeCard({ badge, config, index }: BadgeCardProps) {
   const isEarned = badge !== undefined;
 
   return (
@@ -133,11 +82,6 @@ function BadgeCard({ badge, config, streakType, index }: BadgeCardProps) {
           : 'bg-gray-200 dark:bg-gray-700 opacity-50 grayscale'
       }`}
     >
-      {/* Streak type indicator */}
-      <div className="absolute top-2 right-2 text-xs">
-        {streakType === 'main' ? '🔥' : '⚔️'}
-      </div>
-
       {/* Badge emoji */}
       <div className="text-5xl mb-2">{config.emoji}</div>
 

@@ -423,9 +423,11 @@ export function RelapseFlow({
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-400">Resets:</span>
+                          <span className="text-gray-400">
+                            {relapseType === 'fullPMO' ? 'Resets:' : 'Effect:'}
+                          </span>
                           <span className="text-white font-medium">
-                            {relapseType === 'fullPMO' ? 'Main Streak' : 'Discipline Streak'}
+                            {relapseType === 'fullPMO' ? 'Main Streak (Journey Ends)' : 'Logs Violation (Journey Continues)'}
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -469,7 +471,11 @@ export function RelapseFlow({
                           disabled={isSubmitting}
                           className="flex-1 py-3 px-8 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 rounded-xl text-white font-medium shadow-lg shadow-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isSubmitting ? 'Saving...' : 'Confirm Reset'}
+                          {isSubmitting 
+                            ? 'Saving...' 
+                            : relapseType === 'fullPMO' 
+                              ? 'Confirm Reset' 
+                              : 'Log Violation'}
                         </button>
                       </div>
                     </motion.div>

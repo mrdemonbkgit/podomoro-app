@@ -36,6 +36,7 @@ export function useStreaks(): UseStreaksReturn {
   const [streaks, setStreaks] = useState<Streaks | null>(null);
   const [mainDisplay, setMainDisplay] = useState<StreakDisplay | null>(null);
   const [disciplineDisplay, setDisciplineDisplay] = useState<StreakDisplay | null>(null);
+  const [currentJourneyId, setCurrentJourneyId] = useState<string | null>(null); // ← Phase 5.1
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
@@ -58,6 +59,9 @@ export function useStreaks(): UseStreaksReturn {
       setError(null);
       const loadedStreaks = await getStreaks(user.uid);
       setStreaks(loadedStreaks);
+      
+      // Phase 5.1: Set current journey ID
+      setCurrentJourneyId(loadedStreaks.currentJourneyId || null);
       
       // Calculate initial displays
       const mainDisp = calculateStreakFromStart(loadedStreaks.main.startDate);
@@ -151,11 +155,11 @@ export function useStreaks(): UseStreaksReturn {
   // ============================================================================
   
   const resetMainStreak = useCallback(async () => {
-    if (!user) return;
+    if (!user || !streaks) return;
     
     try {
       setError(null);
-      const updatedStreaks = await resetMainStreakService(user.uid);
+      const updatedStreaks = await resetMainStreakService(user.uid, streaks.main.currentSeconds);
       setStreaks(updatedStreaks);
       
       const mainDisp = calculateStreakFromStart(updatedStreaks.main.startDate);
@@ -269,6 +273,7 @@ export function useStreaks(): UseStreaksReturn {
     streaks,
     mainDisplay,
     disciplineDisplay,
+    currentJourneyId, // ← Phase 5.1
     loading,
     error,
     resetMainStreak,

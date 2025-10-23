@@ -121,21 +121,11 @@ export function CelebrationModal({ badge, onClose }: CelebrationModalProps) {
                   {badge.congratsMessage}
                 </motion.p>
 
-                {/* Streak type indicator */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="inline-block px-4 py-2 bg-white/20 rounded-full text-sm font-medium mb-6"
-                >
-                  {badge.streakType === 'main' ? '🔥 Main Streak' : '⚔️ Discipline Streak'}
-                </motion.div>
-
                 {/* Close button */}
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.7 }}
+                  transition={{ delay: 0.6 }}
                   onClick={onClose}
                   className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm 
                              text-white font-semibold py-3 px-6 rounded-xl 

@@ -10,52 +10,58 @@ import { StreaksProvider } from './features/kamehameha/context/StreaksContext'
 import { KamehamehaPage } from './features/kamehameha/pages/KamehamehaPage'
 import { ChatPage } from './features/kamehameha/pages/ChatPage'
 import { BadgesPage } from './features/kamehameha/pages/BadgesPage'
+import { JourneyHistoryPage } from './features/kamehameha/pages/JourneyHistoryPage'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Timer routes (public) */}
-          <Route path="/" element={<App />} />
-          <Route path="/timer" element={<App />} />
-          
-          {/* Auth routes */}
-          <Route path="/login" element={<LoginPage />} />
-          
-          {/* Kamehameha routes (protected) - wrapped with StreaksProvider */}
-          <Route
-            path="/kamehameha"
-            element={
-              <ProtectedRoute>
-                <StreaksProvider>
+      {/* Single StreaksProvider at top level - prevents race conditions */}
+      <StreaksProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Timer routes (public) */}
+            <Route path="/" element={<App />} />
+            <Route path="/timer" element={<App />} />
+            
+            {/* Auth routes */}
+            <Route path="/login" element={<LoginPage />} />
+            
+            {/* Kamehameha routes (protected) */}
+            <Route
+              path="/kamehameha"
+              element={
+                <ProtectedRoute>
                   <KamehamehaPage />
-                </StreaksProvider>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/kamehameha/chat"
-            element={
-              <ProtectedRoute>
-                <StreaksProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kamehameha/chat"
+              element={
+                <ProtectedRoute>
                   <ChatPage />
-                </StreaksProvider>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/kamehameha/badges"
-            element={
-              <ProtectedRoute>
-                <StreaksProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kamehameha/badges"
+              element={
+                <ProtectedRoute>
                   <BadgesPage />
-                </StreaksProvider>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/kamehameha/history"
+              element={
+                <ProtectedRoute>
+                  <JourneyHistoryPage />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </StreaksProvider>
     </AuthProvider>
   </StrictMode>,
 )

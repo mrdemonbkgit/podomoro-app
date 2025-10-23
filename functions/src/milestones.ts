@@ -5,7 +5,10 @@
 
 import {onDocumentWritten} from 'firebase-functions/v2/firestore';
 import * as admin from 'firebase-admin';
+import {FieldValue} from 'firebase-admin/firestore';
 import {MILESTONE_SECONDS, getBadgeConfig} from './milestoneConstants';
+
+// Note: Admin is initialized in index.ts, so we don't need to initialize here
 
 export const checkMilestones = onDocumentWritten(
   'users/{userId}/kamehameha/streaks',
@@ -22,33 +25,34 @@ export const checkMilestones = onDocumentWritten(
 
     const db = admin.firestore();
 
-    // Check Main Streak
+    // Phase 5.1: Only check Main Streak (no discipline milestones)
+    // Get current journey ID
+    const currentJourneyId = afterData.currentJourneyId;
+    if (!currentJourneyId) {
+      console.log('⚠️ No currentJourneyId found, skipping milestone check');
+      return;
+    }
+
+    console.log(`Checking milestones for journey: ${currentJourneyId}`);
+
     await checkStreakMilestone(
       db,
       userId,
-      'main',
+      currentJourneyId,
       beforeData.main?.currentSeconds || 0,
       afterData.main?.currentSeconds || 0
-    );
-
-    // Check Discipline Streak
-    await checkStreakMilestone(
-      db,
-      userId,
-      'discipline',
-      beforeData.discipline?.currentSeconds || 0,
-      afterData.discipline?.currentSeconds || 0
     );
   }
 );
 
 /**
  * Check if a streak crossed a milestone threshold
+ * Phase 5.1: Links badge to journey
  */
 async function checkStreakMilestone(
   db: admin.firestore.Firestore,
   userId: string,
-  streakType: 'main' | 'discipline',
+  journeyId: string,
   prevSeconds: number,
   currentSeconds: number
 ): Promise<void> {
@@ -62,21 +66,21 @@ async function checkStreakMilestone(
   }
 
   console.log(
-    `Milestone detected: User ${userId}, ${streakType}, ${crossedMilestone}s`
+    `🎯 Milestone detected: User ${userId}, Journey ${journeyId}, ${crossedMilestone}s`
   );
 
-  // Check if a badge for this milestone+streak was earned recently
+  // Phase 5.1: Check if a badge for this milestone was earned recently in THIS journey
   // This prevents duplicate badges from being created by rapid updates
-  const cutoffTime = Date.now() - 90000;
-  console.log(`   Checking for existing ${streakType} badge (${crossedMilestone}s) after ${new Date(cutoffTime).toISOString()}`);
+  const cutoffTime = Date.now() - 90000; // 90 seconds window
+  console.log(`   Checking for existing badge (${crossedMilestone}s) in journey ${journeyId} after ${new Date(cutoffTime).toISOString()}`);
   
   const recentBadges = await db
     .collection('users')
     .doc(userId)
     .collection('kamehameha_badges')
-    .where('streakType', '==', streakType)
+    .where('journeyId', '==', journeyId) // ← Phase 5.1: Check by journeyId instead of streakType
     .where('milestoneSeconds', '==', crossedMilestone)
-    .where('earnedAt', '>', cutoffTime) // Last 90 seconds (increased window)
+    .where('earnedAt', '>', cutoffTime) // Last 90 seconds
     .limit(1)
     .get();
 
@@ -86,21 +90,35 @@ async function checkStreakMilestone(
     return;
   }
 
-  // Create badge
+  // Create badge linked to journey
   const badgeConfig = getBadgeConfig(crossedMilestone);
+  const now = Date.now();
+  
   await db
     .collection('users')
     .doc(userId)
     .collection('kamehameha_badges')
     .add({
-      streakType,
+      journeyId, // ← Phase 5.1: Link to current journey
       milestoneSeconds: crossedMilestone,
-      earnedAt: Date.now(),
+      earnedAt: now,
       badgeEmoji: badgeConfig.emoji,
       badgeName: badgeConfig.name,
       congratsMessage: badgeConfig.message,
     });
 
-  console.log(`🎉 Badge created: ${badgeConfig.name} for ${streakType} streak`);
+  // Phase 5.1: Increment journey achievements count
+  await db
+    .collection('users')
+    .doc(userId)
+    .collection('kamehameha_journeys')
+    .doc(journeyId)
+    .update({
+      achievementsCount: FieldValue.increment(1),
+      updatedAt: now,
+    });
+
+  console.log(`🎉 Badge created: ${badgeConfig.name} for journey ${journeyId}`);
+  console.log(`   Journey achievements count incremented`);
 }
 

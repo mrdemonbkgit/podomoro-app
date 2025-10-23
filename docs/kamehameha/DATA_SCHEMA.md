@@ -39,6 +39,9 @@ users/ (collection)
     
     kamehameha_badges/ (subcollection) ⚠️ Note: Top-level subcollection
       {badgeId}/ (document)
+    
+    kamehameha_journeys/ (subcollection) ⚠️ Note: Top-level subcollection (Phase 5.1)
+      {journeyId}/ (document)
 ```
 
 **⚠️ Important Note on Collection Structure:**
@@ -74,6 +77,7 @@ interface UserProfile {
 
 ```typescript
 interface Streaks {
+  currentJourneyId: string;      // ← Phase 5.1: Current PMO journey ID
   main: StreakData;
   discipline: StreakData;
   lastUpdated: number; // timestamp
@@ -84,19 +88,12 @@ interface StreakData {
   currentSeconds: number; // current streak length in seconds
   longestSeconds: number; // longest streak ever in seconds
   lastUpdated: number; // timestamp of last update (Phase 2) ✅
-  history?: StreakHistory[]; // Phase 4 - Not yet implemented
-}
-
-interface StreakHistory {
-  id: string;
-  startDate: number;
-  endDate: number;
-  durationSeconds: number;
-  endReason: 'relapse' | 'reset' | null;
 }
 ```
 
 **Firestore Path:** `users/{userId}/kamehameha/streaks`
+
+**Note (Phase 5.1):** `StreakHistory` is replaced by the Journey system (see below)
 
 **Example:**
 ```json
@@ -190,6 +187,7 @@ interface CheckIn {
 ```typescript
 interface Relapse {
   id: string;
+  journeyId: string;             // ← Phase 5.1: Links violation to journey
   timestamp: number;
   type: 'main' | 'discipline';
   reasons: string[]; // Array of reason strings
@@ -202,12 +200,13 @@ interface Relapse {
 }
 ```
 
-**Firestore Path:** `users/{userId}/kamehameha/relapses/{relapseId}`
+**Firestore Path:** `users/{userId}/kamehameha_relapses/{relapseId}`
 
-**Example:**
+**Example (Discipline Violation):**
 ```json
 {
   "id": "relapse_20251020_001",
+  "journeyId": "journey_abc123",
   "timestamp": 1698019200000,
   "type": "discipline",
   "reasons": ["Viewed pornography", "TikTok/social media triggers"],
@@ -215,10 +214,31 @@ interface Relapse {
     "whatLed": "Stayed up too late, got bored and scrolling social media",
     "willDoDifferently": "Set bedtime alarm, install content filter, avoid phone after 10pm"
   },
-  "previousStreakSeconds": 1036800,
+  "previousStreakSeconds": 432000,
   "createdAt": 1698019200000
 }
 ```
+
+**Example (PMO Relapse - Ends Journey):**
+```json
+{
+  "id": "relapse_20251022_002",
+  "journeyId": "journey_abc123",
+  "timestamp": 1698192000000,
+  "type": "main",
+  "reasons": ["Masturbation and orgasm"],
+  "reflection": {
+    "whatLed": "Stress from work deadline",
+    "willDoDifferently": "Use breathing exercises, call accountability partner"
+  },
+  "previousStreakSeconds": 1036800,
+  "createdAt": 1698192000000
+}
+```
+
+**Note (Phase 5.1):** 
+- PMO relapse (type: 'main') ends the current journey and starts a new one
+- Discipline violation (type: 'discipline') is logged in the journey but doesn't end it
 
 ---
 
@@ -250,32 +270,95 @@ interface ChatMessage {
 
 ---
 
+### Journeys (Phase 5.1 - Journey System)
+
+```typescript
+interface Journey {
+  id: string;                    // Auto-generated journey ID
+  startDate: number;             // Timestamp when journey started
+  endDate: number | null;        // null if current journey, timestamp if ended
+  endReason: 'active' | 'relapse'; // Why journey ended (active or relapse)
+  finalSeconds: number;          // How long the journey lasted
+  achievementsCount: number;     // Number of milestones/badges earned
+  violationsCount: number;       // Number of discipline violations during journey
+  createdAt: number;             // Timestamp when document created
+  updatedAt: number;             // Timestamp of last update
+}
+```
+
+**Firestore Path:** `users/{userId}/kamehameha_journeys/{journeyId}`
+
+**Example (Active Journey):**
+```json
+{
+  "id": "journey_abc123",
+  "startDate": 1729612800000,
+  "endDate": null,
+  "endReason": "active",
+  "finalSeconds": 1296000,
+  "achievementsCount": 4,
+  "violationsCount": 2,
+  "createdAt": 1729612800000,
+  "updatedAt": 1729698800000
+}
+```
+
+**Example (Completed Journey):**
+```json
+{
+  "id": "journey_xyz789",
+  "startDate": 1729000000000,
+  "endDate": 1729612800000,
+  "endReason": "relapse",
+  "finalSeconds": 612800,
+  "achievementsCount": 3,
+  "violationsCount": 1,
+  "createdAt": 1729000000000,
+  "updatedAt": 1729612800000
+}
+```
+
+**Purpose:**
+- Each journey represents one complete PMO streak period (from start to relapse)
+- Violations (discipline relapses) are logged within the journey but don't end it
+- Only PMO relapse ends the journey and starts a new one
+- Enables journey history, pattern analysis, and AI context
+
+---
+
 ### Badges
 
 ```typescript
 interface Badge {
   id: string;
-  milestoneType: 'main' | 'discipline';
-  milestoneDays: number; // 1, 3, 7, 14, 30, 60, 90, 180, 365
-  name: string;
-  emoji: string;
-  earnedAt: number; // timestamp
+  journeyId: string;             // ← Phase 5.1: Links badge to journey
+  milestoneSeconds: number;      // Milestone achieved (in seconds)
+  badgeName: string;             // e.g., "One Week Warrior"
+  badgeEmoji: string;            // e.g., "⚔️"
+  congratsMessage: string;       // e.g., "You've reached 7 days!"
+  earnedAt: number;              // timestamp
 }
 ```
 
-**Firestore Path:** `users/{userId}/kamehameha/badges/{badgeId}`
+**Firestore Path:** `users/{userId}/kamehameha_badges/{badgeId}`
 
 **Example:**
 ```json
 {
-  "id": "badge_main_7",
-  "milestoneType": "main",
-  "milestoneDays": 7,
-  "name": "One Week Warrior",
-  "emoji": "⚔️",
+  "id": "badge_abc123",
+  "journeyId": "journey_xyz789",
+  "milestoneSeconds": 604800,
+  "badgeName": "One Week Warrior",
+  "badgeEmoji": "⚔️",
+  "congratsMessage": "You've reached 7 days! Keep going!",
   "earnedAt": 1698019200000
 }
 ```
+
+**Note (Phase 5.1):** 
+- Removed `milestoneType` field - all badges are for PMO journey (main streak)
+- **Badges are temporary** - when a journey ends (PMO relapse), all badges for that journey are automatically deleted
+- This ensures a clean slate for each new journey and prevents old badges from triggering celebrations
 
 ---
 

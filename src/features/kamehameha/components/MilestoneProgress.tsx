@@ -2,20 +2,18 @@
  * MilestoneProgress Component
  * 
  * Shows progress bar towards the next milestone
+ * Phase 5.1: Only shows PMO journey milestones (no discipline)
  */
 
 import { motion } from 'framer-motion';
 import { getMilestoneProgress, getTimeToNextMilestone } from '../constants/milestones';
-import type { StreakType } from '../types/kamehameha.types';
 
 interface MilestoneProgressProps {
   /** Current streak duration in seconds */
   currentSeconds: number;
-  /** Streak type for display purposes */
-  streakType: StreakType;
 }
 
-export function MilestoneProgress({ currentSeconds, streakType }: MilestoneProgressProps) {
+export function MilestoneProgress({ currentSeconds }: MilestoneProgressProps) {
   const progressData = getMilestoneProgress(currentSeconds);
   const timeRemaining = getTimeToNextMilestone(currentSeconds);
 
@@ -27,7 +25,7 @@ export function MilestoneProgress({ currentSeconds, streakType }: MilestoneProgr
         <div className="text-3xl mb-2">🏆</div>
         <div className="font-bold text-lg">Maximum Level Reached!</div>
         <div className="text-sm opacity-90 mt-1">
-          You've earned all available badges for {streakType === 'main' ? 'Main' : 'Discipline'} streak!
+          You've earned all available badges!
         </div>
       </div>
     );
@@ -43,9 +41,6 @@ export function MilestoneProgress({ currentSeconds, streakType }: MilestoneProgr
           <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
             Next Milestone
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {streakType === 'main' ? '🔥 Main Streak' : '⚔️ Discipline Streak'}
-          </p>
         </div>
         <div className="text-4xl">
           {progressData.next.emoji}

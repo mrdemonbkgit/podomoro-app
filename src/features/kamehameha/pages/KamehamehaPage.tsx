@@ -5,30 +5,28 @@ import { useStreaksContext } from '../context/StreaksContext';
 import { useCheckIns } from '../hooks/useCheckIns';
 import { useRelapses } from '../hooks/useRelapses';
 import { useBadges } from '../hooks/useBadges';
+import { useJourneyInfo } from '../hooks/useJourneyInfo'; // ← Phase 5.1
 import { CheckInModal, type CheckInFormData } from '../components/CheckInModal';
 import { RelapseFlow, type RelapseFormData } from '../components/RelapseFlow';
 import { CelebrationModal } from '../components/CelebrationModal';
 import { MilestoneProgress } from '../components/MilestoneProgress';
+import { JourneyInfo } from '../components/JourneyInfo'; // ← Phase 5.1
 import { type StreakDisplay } from '../types/kamehameha.types';
 
 /**
  * Kamehameha Recovery Tool - Main Page
  * 
- * Single-timer display with tab switching.
  * Phase 3: Check-in and relapse tracking enabled.
  * Phase 5: Milestone progress and badge celebrations.
+ * Phase 5.1: Journey-based system with single timer display.
  */
 
-type ActiveStreak = 'main' | 'discipline';
-
 export function KamehamehaPage() {
-  const { streaks, mainDisplay, disciplineDisplay, loading, error, refreshStreaks } = useStreaksContext();
+  const { streaks, mainDisplay, disciplineDisplay, currentJourneyId, loading, error, refreshStreaks } = useStreaksContext();
   const { createCheckIn } = useCheckIns();
   const { createRelapse } = useRelapses();
-  const { celebrationBadge, dismissCelebration } = useBadges();
-  
-  // Active streak tab
-  const [activeStreak, setActiveStreak] = useState<ActiveStreak>('main');
+  const { celebrationBadge, dismissCelebration } = useBadges(currentJourneyId); // ← Phase 5.1: Pass journeyId
+  const { journeyNumber, loading: journeyLoading } = useJourneyInfo(currentJourneyId); // ← Phase 5.1
   
   // Modal state
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
@@ -61,13 +59,8 @@ export function KamehamehaPage() {
     }
   };
 
-  // Get active display and stats
-  const activeDisplay = activeStreak === 'main' ? mainDisplay : disciplineDisplay;
-  const activeLongest = activeStreak === 'main' 
-    ? streaks?.main.longestSeconds || 0 
-    : streaks?.discipline.longestSeconds || 0;
-
-  // Format large timer display
+  // Phase 5.1: Always show main streak (journey duration)
+  // Discipline info is shown in JourneyInfo component above
   const formatLargeTime = (display: StreakDisplay | null) => {
     if (!display) return '0:00:00:00';
     const days = display.days.toString();
@@ -77,7 +70,8 @@ export function KamehamehaPage() {
     return `${days}:${hours}:${minutes}:${seconds}`;
   };
 
-  const timeDisplay = formatLargeTime(activeDisplay);
+  const timeDisplay = formatLargeTime(mainDisplay);
+  const longestSeconds = streaks?.main.longestSeconds || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -119,31 +113,17 @@ export function KamehamehaPage() {
             </div>
           ) : (
             <>
-              {/* Streak Type Tabs */}
-              <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-                <button 
-                  onClick={() => setActiveStreak('main')}
-                  className={`px-6 py-3 rounded-full text-base md:text-lg font-semibold transition-all ${
-                    activeStreak === 'main'
-                      ? 'bg-purple-600 text-white shadow-lg' 
-                      : 'bg-white/0 text-white border-2 border-white/40 hover:bg-white/10'
-                  }`}
-                >
-                  🏆 Main Streak
-                </button>
-                <button 
-                  onClick={() => setActiveStreak('discipline')}
-                  className={`px-6 py-3 rounded-full text-base md:text-lg font-semibold transition-all ${
-                    activeStreak === 'discipline'
-                      ? 'bg-blue-600 text-white shadow-lg' 
-                      : 'bg-white/0 text-white border-2 border-white/40 hover:bg-white/10'
-                  }`}
-                >
-                  ⚡ Discipline Streak
-                </button>
-              </div>
+              {/* Phase 5.1: Journey Info - Simple motivational display */}
+              {currentJourneyId && (
+                <div className="w-full max-w-2xl">
+                  <JourneyInfo
+                    journeyNumber={journeyNumber}
+                    loading={journeyLoading}
+                  />
+                </div>
+              )}
 
-              {/* Large Timer Display */}
+              {/* Large Timer Display - Main Streak (Journey Duration) */}
               <div className="flex justify-center my-6 md:my-8">
                 <div className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white/90 tabular-nums tracking-tight drop-shadow-2xl">
                   {timeDisplay}
@@ -154,20 +134,19 @@ export function KamehamehaPage() {
               <div className="flex items-center justify-center gap-8 text-white/70 text-sm md:text-base mb-8">
                 <div>
                   <span className="opacity-60">Current: </span>
-                  <span className="font-semibold">{activeDisplay?.days || 0} days</span>
+                  <span className="font-semibold">{mainDisplay?.days || 0} days</span>
                 </div>
                 <div>
                   <span className="opacity-60">Longest: </span>
-                  <span className="font-semibold">{Math.floor((activeLongest || 0) / 86400)} days</span>
+                  <span className="font-semibold">{Math.floor(longestSeconds / 86400)} days</span>
                 </div>
               </div>
 
               {/* Milestone Progress */}
-              {activeDisplay && (
+              {mainDisplay && (
                 <div className="w-full max-w-2xl mb-8">
                   <MilestoneProgress 
-                    currentSeconds={activeDisplay.totalSeconds}
-                    streakType={activeStreak}
+                    currentSeconds={mainDisplay.totalSeconds}
                   />
                 </div>
               )}
@@ -191,6 +170,12 @@ export function KamehamehaPage() {
                   className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-lg font-semibold rounded-full shadow-lg transition-all hover:scale-105"
                 >
                   🏆 View Badges
+                </Link>
+                <Link
+                  to="/kamehameha/history"
+                  className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg font-semibold rounded-full shadow-lg transition-all hover:scale-105"
+                >
+                  📖 Journey History
                 </Link>
                 <button
                   onClick={() => setIsRelapseOpen(true)}
