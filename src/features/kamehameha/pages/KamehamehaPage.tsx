@@ -22,7 +22,7 @@ import { type StreakDisplay } from '../types/kamehameha.types';
  */
 
 export function KamehamehaPage() {
-  const { streaks, mainDisplay, disciplineDisplay, currentJourneyId, loading, error, refreshStreaks } = useStreaksContext();
+  const { streaks, mainDisplay, currentJourneyId, loading, error, refreshStreaks } = useStreaksContext();
   const { createCheckIn } = useCheckIns();
   const { createRelapse } = useRelapses();
   const { celebrationBadge, dismissCelebration } = useBadges(currentJourneyId); // ← Phase 5.1: Pass journeyId
@@ -214,7 +214,6 @@ export function KamehamehaPage() {
         onClose={() => setIsRelapseOpen(false)}
         onComplete={handleRelapseSubmit}
         mainStreak={mainDisplay}
-        disciplineStreak={disciplineDisplay}
       />
 
       {/* Celebration Modal for Badge Milestones */}

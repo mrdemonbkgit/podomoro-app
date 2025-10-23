@@ -30,8 +30,6 @@ export interface Streaks {
   currentJourneyId?: string;
   /** PMO (Porn, Masturbation, Orgasm) main recovery streak */
   main: StreakData;
-  /** Discipline streak (resets on any rule violation) */
-  discipline: StreakData;
   /** Last update timestamp for the entire document */
   lastUpdated: number;
 }
@@ -120,7 +118,8 @@ export interface CheckIn {
 export type RelapseType = 'fullPMO' | 'ruleViolation';
 
 /**
- * Which streak is affected by relapse
+ * Which streak is affected (legacy field - only 'main' actually resets now)
+ * 'discipline' is for categorization only
  */
 export type StreakType = 'main' | 'discipline';
 
@@ -207,11 +206,10 @@ export interface MilestoneConfig {
 }
 
 /**
- * @deprecated Use Badge instead
+ * @deprecated Use Badge instead (Phase 5.1: Only main streak badges now)
  */
 export interface Milestone {
   id: string;
-  streakType: 'main' | 'discipline';
   days: number; // 1, 3, 7, 14, 30, 60, 90, 180, 365
   achievedAt: number;
   badge: string; // Badge emoji/icon
@@ -241,7 +239,7 @@ export interface Journey {
   finalSeconds: number;
   /** Number of badges earned during this journey */
   achievementsCount: number;
-  /** Number of discipline violations during this journey */
+  /** Number of rule violations logged during this journey (for analysis) */
   violationsCount: number;
   /** Firestore creation timestamp */
   createdAt: number;
@@ -254,7 +252,7 @@ export interface Journey {
 // ============================================================================
 
 export interface KamehamehaConfig {
-  /** Custom rules for discipline streak */
+  /** Custom rule violations (for logging and AI context) */
   customRules: string[];
   /** AI system prompt (Phase 4) */
   aiSystemPrompt: string;
@@ -293,8 +291,6 @@ export interface UseStreaksReturn {
   streaks: Streaks | null;
   /** Formatted main streak for display */
   mainDisplay: StreakDisplay | null;
-  /** Formatted discipline streak for display */
-  disciplineDisplay: StreakDisplay | null;
   /** Current journey ID (Phase 5.1) */
   currentJourneyId: string | null;
   /** Loading state */
@@ -303,8 +299,6 @@ export interface UseStreaksReturn {
   error: Error | null;
   /** Reset main streak (marks relapse) */
   resetMainStreak: () => Promise<void>;
-  /** Reset discipline streak (marks rule violation) */
-  resetDisciplineStreak: () => Promise<void>;
   /** Manually refresh streaks from Firestore */
   refreshStreaks: () => Promise<void>;
 }

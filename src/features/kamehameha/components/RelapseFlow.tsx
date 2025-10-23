@@ -14,7 +14,6 @@ interface RelapseFlowProps {
   onClose: () => void;
   onComplete: (relapseData: RelapseFormData) => Promise<void>;
   mainStreak: StreakDisplay | null;
-  disciplineStreak: StreakDisplay | null;
 }
 
 export interface RelapseFormData {
@@ -33,7 +32,6 @@ export function RelapseFlow({
   onClose,
   onComplete,
   mainStreak,
-  disciplineStreak,
 }: RelapseFlowProps) {
   const [step, setStep] = useState(1);
   const [relapseType, setRelapseType] = useState<RelapseType | null>(null);
@@ -68,10 +66,8 @@ export function RelapseFlow({
 
     try {
       const streakType = relapseType === 'fullPMO' ? 'main' : 'discipline';
-      const previousSeconds =
-        streakType === 'main'
-          ? mainStreak?.totalSeconds || 0
-          : disciplineStreak?.totalSeconds || 0;
+      // Phase 5.1: Always use main streak duration (no discipline streak tracking)
+      const previousSeconds = mainStreak?.totalSeconds || 0;
 
       const relapseData: RelapseFormData = {
         type: relapseType,
@@ -245,9 +241,9 @@ export function RelapseFlow({
                           </div>
                           <div className="flex-1">
                             <h4 className="text-lg font-semibold text-white mb-2">Rule Violation</h4>
-                            <p className="text-sm text-gray-300 mb-2">Resets: Discipline Streak</p>
+                            <p className="text-sm text-gray-300 mb-2">Effect: Logs violation (journey continues)</p>
                             <p className="text-sm text-gray-400">
-                              Current: {disciplineStreak?.formatted || '0s'}
+                              Journey: {mainStreak?.formatted || '0s'}
                             </p>
                           </div>
                         </div>
@@ -433,9 +429,7 @@ export function RelapseFlow({
                         <div className="flex justify-between">
                           <span className="text-gray-400">Previous:</span>
                           <span className="text-white font-medium">
-                            {relapseType === 'fullPMO'
-                              ? mainStreak?.formatted || '0s'
-                              : disciplineStreak?.formatted || '0s'}
+                            {mainStreak?.formatted || '0s'}
                           </span>
                         </div>
                         <div className="flex justify-between">

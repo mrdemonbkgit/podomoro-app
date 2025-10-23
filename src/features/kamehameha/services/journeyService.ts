@@ -41,13 +41,13 @@ export async function createJourney(userId: string): Promise<Journey> {
     endDate: null,
     endReason: 'active',
     finalSeconds: 0,
-    achievementsCount: 0,
+    achievementsCount: 0, // ← IMPORTANT: Always start at 0
     violationsCount: 0,
     createdAt: now,
     updatedAt: now,
   };
 
-  console.log('Creating new journey for user:', userId);
+  console.log('📝 Creating new journey for user:', userId, 'with data:', journeyData);
   
   const docRef = await addDoc(journeysRef, journeyData);
 
@@ -56,7 +56,11 @@ export async function createJourney(userId: string): Promise<Journey> {
     ...journeyData,
   };
 
-  console.log('Journey created:', journey.id);
+  console.log('✅ Journey created in Firestore:', {
+    id: journey.id,
+    achievementsCount: journey.achievementsCount,
+    violationsCount: journey.violationsCount
+  });
 
   return journey;
 }
@@ -98,6 +102,10 @@ export async function endJourney(
  * Delete all badges for a specific journey
  * Called when a journey ends (badges are temporary)
  * 
+ * IMPORTANT: This deletes badges in two passes:
+ * 1. Badges with matching journeyId
+ * 2. Badges without journeyId (legacy badges from before Phase 5.1)
+ * 
  * @param userId - User ID
  * @param journeyId - Journey ID
  */
@@ -105,17 +113,40 @@ async function deleteBadgesForJourney(userId: string, journeyId: string): Promis
   const db = getFirestore();
   const badgesRef = collection(db, `users/${userId}/kamehameha_badges`);
   
-  // Query all badges for this journey
-  const q = query(badgesRef, where('journeyId', '==', journeyId));
-  const snapshot = await getDocs(q);
+  console.log(`🗑️ Deleting badges for journey: ${journeyId}`);
   
-  console.log(`Found ${snapshot.size} badge(s) to delete for journey ${journeyId}`);
+  // Pass 1: Delete badges with matching journeyId
+  const qWithJourney = query(badgesRef, where('journeyId', '==', journeyId));
+  const snapshotWithJourney = await getDocs(qWithJourney);
   
-  // Delete each badge
-  const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-  await Promise.all(deletePromises);
+  console.log(`   Found ${snapshotWithJourney.size} badge(s) with journeyId`);
   
-  console.log(`Deleted ${snapshot.size} badge(s) for journey ${journeyId}`);
+  if (snapshotWithJourney.size > 0) {
+    const deletePromises = snapshotWithJourney.docs.map(doc => {
+      console.log(`   Deleting badge: ${doc.id} (${doc.data().badgeName})`);
+      return deleteDoc(doc.ref);
+    });
+    await Promise.all(deletePromises);
+    console.log(`   ✅ Deleted ${snapshotWithJourney.size} badge(s) with journeyId`);
+  }
+  
+  // Pass 2: Delete ALL badges without journeyId (legacy cleanup)
+  // These are orphaned badges from before the journey system
+  const allBadgesSnapshot = await getDocs(badgesRef);
+  const badgesWithoutJourney = allBadgesSnapshot.docs.filter(doc => !doc.data().journeyId);
+  
+  if (badgesWithoutJourney.length > 0) {
+    console.log(`   Found ${badgesWithoutJourney.length} legacy badge(s) without journeyId`);
+    const deletePromises = badgesWithoutJourney.map(doc => {
+      console.log(`   Deleting legacy badge: ${doc.id} (${doc.data().badgeName})`);
+      return deleteDoc(doc.ref);
+    });
+    await Promise.all(deletePromises);
+    console.log(`   ✅ Deleted ${badgesWithoutJourney.length} legacy badge(s)`);
+  }
+  
+  const totalDeleted = snapshotWithJourney.size + badgesWithoutJourney.length;
+  console.log(`✅ Total badges deleted: ${totalDeleted}`);
 }
 
 /**

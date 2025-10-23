@@ -11,7 +11,6 @@ import type { Streaks, StreakDisplay, UseStreaksReturn } from '../types/kamehame
 import {
   getStreaks,
   resetMainStreak as resetMainStreakService,
-  resetDisciplineStreak as resetDisciplineStreakService,
   saveStreakState,
   updateLongestStreak,
 } from '../services/firestoreService';
@@ -35,7 +34,6 @@ export function useStreaks(): UseStreaksReturn {
   const { user } = useAuth();
   const [streaks, setStreaks] = useState<Streaks | null>(null);
   const [mainDisplay, setMainDisplay] = useState<StreakDisplay | null>(null);
-  const [disciplineDisplay, setDisciplineDisplay] = useState<StreakDisplay | null>(null);
   const [currentJourneyId, setCurrentJourneyId] = useState<string | null>(null); // ← Phase 5.1
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -63,12 +61,10 @@ export function useStreaks(): UseStreaksReturn {
       // Phase 5.1: Set current journey ID
       setCurrentJourneyId(loadedStreaks.currentJourneyId || null);
       
-      // Calculate initial displays
+      // Calculate initial display
       const mainDisp = calculateStreakFromStart(loadedStreaks.main.startDate);
-      const discDisp = calculateStreakFromStart(loadedStreaks.discipline.startDate);
       
       setMainDisplay(mainDisp);
-      setDisciplineDisplay(discDisp);
       setLoading(false);
     } catch (err) {
       console.error('Failed to load streaks:', err);
@@ -85,10 +81,8 @@ export function useStreaks(): UseStreaksReturn {
     if (!streaks) return;
     
     const mainDisp = calculateStreakFromStart(streaks.main.startDate);
-    const discDisp = calculateStreakFromStart(streaks.discipline.startDate);
     
     setMainDisplay(mainDisp);
-    setDisciplineDisplay(discDisp);
     
     // DON'T update streaks state here - it causes the save interval to reset every second!
     // The streaks state only needs to update when loading from Firestore or resetting.
@@ -103,17 +97,16 @@ export function useStreaks(): UseStreaksReturn {
     if (!user || !streaks) return;
     
     try {
-      // Calculate current seconds directly from start date to avoid dependency issues
+      // Calculate current seconds directly from start date
       const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
-      const disciplineCurrent = Math.floor((Date.now() - streaks.discipline.startDate) / 1000);
       
       console.log('[useStreaks] Auto-saving to Firestore:', new Date().toLocaleTimeString());
-      await saveStreakState(user.uid, mainCurrent, disciplineCurrent);
+      await saveStreakState(user.uid, mainCurrent);
     } catch (err) {
       console.error('Failed to auto-save streaks:', err);
       // Don't set error state - this is a background operation
     }
-  }, [user, streaks]); // Removed mainDisplay and disciplineDisplay dependencies!
+  }, [user, streaks]);
   
   // ============================================================================
   // Update Longest Streak (Every 5 Minutes)
@@ -123,32 +116,20 @@ export function useStreaks(): UseStreaksReturn {
     if (!user || !streaks) return;
     
     try {
-      // Calculate current seconds directly from start date to avoid dependency issues
+      // Calculate current seconds directly from start date
       const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
-      const disciplineCurrent = Math.floor((Date.now() - streaks.discipline.startDate) / 1000);
       
-      let needsUpdate = false;
-      const updatedStreaks = { ...streaks };
-      
+      // Check if main streak reached new longest
       if (mainCurrent > streaks.main.longestSeconds) {
-        await updateLongestStreak(user.uid, 'main', mainCurrent);
+        await updateLongestStreak(user.uid, mainCurrent);
+        const updatedStreaks = { ...streaks };
         updatedStreaks.main = { ...updatedStreaks.main, longestSeconds: mainCurrent };
-        needsUpdate = true;
-      }
-      if (disciplineCurrent > streaks.discipline.longestSeconds) {
-        await updateLongestStreak(user.uid, 'discipline', disciplineCurrent);
-        updatedStreaks.discipline = { ...updatedStreaks.discipline, longestSeconds: disciplineCurrent };
-        needsUpdate = true;
-      }
-      
-      // Only update state if longest actually changed
-      if (needsUpdate) {
         setStreaks(updatedStreaks);
       }
     } catch (err) {
-      console.error('Failed to update longest streaks:', err);
+      console.error('Failed to update longest streak:', err);
     }
-  }, [user, streaks]); // Removed mainDisplay and disciplineDisplay dependencies!
+  }, [user, streaks]);
   
   // ============================================================================
   // Reset Streak Functions
@@ -166,23 +147,6 @@ export function useStreaks(): UseStreaksReturn {
       setMainDisplay(mainDisp);
     } catch (err) {
       console.error('Failed to reset main streak:', err);
-      setError(err as Error);
-      throw err;
-    }
-  }, [user]);
-  
-  const resetDisciplineStreak = useCallback(async () => {
-    if (!user) return;
-    
-    try {
-      setError(null);
-      const updatedStreaks = await resetDisciplineStreakService(user.uid);
-      setStreaks(updatedStreaks);
-      
-      const discDisp = calculateStreakFromStart(updatedStreaks.discipline.startDate);
-      setDisciplineDisplay(discDisp);
-    } catch (err) {
-      console.error('Failed to reset discipline streak:', err);
       setError(err as Error);
       throw err;
     }
@@ -272,12 +236,10 @@ export function useStreaks(): UseStreaksReturn {
   return {
     streaks,
     mainDisplay,
-    disciplineDisplay,
     currentJourneyId, // ← Phase 5.1
     loading,
     error,
     resetMainStreak,
-    resetDisciplineStreak,
     refreshStreaks,
   };
 }

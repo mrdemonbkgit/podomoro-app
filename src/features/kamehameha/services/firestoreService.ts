@@ -73,12 +73,6 @@ export async function initializeUserStreaks(userId: string): Promise<Streaks> {
         longestSeconds: 0,
         lastUpdated: now,
       },
-      discipline: {
-        startDate: now,
-        currentSeconds: 0,
-        longestSeconds: 0,
-        lastUpdated: now,
-      },
       lastUpdated: now,
     };
     
@@ -171,16 +165,15 @@ export async function updateStreaks(
 
 /**
  * Save current streak state (called periodically)
+ * Phase 5.1: Only saves main streak now
  * 
  * @param userId User ID from Firebase Auth
  * @param mainCurrent Current main streak seconds
- * @param disciplineCurrent Current discipline streak seconds
  * @returns Promise that resolves when save is complete
  */
 export async function saveStreakState(
   userId: string,
-  mainCurrent: number,
-  disciplineCurrent: number
+  mainCurrent: number
 ): Promise<void> {
   try {
     const streaksRef = doc(db, getStreaksDocPath(userId));
@@ -191,10 +184,6 @@ export async function saveStreakState(
     await setDoc(streaksRef, {
       main: {
         currentSeconds: mainCurrent,
-        lastUpdated: now,
-      },
-      discipline: {
-        currentSeconds: disciplineCurrent,
         lastUpdated: now,
       },
       lastUpdated: now,
@@ -218,19 +207,24 @@ export async function saveStreakState(
  */
 export async function resetMainStreak(userId: string, previousSeconds: number): Promise<Streaks> {
   try {
+    console.log('🔄 resetMainStreak START:', { userId, previousSeconds });
     const currentStreaks = await getStreaks(userId);
     const now = Date.now();
     
     // Phase 5.1: End current journey and create new one
     const currentJourneyId = currentStreaks.currentJourneyId;
     if (currentJourneyId) {
-      console.log('Ending journey due to PMO relapse:', currentJourneyId);
+      console.log('⚠️ Ending journey due to PMO relapse:', currentJourneyId, `(${previousSeconds}s)`);
       await endJourney(userId, currentJourneyId, previousSeconds);
+      console.log('✅ Journey ended and badges deleted:', currentJourneyId);
+    } else {
+      console.warn('⚠️ No currentJourneyId found! Creating first journey.');
     }
     
     // Create new journey
-    console.log('Creating new journey after PMO relapse');
+    console.log('🆕 Creating new journey after PMO relapse...');
     const newJourney = await createJourney(userId);
+    console.log('✅ New journey created:', newJourney.id, 'with achievementsCount:', newJourney.achievementsCount);
     
     const newMainStreak = resetStreak(currentStreaks.main.longestSeconds);
     
@@ -241,106 +235,21 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
       lastUpdated: now,
     };
     
+    console.log('💾 Updating streaks document with new journey:', {
+      oldJourney: currentJourneyId,
+      newJourney: newJourney.id,
+      newCurrentSeconds: newMainStreak.currentSeconds
+    });
+    
     const streaksRef = doc(db, getStreaksDocPath(userId));
     await setDoc(streaksRef, updatedStreaks);
     
-    console.log('Main streak reset, new journey:', newJourney.id);
+    console.log('✅ resetMainStreak COMPLETE - New journey:', newJourney.id);
     
     return updatedStreaks;
   } catch (error) {
-    console.error('Failed to reset main streak:', error);
+    console.error('❌ Failed to reset main streak:', error);
     throw new Error('Failed to reset main streak');
-  }
-}
-
-/**
- * Reset discipline streak (marks rule violation)
- * Phase 5.1: Also increments journey violations count (journey continues)
- * 
- * @param userId User ID from Firebase Auth
- * @returns Promise resolving to new streaks
- * @throws Error if reset fails
- */
-export async function resetDisciplineStreak(userId: string): Promise<Streaks> {
-  try {
-    const currentStreaks = await getStreaks(userId);
-    const now = Date.now();
-    
-    // Phase 5.1: Increment journey violations (journey continues, not ended)
-    const currentJourneyId = currentStreaks.currentJourneyId;
-    if (currentJourneyId) {
-      console.log('Incrementing violations for journey:', currentJourneyId);
-      await incrementJourneyViolations(userId, currentJourneyId);
-    }
-    
-    const newDisciplineStreak = resetStreak(currentStreaks.discipline.longestSeconds);
-    
-    const updatedStreaks: Streaks = {
-      ...currentStreaks,
-      discipline: newDisciplineStreak,
-      lastUpdated: now,
-    };
-    
-    const streaksRef = doc(db, getStreaksDocPath(userId));
-    await setDoc(streaksRef, updatedStreaks);
-    
-    console.log('Discipline streak reset, violation logged in journey');
-    
-    return updatedStreaks;
-  } catch (error) {
-    console.error('Failed to reset discipline streak:', error);
-    throw new Error('Failed to reset discipline streak');
-  }
-}
-
-// ============================================================================
-// Batch Operations
-// ============================================================================
-
-/**
- * Reset both streaks (complete reset)
- * Phase 5.1: Ends current journey and creates new one (since main streak resets)
- * 
- * @param userId User ID from Firebase Auth
- * @param previousMainSeconds Previous main streak seconds
- * @returns Promise resolving to new streaks
- * @throws Error if reset fails
- */
-export async function resetBothStreaks(userId: string, previousMainSeconds: number): Promise<Streaks> {
-  try {
-    const currentStreaks = await getStreaks(userId);
-    const now = Date.now();
-    
-    // Phase 5.1: End current journey (main streak reset = journey ends)
-    const currentJourneyId = currentStreaks.currentJourneyId;
-    if (currentJourneyId) {
-      console.log('Ending journey due to both streaks reset:', currentJourneyId);
-      await endJourney(userId, currentJourneyId, previousMainSeconds);
-    }
-    
-    // Create new journey
-    console.log('Creating new journey after both streaks reset');
-    const newJourney = await createJourney(userId);
-    
-    const newMainStreak = resetStreak(currentStreaks.main.longestSeconds);
-    const newDisciplineStreak = resetStreak(currentStreaks.discipline.longestSeconds);
-    
-    const updatedStreaks: Streaks = {
-      currentJourneyId: newJourney.id, // ← Phase 5.1: Link to new journey
-      main: newMainStreak,
-      discipline: newDisciplineStreak,
-      lastUpdated: now,
-    };
-    
-    const streaksRef = doc(db, getStreaksDocPath(userId));
-    await setDoc(streaksRef, updatedStreaks);
-    
-    console.log('Both streaks reset, new journey:', newJourney.id);
-    
-    return updatedStreaks;
-  } catch (error) {
-    console.error('Failed to reset both streaks:', error);
-    throw new Error('Failed to reset streaks');
   }
 }
 
@@ -350,14 +259,13 @@ export async function resetBothStreaks(userId: string, previousMainSeconds: numb
 
 /**
  * Update longest streak if current is greater
+ * Phase 5.1: Only main streak now
  * 
  * @param userId User ID from Firebase Auth
- * @param streakType 'main' or 'discipline'
  * @param currentSeconds Current streak in seconds
  */
 export async function updateLongestStreak(
   userId: string,
-  streakType: 'main' | 'discipline',
   currentSeconds: number
 ): Promise<void> {
   try {
@@ -367,12 +275,12 @@ export async function updateLongestStreak(
     if (!streaksDoc.exists()) return;
     
     const streaks = streaksDoc.data() as Streaks;
-    const currentLongest = streaks[streakType].longestSeconds;
+    const currentLongest = streaks.main.longestSeconds;
     
     if (currentSeconds > currentLongest) {
       await updateDoc(streaksRef, {
-        [`${streakType}.longestSeconds`]: currentSeconds,
-        [`${streakType}.lastUpdated`]: Date.now(),
+        'main.longestSeconds': currentSeconds,
+        'main.lastUpdated': Date.now(),
       });
     }
   } catch (error) {
@@ -505,16 +413,21 @@ export async function saveRelapse(
     
     const docRef = await addDoc(relapsesRef, relapse);
     
-    // Reset appropriate streak
+    // Reset streak or log violation
     const previousSeconds = relapseData.previousStreakSeconds;
     
     if (relapseData.streakType === 'main') {
+      // PMO relapse - reset main streak and end journey
       await resetMainStreak(userId, previousSeconds); // ← Phase 5.1: Pass previousSeconds
+      console.log('PMO relapse saved:', docRef.id, 'Journey ended:', currentJourneyId);
     } else {
-      await resetDisciplineStreak(userId);
+      // Rule violation - just increment journey violations count (no streak reset)
+      if (currentJourneyId) {
+        console.log('Rule violation logged in journey:', currentJourneyId);
+        await incrementJourneyViolations(userId, currentJourneyId);
+      }
+      console.log('Rule violation saved:', docRef.id, 'Journey continues:', currentJourneyId);
     }
-    
-    console.log('Relapse saved:', docRef.id, 'Type:', relapseData.streakType, 'Journey:', currentJourneyId);
     
     return {
       ...relapse,
