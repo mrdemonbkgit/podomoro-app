@@ -38,6 +38,9 @@ export function useStreaks(): UseStreaksReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
+  // Lock to prevent auto-save during reset operations (race condition fix)
+  const isResettingRef = useRef(false);
+  
   // Refs for intervals
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const saveIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -96,6 +99,13 @@ export function useStreaks(): UseStreaksReturn {
   const saveToFirestore = useCallback(async () => {
     if (!user || !streaks) return;
     
+    // CRITICAL: Skip auto-save if we're in the middle of a reset operation
+    // This prevents race condition where old startDate calculates wrong currentSeconds
+    if (isResettingRef.current) {
+      console.log('[useStreaks] ⏭️ Skipping auto-save (reset in progress)');
+      return;
+    }
+    
     try {
       // Calculate current seconds directly from start date
       const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
@@ -114,6 +124,12 @@ export function useStreaks(): UseStreaksReturn {
   
   const updateLongest = useCallback(async () => {
     if (!user || !streaks) return;
+    
+    // Skip if resetting (same race condition prevention)
+    if (isResettingRef.current) {
+      console.log('[useStreaks] ⏭️ Skipping longest update (reset in progress)');
+      return;
+    }
     
     try {
       // Calculate current seconds directly from start date
@@ -140,17 +156,28 @@ export function useStreaks(): UseStreaksReturn {
     
     try {
       setError(null);
+      
+      // CRITICAL: Set lock to prevent auto-save race condition
+      console.log('[useStreaks] 🔒 Locking auto-save during reset');
+      isResettingRef.current = true;
+      
       const updatedStreaks = await resetMainStreakService(user.uid, streaks.main.currentSeconds);
       setStreaks(updatedStreaks);
       
       const mainDisp = calculateStreakFromStart(updatedStreaks.main.startDate);
       setMainDisplay(mainDisp);
+      
+      // Release lock after state is updated
+      console.log('[useStreaks] 🔓 Unlocking auto-save after reset');
+      isResettingRef.current = false;
     } catch (err) {
       console.error('Failed to reset main streak:', err);
       setError(err as Error);
+      // Release lock even on error
+      isResettingRef.current = false;
       throw err;
     }
-  }, [user]);
+  }, [user, streaks]);
   
   const refreshStreaks = useCallback(async () => {
     await loadStreaks();
