@@ -96,6 +96,11 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
       console.log('useBadges: Journey changed, resetting seen badges:', currentJourneyId);
       seenBadgeIds.current.clear();
       isInitialLoad.current = true;
+      // CRITICAL: Clear badges immediately when journey changes
+      // The new listener will populate it with the correct badges
+      setBadges([]);
+      setLoading(true);
+      console.log('   Cleared badges state, waiting for new journey badges...');
     }
   }, [currentJourneyId]);
 

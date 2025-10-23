@@ -26,10 +26,18 @@ export function JourneyHistoryPage() {
 
     async function loadJourneys() {
       try {
-        console.log('Loading journey history...');
+        console.log('🔄 Reloading journey history...');
         const history = await getJourneyHistory(user!.uid);
         setJourneys(history);
-        console.log('Loaded journeys:', history.length);
+        console.log('✅ Loaded journeys:', history.length, 'journeys');
+        if (history.length > 0) {
+          console.log('   Latest journey:', {
+            id: history[0].id,
+            achievementsCount: history[0].achievementsCount,
+            violationsCount: history[0].violationsCount,
+            endReason: history[0].endReason
+          });
+        }
       } catch (error) {
         console.error('Failed to load journey history:', error);
       } finally {
@@ -38,6 +46,12 @@ export function JourneyHistoryPage() {
     }
 
     loadJourneys();
+    
+    // Reload every 5 seconds to catch updates
+    // TODO: Replace with real-time listener for better performance
+    const intervalId = setInterval(loadJourneys, 5000);
+    
+    return () => clearInterval(intervalId);
   }, [user]);
 
   const toggleJourneyExpansion = async (journeyId: string) => {
