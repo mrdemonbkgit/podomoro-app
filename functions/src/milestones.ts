@@ -35,16 +35,28 @@ export const checkMilestones = onDocumentWritten(
 
     const prevSeconds = beforeData.main?.currentSeconds || 0;
     const currentSeconds = afterData.main?.currentSeconds || 0;
+    const prevJourneyId = beforeData.currentJourneyId;
+    const journeyChanged = prevJourneyId !== currentJourneyId;
     
-    console.log(`Checking milestones for journey: ${currentJourneyId}`, {
+    console.log(`🔍 Milestone check triggered for journey: ${currentJourneyId}`, {
+      prevJourneyId,
+      currentJourneyId,
+      journeyChanged,
       prevSeconds,
       currentSeconds,
-      isReset: prevSeconds > currentSeconds // Detect if this is a reset
+      difference: currentSeconds - prevSeconds,
+      isReset: prevSeconds > currentSeconds
     });
     
     // Skip milestone check if streak was reset (currentSeconds went DOWN)
     if (prevSeconds > currentSeconds) {
-      console.log('⏭️ Skipping milestone check: Streak was reset (prev > current)');
+      console.log('⏭️ Skipping: Streak was reset (prev > current)');
+      return;
+    }
+    
+    // Skip if journey changed (new journey starting)
+    if (journeyChanged) {
+      console.log('⏭️ Skipping: Journey changed (new journey started)');
       return;
     }
 
@@ -121,17 +133,22 @@ async function checkStreakMilestone(
     });
 
   // Phase 5.1: Increment journey achievements count
-  await db
-    .collection('users')
-    .doc(userId)
-    .collection('kamehameha_journeys')
-    .doc(journeyId)
-    .update({
-      achievementsCount: FieldValue.increment(1),
-      updatedAt: now,
-    });
+  console.log(`📈 Incrementing achievementsCount for journey: ${journeyId}`);
+  
+  // Read current count before incrementing (for debugging)
+  const journeyRef = db.collection('users').doc(userId).collection('kamehameha_journeys').doc(journeyId);
+  const journeySnap = await journeyRef.get();
+  if (journeySnap.exists) {
+    const currentCount = journeySnap.data()?.achievementsCount || 0;
+    console.log(`   Current achievementsCount: ${currentCount} (will increment to ${currentCount + 1})`);
+  }
+  
+  await journeyRef.update({
+    achievementsCount: FieldValue.increment(1),
+    updatedAt: now,
+  });
 
   console.log(`🎉 Badge created: ${badgeConfig.name} for journey ${journeyId}`);
-  console.log(`   Journey achievements count incremented`);
+  console.log(`✅ Journey achievements count incremented`);
 }
 
