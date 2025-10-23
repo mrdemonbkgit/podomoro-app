@@ -33,14 +33,27 @@ export const checkMilestones = onDocumentWritten(
       return;
     }
 
-    console.log(`Checking milestones for journey: ${currentJourneyId}`);
+    const prevSeconds = beforeData.main?.currentSeconds || 0;
+    const currentSeconds = afterData.main?.currentSeconds || 0;
+    
+    console.log(`Checking milestones for journey: ${currentJourneyId}`, {
+      prevSeconds,
+      currentSeconds,
+      isReset: prevSeconds > currentSeconds // Detect if this is a reset
+    });
+    
+    // Skip milestone check if streak was reset (currentSeconds went DOWN)
+    if (prevSeconds > currentSeconds) {
+      console.log('⏭️ Skipping milestone check: Streak was reset (prev > current)');
+      return;
+    }
 
     await checkStreakMilestone(
       db,
       userId,
       currentJourneyId,
-      beforeData.main?.currentSeconds || 0,
-      afterData.main?.currentSeconds || 0
+      prevSeconds,
+      currentSeconds
     );
   }
 );
