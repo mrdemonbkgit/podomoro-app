@@ -3,6 +3,7 @@
  * 
  * Listens to user's badge collection and detects new badges for celebration
  * Badges are permanent historical records, stored with their journeyId
+ * Only celebrates badges from the CURRENT journey
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -13,8 +14,9 @@ import type { Badge, UseBadgesReturn } from '../types/kamehameha.types';
 
 /**
  * Hook to manage ALL badges (permanent records)
+ * @param currentJourneyId - Current journey ID (for celebration filtering)
  */
-export function useBadges(): UseBadgesReturn {
+export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
   const { user } = useAuth();
   const [badges, setBadges] = useState<Badge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,13 +57,18 @@ export function useBadges(): UseBadgesReturn {
 
             badgesList.push(badge);
 
+            // Only celebrate badges from the CURRENT journey
+            const isCurrentJourney = badge.journeyId === currentJourneyId;
+            
             // Only celebrate badges earned in the last 10 seconds (prevents old badges from celebrating on remount)
             const wasEarnedRecently = Date.now() - badge.earnedAt < 10000; // 10 seconds
             
-            // Only celebrate NEW badges after initial load AND recently earned
-            if (!isInitialLoad.current && !seenBadgeIds.current.has(badge.id) && wasEarnedRecently) {
-              console.log('🎉 New badge detected:', badge.badgeName);
+            // Only celebrate if: after initial load, not seen before, recently earned, AND from current journey
+            if (!isInitialLoad.current && !seenBadgeIds.current.has(badge.id) && wasEarnedRecently && isCurrentJourney) {
+              console.log('🎉 New badge detected (current journey):', badge.badgeName, `Journey: ${badge.journeyId}`);
               setCelebrationBadge(badge);
+            } else if (!isInitialLoad.current && !seenBadgeIds.current.has(badge.id) && wasEarnedRecently && !isCurrentJourney) {
+              console.log('⏭️ Skipping celebration for badge from old journey:', badge.badgeName, `Badge journey: ${badge.journeyId}, Current: ${currentJourneyId}`);
             }
 
             seenBadgeIds.current.add(badge.id);
@@ -87,6 +94,15 @@ export function useBadges(): UseBadgesReturn {
 
     return () => unsubscribe();
   }, [user?.uid]);
+  
+  // Reset seen badges when journey changes to prevent memory leaks
+  useEffect(() => {
+    if (currentJourneyId) {
+      console.log('useBadges: Journey changed, clearing seen badges set for new journey:', currentJourneyId);
+      seenBadgeIds.current.clear();
+      isInitialLoad.current = true;
+    }
+  }, [currentJourneyId]);
 
   const dismissCelebration = () => {
     setCelebrationBadge(null);
