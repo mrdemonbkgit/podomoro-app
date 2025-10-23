@@ -24,7 +24,9 @@
 
 **Latest Updates:**
 - 🔧 Phase 5.1 In Progress - Journey System Refactor
+- ✅ **FIXED:** Auto-save race condition - new journeys no longer instantly show achievements
 - ✅ **FIXED:** Badge celebration bug - old badges no longer celebrate on journey reset
+- 🔒 Added auto-save lock during reset operations to prevent stale data writes
 - 🏷️ **CRITICAL FIX:** Badges are now permanent historical records (NOT deleted on journey end)
 - 🎯 Only badges from current journey trigger celebrations (journey-aware filtering)
 - 📊 Multiple badges can exist across multiple journeys for complete history
