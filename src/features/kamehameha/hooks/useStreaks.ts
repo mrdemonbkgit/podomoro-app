@@ -173,6 +173,7 @@ export function useStreaks(): UseStreaksReturn {
     streaks,
     mainDisplay,
     currentJourneyId,
+    journeyStartDate,
     loading,
     error,
     resetMainStreak,

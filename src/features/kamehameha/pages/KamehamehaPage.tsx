@@ -6,6 +6,7 @@ import { useCheckIns } from '../hooks/useCheckIns';
 import { useRelapses } from '../hooks/useRelapses';
 import { useBadges } from '../hooks/useBadges';
 import { useJourneyInfo } from '../hooks/useJourneyInfo'; // ← Phase 5.1
+import { useMilestones } from '../hooks/useMilestones'; // ← Phase 5.1 Refactor: Client-side milestone detection
 import { CheckInModal, type CheckInFormData } from '../components/CheckInModal';
 import { RelapseFlow, type RelapseFormData } from '../components/RelapseFlow';
 import { CelebrationModal } from '../components/CelebrationModal';
@@ -22,11 +23,14 @@ import { type StreakDisplay } from '../types/kamehameha.types';
  */
 
 export function KamehamehaPage() {
-  const { streaks, mainDisplay, currentJourneyId, loading, error, refreshStreaks } = useStreaksContext();
+  const { streaks, mainDisplay, currentJourneyId, journeyStartDate, loading, error, refreshStreaks } = useStreaksContext();
   const { createCheckIn } = useCheckIns();
   const { createRelapse } = useRelapses();
   const { celebrationBadge, dismissCelebration } = useBadges(currentJourneyId); // Celebrates only current journey badges
   const { journeyNumber, loading: journeyLoading } = useJourneyInfo(currentJourneyId); // ← Phase 5.1
+  
+  // Client-side milestone detection (real-time when app is open)
+  useMilestones({ currentJourneyId, journeyStartDate });
   
   // Modal state
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);

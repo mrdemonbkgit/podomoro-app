@@ -292,6 +292,8 @@ export interface UseStreaksReturn {
   mainDisplay: StreakDisplay | null;
   /** Current journey ID (Phase 5.1) */
   currentJourneyId: string | null;
+  /** Current journey start date (Phase 5.1 Refactor) */
+  journeyStartDate: number | null;
   /** Loading state */
   loading: boolean;
   /** Error state */
