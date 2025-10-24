@@ -17,11 +17,11 @@ import {
   limit,
   getDocs,
   deleteDoc,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
 import type { Streaks, CheckIn, Relapse } from '../types/kamehameha.types';
-import { resetStreak } from './streakCalculations';
-import { createJourney, endJourney, incrementJourneyViolations } from './journeyService';
+import { createJourney, incrementJourneyViolations } from './journeyService';
 
 // ============================================================================
 // Constants
@@ -61,17 +61,15 @@ export async function initializeUserStreaks(userId: string): Promise<Streaks> {
   const now = Date.now();
   
   try {
-    // Create initial journey (Phase 5.1)
+    // Create initial journey (Phase 5.1 Refactor)
     console.log('Creating initial journey for user:', userId);
     const journey = await createJourney(userId);
     
+    // Simplified streaks document (no timing data, just journey reference)
     const defaultStreaks: Streaks = {
-      currentJourneyId: journey.id, // ← Phase 5.1: Link to journey
+      currentJourneyId: journey.id,
       main: {
-        startDate: now,
-        currentSeconds: 0,
-        longestSeconds: 0,
-        lastUpdated: now,
+        longestSeconds: 0, // All-time record
       },
       lastUpdated: now,
     };
@@ -171,137 +169,103 @@ export async function updateStreaks(
  * @param mainCurrent Current main streak seconds
  * @returns Promise that resolves when save is complete
  */
-export async function saveStreakState(
-  userId: string,
-  mainCurrent: number
-): Promise<void> {
-  try {
-    const streaksRef = doc(db, getStreaksDocPath(userId));
-    const now = Date.now();
-    
-    // Use setDoc with merge and nested objects (NOT dot notation!)
-    // setDoc with merge: true and dot notation creates flat keys, not nested paths
-    await setDoc(streaksRef, {
-      main: {
-        currentSeconds: mainCurrent,
-        lastUpdated: now,
-      },
-      lastUpdated: now,
-    }, { merge: true });
-  } catch (error) {
-    console.error('Failed to save streak state:', error);
-    // Don't throw - silent fail for auto-save
-  }
-}
-
 // ============================================================================
 // Reset Operations
 // ============================================================================
 
 /**
- * Reset main streak (marks relapse)
+ * Reset main streak (marks relapse) - ATOMIC TRANSACTION
+ * 
+ * Uses Firestore transaction to ensure atomicity:
+ * - End current journey
+ * - Create new journey
+ * - Update longest streak if needed
+ * - Update streaks document
+ * 
+ * All operations succeed or fail together (no intermediate states)
  * 
  * @param userId User ID from Firebase Auth
+ * @param previousSeconds Duration of the journey being ended
  * @returns Promise resolving to new streaks
  * @throws Error if reset fails
  */
 export async function resetMainStreak(userId: string, previousSeconds: number): Promise<Streaks> {
   try {
-    console.log('🔄 resetMainStreak START:', { userId, previousSeconds });
-    const currentStreaks = await getStreaks(userId);
+    console.log('🔄 resetMainStreak START (TRANSACTION):', { userId, previousSeconds });
+    
     const now = Date.now();
     
-    // Phase 5.1: End current journey and create new one
-    const currentJourneyId = currentStreaks.currentJourneyId;
-    if (currentJourneyId) {
-      console.log('⚠️ Ending journey due to PMO relapse:', currentJourneyId, `(${previousSeconds}s)`);
-      await endJourney(userId, currentJourneyId, previousSeconds);
-      console.log('✅ Journey ended:', currentJourneyId);
-    } else {
-      console.warn('⚠️ No currentJourneyId found! Creating first journey.');
-    }
-    
-    // Create new journey
-    console.log('🆕 Creating new journey after PMO relapse...');
-    const newJourney = await createJourney(userId);
-    console.log('✅ New journey created:', newJourney.id, 'with achievementsCount:', newJourney.achievementsCount);
-    
-    const newMainStreak = resetStreak(currentStreaks.main.longestSeconds);
-    
-    const updatedStreaks: Streaks = {
-      ...currentStreaks,
-      currentJourneyId: newJourney.id, // ← Phase 5.1: Link to new journey
-      main: newMainStreak,
-      lastUpdated: now,
-    };
-    
-    console.log('💾 Updating streaks document with new journey:', {
-      oldJourney: currentJourneyId,
-      newJourney: newJourney.id,
-      newCurrentSeconds: newMainStreak.currentSeconds
+    // Use Firestore transaction for atomicity
+    const result = await runTransaction(db, async (transaction) => {
+      // 1. Read current streaks
+      const streaksRef = doc(db, getStreaksDocPath(userId));
+      const streaksSnap = await transaction.get(streaksRef);
+      
+      if (!streaksSnap.exists()) {
+        throw new Error('Streaks document not found');
+      }
+      
+      const currentStreaks = streaksSnap.data() as Streaks;
+      const currentJourneyId = currentStreaks.currentJourneyId;
+      
+      // 2. End current journey if exists
+      if (currentJourneyId) {
+        console.log('   ⚠️ Ending journey:', currentJourneyId, `(${previousSeconds}s)`);
+        const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${currentJourneyId}`);
+        
+        transaction.update(journeyRef, {
+          endDate: now,
+          endReason: 'relapse',
+          finalSeconds: previousSeconds,
+          updatedAt: now,
+        });
+      }
+      
+      // 3. Create new journey (within transaction)
+      const newJourneyRef = doc(collection(db, `users/${userId}/kamehameha_journeys`));
+      const newJourney = {
+        startDate: now,
+        endDate: null,
+        endReason: 'active',
+        finalSeconds: 0,
+        achievementsCount: 0,
+        violationsCount: 0,
+        createdAt: now,
+        updatedAt: now,
+      };
+      
+      transaction.set(newJourneyRef, newJourney);
+      console.log('   🆕 Creating new journey:', newJourneyRef.id);
+      
+      // 4. Update longest streak if this journey beat the record
+      const newLongestSeconds = Math.max(
+        currentStreaks.main.longestSeconds,
+        previousSeconds
+      );
+      
+      // 5. Update streaks document with new journey reference
+      const updatedStreaks: Streaks = {
+        ...currentStreaks,
+        currentJourneyId: newJourneyRef.id,
+        main: {
+          longestSeconds: newLongestSeconds,
+        },
+        lastUpdated: now,
+      };
+      
+      transaction.set(streaksRef, updatedStreaks);
+      console.log('   💾 Updating streaks document with new journey');
+      
+      // Return updated streaks
+      return updatedStreaks;
     });
     
-    const streaksRef = doc(db, getStreaksDocPath(userId));
-    await setDoc(streaksRef, updatedStreaks);
+    console.log('✅ resetMainStreak TRANSACTION COMPLETE');
     
-    // Verify new journey state after streaks update
-    const journeyVerifyRef = doc(db, `users/${userId}/kamehameha_journeys/${newJourney.id}`);
-    const journeyVerifySnap = await getDoc(journeyVerifyRef);
-    if (journeyVerifySnap.exists()) {
-      const journeyData = journeyVerifySnap.data();
-      console.log('🔍 Verifying new journey state:', {
-        id: newJourney.id,
-        achievementsCount: journeyData.achievementsCount,
-        violationsCount: journeyData.violationsCount
-      });
-      
-      if (journeyData.achievementsCount !== 0) {
-        console.error(`⚠️ BUG DETECTED: New journey has achievementsCount = ${journeyData.achievementsCount} (expected 0)!`);
-      }
-    }
-    
-    console.log('✅ resetMainStreak COMPLETE - New journey:', newJourney.id);
-    
-    return updatedStreaks;
+    return result;
   } catch (error) {
     console.error('❌ Failed to reset main streak:', error);
     throw new Error('Failed to reset main streak');
-  }
-}
-
-// ============================================================================
-// Update Longest Streak
-// ============================================================================
-
-/**
- * Update longest streak if current is greater
- * Phase 5.1: Only main streak now
- * 
- * @param userId User ID from Firebase Auth
- * @param currentSeconds Current streak in seconds
- */
-export async function updateLongestStreak(
-  userId: string,
-  currentSeconds: number
-): Promise<void> {
-  try {
-    const streaksRef = doc(db, getStreaksDocPath(userId));
-    const streaksDoc = await getDoc(streaksRef);
-    
-    if (!streaksDoc.exists()) return;
-    
-    const streaks = streaksDoc.data() as Streaks;
-    const currentLongest = streaks.main.longestSeconds;
-    
-    if (currentSeconds > currentLongest) {
-      await updateDoc(streaksRef, {
-        'main.longestSeconds': currentSeconds,
-        'main.lastUpdated': Date.now(),
-      });
-    }
-  } catch (error) {
-    console.error('Failed to update longest streak:', error);
-    // Silent fail
   }
 }
 

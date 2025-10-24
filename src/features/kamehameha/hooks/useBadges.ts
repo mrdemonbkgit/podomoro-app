@@ -48,6 +48,9 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
       (snapshot) => {
         const badgesList: Badge[] = [];
         
+        // Collect new badges from current journey
+        const newBadgesFromCurrentJourney: Badge[] = [];
+        
         snapshot.docChanges().forEach((change) => {
           if (change.type === 'added') {
             const badge: Badge = {
@@ -57,23 +60,33 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
 
             badgesList.push(badge);
 
-            // Only celebrate badges from the CURRENT journey
+            // Check if this is a NEW badge from CURRENT journey
             const isCurrentJourney = badge.journeyId === currentJourneyId;
+            const isNew = !seenBadgeIds.current.has(badge.id);
             
-            // Only celebrate badges earned in the last 10 seconds (prevents old badges from celebrating on remount)
-            const wasEarnedRecently = Date.now() - badge.earnedAt < 10000; // 10 seconds
-            
-            // Only celebrate if: after initial load, not seen before, recently earned, AND from current journey
-            if (!isInitialLoad.current && !seenBadgeIds.current.has(badge.id) && wasEarnedRecently && isCurrentJourney) {
-              console.log('🎉 New badge detected (current journey):', badge.badgeName, `Journey: ${badge.journeyId}`);
-              setCelebrationBadge(badge);
-            } else if (!isInitialLoad.current && !seenBadgeIds.current.has(badge.id) && wasEarnedRecently && !isCurrentJourney) {
-              console.log('⏭️ Skipping celebration for badge from old journey:', badge.badgeName, `Badge journey: ${badge.journeyId}, Current: ${currentJourneyId}`);
+            if (isNew && isCurrentJourney) {
+              newBadgesFromCurrentJourney.push(badge);
             }
 
+            // Mark as seen
             seenBadgeIds.current.add(badge.id);
           }
         });
+        
+        // Celebrate only the HIGHEST milestone if we have new badges
+        if (!isInitialLoad.current && newBadgesFromCurrentJourney.length > 0) {
+          // Find the badge with highest milestoneSeconds
+          const highestMilestone = newBadgesFromCurrentJourney.reduce((highest, badge) =>
+            badge.milestoneSeconds > highest.milestoneSeconds ? badge : highest
+          );
+          
+          console.log(`🎉 Celebrating highest milestone: ${highestMilestone.badgeName} (${highestMilestone.milestoneSeconds}s)`);
+          if (newBadgesFromCurrentJourney.length > 1) {
+            console.log(`   ⏭️ Skipping ${newBadgesFromCurrentJourney.length - 1} lower milestone(s)`);
+          }
+          
+          setCelebrationBadge(highestMilestone);
+        }
 
         // Update badges list
         const allBadges = snapshot.docs.map((doc) => ({

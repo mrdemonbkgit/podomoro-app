@@ -1,5 +1,15 @@
 /**
- * Milestone Detection Cloud Function
+ * Milestone Detection Cloud Function (DEPRECATED)
+ * 
+ * @deprecated This document-triggered function is being replaced by scheduledMilestones.ts
+ * 
+ * REASON FOR DEPRECATION:
+ * - Document triggers cause race conditions with client writes
+ * - Can be triggered multiple times during journey reset
+ * - Scheduled function is more reliable and works offline
+ * 
+ * TODO: Remove this function after scheduled function is fully deployed and tested
+ * 
  * Triggers when user streak data updates
  */
 
@@ -10,6 +20,9 @@ import {MILESTONE_SECONDS, getBadgeConfig} from './milestoneConstants';
 
 // Note: Admin is initialized in index.ts, so we don't need to initialize here
 
+/**
+ * @deprecated Use checkMilestonesScheduled instead
+ */
 export const checkMilestones = onDocumentWritten(
   'users/{userId}/kamehameha/streaks',
   async (event) => {

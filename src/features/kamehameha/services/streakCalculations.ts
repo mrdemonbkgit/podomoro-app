@@ -4,7 +4,7 @@
  * This module handles all time calculations and formatting for streaks.
  */
 
-import type { StreakDisplay, StreakData } from '../types/kamehameha.types';
+import type { StreakDisplay } from '../types/kamehameha.types';
 
 // ============================================================================
 // Time Constants
@@ -160,66 +160,18 @@ export function formatDays(seconds: number): string {
 }
 
 // ============================================================================
-// Streak Update Functions
+// DEPRECATED FUNCTIONS (Phase 5.1 Refactor)
+// These functions are no longer used - timing calculated from journey.startDate
 // ============================================================================
 
-/**
- * Update streak data with current time
- * 
- * @param streakData Existing streak data
- * @returns Updated streak data with current seconds
- */
-export function updateStreakData(streakData: StreakData): StreakData {
-  const currentSeconds = getTimeSince(streakData.startDate);
-  const longestSeconds = Math.max(currentSeconds, streakData.longestSeconds);
-  
-  return {
-    ...streakData,
-    currentSeconds,
-    longestSeconds,
-    lastUpdated: Date.now(),
-  };
-}
-
-/**
- * Reset a streak to start from now
- * 
- * @param currentLongest Current longest streak in seconds
- * @returns New streak data starting from now
- */
-export function resetStreak(currentLongest: number): StreakData {
-  const now = Date.now();
-  
-  return {
-    startDate: now,
-    currentSeconds: 0,
-    longestSeconds: currentLongest,
-    lastUpdated: now,
-  };
-}
+// NOTE: updateStreakData() and resetStreak() removed in Phase 5.1 Refactor
+// Timing is now calculated directly from journey.startDate, not stored in StreakData
 
 // ============================================================================
-// Validation Functions
+// Validation Functions (Deprecated)
 // ============================================================================
 
-/**
- * Validate streak data integrity
- * 
- * @param data Streak data to validate
- * @returns True if valid, false otherwise
- */
-export function isValidStreakData(data: any): data is StreakData {
-  return (
-    typeof data === 'object' &&
-    typeof data.startDate === 'number' &&
-    typeof data.currentSeconds === 'number' &&
-    typeof data.longestSeconds === 'number' &&
-    typeof data.lastUpdated === 'number' &&
-    data.startDate > 0 &&
-    data.currentSeconds >= 0 &&
-    data.longestSeconds >= 0
-  );
-}
+// NOTE: isValidStreakData() deprecated - StreakData simplified to only store longestSeconds
 
 // ============================================================================
 // Milestone Functions

@@ -1,8 +1,10 @@
 /**
- * Kamehameha - useStreaks Hook
+ * Kamehameha - useStreaks Hook (Simplified)
  * 
- * Main state management hook for streak tracking.
- * Handles loading, real-time updates, and persistence.
+ * Manages streak state by loading journey data and calculating display in real-time.
+ * NO AUTO-SAVE: All timing calculated from immutable journey.startDate
+ * 
+ * Phase 5.1 Refactor: Removed auto-save intervals and race condition locks
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -11,9 +13,8 @@ import type { Streaks, StreakDisplay, UseStreaksReturn } from '../types/kamehame
 import {
   getStreaks,
   resetMainStreak as resetMainStreakService,
-  saveStreakState,
-  updateLongestStreak,
 } from '../services/firestoreService';
+import { getCurrentJourney } from '../services/journeyService';
 import {
   calculateStreakFromStart,
 } from '../services/streakCalculations';
@@ -23,8 +24,6 @@ import {
 // ============================================================================
 
 const UPDATE_INTERVAL = 1000; // Update display every second
-const SAVE_INTERVAL = 60000; // Save to Firestore every minute
-const LONGEST_UPDATE_INTERVAL = 300000; // Update longest every 5 minutes
 
 // ============================================================================
 // useStreaks Hook
@@ -34,20 +33,16 @@ export function useStreaks(): UseStreaksReturn {
   const { user } = useAuth();
   const [streaks, setStreaks] = useState<Streaks | null>(null);
   const [mainDisplay, setMainDisplay] = useState<StreakDisplay | null>(null);
-  const [currentJourneyId, setCurrentJourneyId] = useState<string | null>(null); // ← Phase 5.1
+  const [currentJourneyId, setCurrentJourneyId] = useState<string | null>(null);
+  const [journeyStartDate, setJourneyStartDate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
-  // Lock to prevent auto-save during reset operations (race condition fix)
-  const isResettingRef = useRef(false);
-  
-  // Refs for intervals
+  // Ref for update interval
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const saveIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const longestIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // ============================================================================
-  // Load Streaks from Firestore
+  // Load Streaks and Journey from Firestore
   // ============================================================================
   
   const loadStreaks = useCallback(async () => {
@@ -58,16 +53,29 @@ export function useStreaks(): UseStreaksReturn {
     
     try {
       setError(null);
+      
+      // Load streaks document (contains journey reference)
       const loadedStreaks = await getStreaks(user.uid);
       setStreaks(loadedStreaks);
-      
-      // Phase 5.1: Set current journey ID
       setCurrentJourneyId(loadedStreaks.currentJourneyId || null);
       
-      // Calculate initial display
-      const mainDisp = calculateStreakFromStart(loadedStreaks.main.startDate);
+      // Load current journey to get startDate
+      if (loadedStreaks.currentJourneyId) {
+        const journey = await getCurrentJourney(user.uid);
+        if (journey) {
+          setJourneyStartDate(journey.startDate);
+          
+          // Calculate initial display from journey startDate
+          const mainDisp = calculateStreakFromStart(journey.startDate);
+          setMainDisplay(mainDisp);
+        } else {
+          console.warn('No active journey found');
+          setMainDisplay(null);
+        }
+      } else {
+        setMainDisplay(null);
+      }
       
-      setMainDisplay(mainDisp);
       setLoading(false);
     } catch (err) {
       console.error('Failed to load streaks:', err);
@@ -81,103 +89,49 @@ export function useStreaks(): UseStreaksReturn {
   // ============================================================================
   
   const updateDisplay = useCallback(() => {
-    if (!streaks) return;
+    if (!journeyStartDate) return;
     
-    const mainDisp = calculateStreakFromStart(streaks.main.startDate);
-    
+    // Calculate display from journey startDate (source of truth)
+    const mainDisp = calculateStreakFromStart(journeyStartDate);
     setMainDisplay(mainDisp);
-    
-    // DON'T update streaks state here - it causes the save interval to reset every second!
-    // The streaks state only needs to update when loading from Firestore or resetting.
-    // For longest streak tracking, we'll check at save time using current calculated values.
-  }, [streaks]);
+  }, [journeyStartDate]);
   
   // ============================================================================
-  // Save to Firestore (Every Minute)
-  // ============================================================================
-  
-  const saveToFirestore = useCallback(async () => {
-    if (!user || !streaks) return;
-    
-    // CRITICAL: Skip auto-save if we're in the middle of a reset operation
-    // This prevents race condition where old startDate calculates wrong currentSeconds
-    if (isResettingRef.current) {
-      console.log('[useStreaks] ⏭️ Skipping auto-save (reset in progress)');
-      return;
-    }
-    
-    try {
-      // Calculate current seconds directly from start date
-      const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
-      
-      console.log('[useStreaks] Auto-saving to Firestore:', new Date().toLocaleTimeString());
-      await saveStreakState(user.uid, mainCurrent);
-    } catch (err) {
-      console.error('Failed to auto-save streaks:', err);
-      // Don't set error state - this is a background operation
-    }
-  }, [user, streaks]);
-  
-  // ============================================================================
-  // Update Longest Streak (Every 5 Minutes)
-  // ============================================================================
-  
-  const updateLongest = useCallback(async () => {
-    if (!user || !streaks) return;
-    
-    // Skip if resetting (same race condition prevention)
-    if (isResettingRef.current) {
-      console.log('[useStreaks] ⏭️ Skipping longest update (reset in progress)');
-      return;
-    }
-    
-    try {
-      // Calculate current seconds directly from start date
-      const mainCurrent = Math.floor((Date.now() - streaks.main.startDate) / 1000);
-      
-      // Check if main streak reached new longest
-      if (mainCurrent > streaks.main.longestSeconds) {
-        await updateLongestStreak(user.uid, mainCurrent);
-        const updatedStreaks = { ...streaks };
-        updatedStreaks.main = { ...updatedStreaks.main, longestSeconds: mainCurrent };
-        setStreaks(updatedStreaks);
-      }
-    } catch (err) {
-      console.error('Failed to update longest streak:', err);
-    }
-  }, [user, streaks]);
-  
-  // ============================================================================
-  // Reset Streak Functions
+  // Reset Streak Function
   // ============================================================================
   
   const resetMainStreak = useCallback(async () => {
-    if (!user || !streaks) return;
+    if (!user || !streaks || !mainDisplay) return;
     
     try {
       setError(null);
       
-      // CRITICAL: Set lock to prevent auto-save race condition
-      console.log('[useStreaks] 🔒 Locking auto-save during reset');
-      isResettingRef.current = true;
+      console.log('[useStreaks] Resetting main streak...');
       
-      const updatedStreaks = await resetMainStreakService(user.uid, streaks.main.currentSeconds);
+      // Reset journey (transaction-based, atomic)
+      const updatedStreaks = await resetMainStreakService(user.uid, mainDisplay.totalSeconds);
+      
+      // Reload everything to get fresh journey
       setStreaks(updatedStreaks);
+      setCurrentJourneyId(updatedStreaks.currentJourneyId || null);
       
-      const mainDisp = calculateStreakFromStart(updatedStreaks.main.startDate);
-      setMainDisplay(mainDisp);
+      // Load new journey
+      if (updatedStreaks.currentJourneyId) {
+        const journey = await getCurrentJourney(user.uid);
+        if (journey) {
+          setJourneyStartDate(journey.startDate);
+          const mainDisp = calculateStreakFromStart(journey.startDate);
+          setMainDisplay(mainDisp);
+        }
+      }
       
-      // Release lock after state is updated
-      console.log('[useStreaks] 🔓 Unlocking auto-save after reset');
-      isResettingRef.current = false;
+      console.log('[useStreaks] Reset complete');
     } catch (err) {
       console.error('Failed to reset main streak:', err);
       setError(err as Error);
-      // Release lock even on error
-      isResettingRef.current = false;
       throw err;
     }
-  }, [user, streaks]);
+  }, [user, streaks, mainDisplay]);
   
   const refreshStreaks = useCallback(async () => {
     await loadStreaks();
@@ -192,10 +146,14 @@ export function useStreaks(): UseStreaksReturn {
     loadStreaks();
   }, [loadStreaks]);
   
-  // Set up real-time update interval (every second)
+  // Set up real-time display update interval (every second)
   useEffect(() => {
-    if (!streaks) return;
+    if (!journeyStartDate) return;
     
+    // Update immediately
+    updateDisplay();
+    
+    // Then update every second
     updateIntervalRef.current = setInterval(() => {
       updateDisplay();
     }, UPDATE_INTERVAL);
@@ -205,56 +163,7 @@ export function useStreaks(): UseStreaksReturn {
         clearInterval(updateIntervalRef.current);
       }
     };
-  }, [streaks, updateDisplay]);
-  
-  // Set up auto-save interval (every minute)
-  useEffect(() => {
-    if (!user || !streaks) return;
-    
-    saveIntervalRef.current = setInterval(() => {
-      saveToFirestore();
-    }, SAVE_INTERVAL);
-    
-    return () => {
-      if (saveIntervalRef.current) {
-        clearInterval(saveIntervalRef.current);
-      }
-    };
-  }, [user, streaks, saveToFirestore]);
-  
-  // Set up longest streak update interval (every 5 minutes)
-  useEffect(() => {
-    if (!user || !streaks) return;
-    
-    longestIntervalRef.current = setInterval(() => {
-      updateLongest();
-    }, LONGEST_UPDATE_INTERVAL);
-    
-    return () => {
-      if (longestIntervalRef.current) {
-        clearInterval(longestIntervalRef.current);
-      }
-    };
-  }, [user, streaks, updateLongest]);
-  
-  // Save on unmount (before page closes)
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Note: navigator.sendBeacon would need a server endpoint.
-      // For now, we rely on periodic saves.
-      // TODO: Implement beacon endpoint in Phase 4
-    };
-    
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Final save before unmount
-      if (user && streaks) {
-        saveToFirestore();
-      }
-    };
-  }, [user, streaks, saveToFirestore]);
+  }, [journeyStartDate, updateDisplay]);
   
   // ============================================================================
   // Return Hook Interface
@@ -263,11 +172,10 @@ export function useStreaks(): UseStreaksReturn {
   return {
     streaks,
     mainDisplay,
-    currentJourneyId, // ← Phase 5.1
+    currentJourneyId,
     loading,
     error,
     resetMainStreak,
     refreshStreaks,
   };
 }
-

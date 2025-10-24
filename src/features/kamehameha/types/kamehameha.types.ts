@@ -9,26 +9,25 @@
 // ============================================================================
 
 /**
- * Core streak data stored in Firestore
+ * Core streak data stored in Firestore (Simplified in Phase 5.1 Refactor)
+ * 
+ * No longer stores current timing data - timing calculated from journey.startDate
  */
 export interface StreakData {
-  /** Unix timestamp when streak started (milliseconds) */
-  startDate: number;
-  /** Current streak length in seconds */
-  currentSeconds: number;
-  /** Longest streak ever achieved in seconds */
+  /** Longest streak ever achieved in seconds (all-time record) */
   longestSeconds: number;
-  /** Last time this streak was calculated/updated */
-  lastUpdated: number;
 }
 
 /**
- * Complete streaks document structure
+ * Complete streaks document structure (Simplified in Phase 5.1 Refactor)
+ * 
+ * Acts as a pointer to the current journey + historical records
+ * All timing data calculated from journey.startDate
  */
 export interface Streaks {
   /** Current journey ID (Phase 5.1) */
   currentJourneyId?: string;
-  /** PMO (Porn, Masturbation, Orgasm) main recovery streak */
+  /** PMO (Porn, Masturbation, Orgasm) streak record */
   main: StreakData;
   /** Last update timestamp for the entire document */
   lastUpdated: number;

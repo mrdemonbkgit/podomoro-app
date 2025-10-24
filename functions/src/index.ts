@@ -22,8 +22,9 @@ import {
   AI_CONFIG,
 } from './types';
 
-// Export milestone detection function
-export {checkMilestones} from './milestones';
+// Export milestone detection functions
+export {checkMilestones} from './milestones'; // Legacy document trigger (will be removed)
+export {checkMilestonesScheduled} from './scheduledMilestones'; // New scheduled function
 
 // Load environment variables
 dotenv.config();
