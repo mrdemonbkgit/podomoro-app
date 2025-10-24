@@ -23,16 +23,16 @@
 - ✅ Zero console errors
 
 **Latest Updates:**
-- 🔧 Phase 5.1 In Progress - Journey System Refactor
-- ✅ **FIXED:** Auto-save race condition - new journeys no longer instantly show achievements
-- ✅ **FIXED:** Badge celebration bug - old badges no longer celebrate on journey reset
-- 🔒 Added auto-save lock during reset operations to prevent stale data writes
-- 🏷️ **CRITICAL FIX:** Badges are now permanent historical records (NOT deleted on journey end)
-- 🎯 Only badges from current journey trigger celebrations (journey-aware filtering)
-- 📊 Multiple badges can exist across multiple journeys for complete history
-- 📖 Documentation updated (SPEC.md, DATA_SCHEMA.md, PROGRESS.md)
-- 🗺️ Simplified journey model: One PMO journey, violations for info only
-- 📊 Dashboard updated: Journey info + simplified display
+- ✅ **COMPLETE:** Phase 5.1 Journey System Refactor - Clean Architecture Implemented!
+- 🎯 **NEW:** Scheduled Cloud Function - runs every 1 minute, works offline
+- ⚡ **SIMPLIFIED:** useStreaks hook reduced by 150+ lines, no auto-save
+- 🔒 **ATOMIC:** Transaction-based reset - no race conditions possible
+- 🎉 **SMART:** Celebrates only highest milestone when multiple earned
+- 📊 **CLEAN:** Journey.startDate is single source of truth
+- 🏷️ Badges are permanent historical records across all journeys
+- 📖 Data model simplified - removed currentSeconds/startDate from StreakData
+- 🗑️ Removed 200+ lines of deprecated code
+- 📝 Old Cloud Function marked deprecated, ready for removal after testing
 
 **Working on:** Backend implementation (journey service, Cloud Functions)
 
