@@ -20,7 +20,7 @@
     "scan:console": "node scripts/scan-console.cjs",
     "test:rules": "vitest run firestore.rules.test.ts",
     "test:milestones": "vitest run milestoneConstants.test.ts",
-    "emulator": "npm run emulator:swap && firebase emulators:start",
+    "emulator": "node scripts/swap-rules.js dev && firebase emulators:start; node scripts/swap-rules.js prod",
     "emulator:swap": "node scripts/swap-rules.js dev",
     "emulator:restore": "node scripts/swap-rules.js prod",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",

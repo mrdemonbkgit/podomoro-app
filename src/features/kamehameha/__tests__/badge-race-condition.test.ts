@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
 import { createBadgeAtomic } from '../hooks/useMilestones';
 import { getMilestoneConfig } from '../constants/milestones';
@@ -18,12 +18,21 @@ describe('Badge Race Condition Prevention', () => {
   const milestoneSeconds = 60; // 1 minute (dev milestone)
   
   beforeEach(async () => {
-    // Seed journey document (required for transaction)
+    // Clean up any existing badge from previous test
+    const badgeId = `${journeyId}_${milestoneSeconds}`;
+    const badgeRef = doc(db, `users/${userId}/kamehameha_badges/${badgeId}`);
+    try {
+      await deleteDoc(badgeRef);
+    } catch (error) {
+      // Badge doesn't exist yet, that's fine
+    }
+    
+    // Seed journey document with fresh state (required for transaction)
     const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`);
     await setDoc(journeyRef, {
       id: journeyId,
       startDate: Date.now() - 70000, // Started 70 seconds ago
-      achievementsCount: 0,
+      achievementsCount: 0, // Reset to 0 for clean test
       violationsCount: 0,
       isActive: true,
       createdAt: Date.now() - 70000,
