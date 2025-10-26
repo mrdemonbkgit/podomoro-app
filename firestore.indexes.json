@@ -1,16 +1,6 @@
 {
   "indexes": [
     {
-      "collectionGroup": "streaks",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        {
-          "fieldPath": "currentJourneyId",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "kamehameha_relapses",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -28,6 +18,7 @@
         }
       ]
     }
-  ]
+  ],
+  "fieldOverrides": []
 }
 

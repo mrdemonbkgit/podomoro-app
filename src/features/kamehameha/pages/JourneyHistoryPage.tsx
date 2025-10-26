@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
 import { UserProfile } from '../../auth/components/UserProfile';
 import { logger } from '../../../utils/logger';
@@ -28,9 +28,9 @@ export function JourneyHistoryPage() {
   useEffect(() => {
     if (!user?.uid) return;
 
-    // Real-time listener for journey history
+    // Real-time listener for journey history (all journeys)
     const journeysRef = collection(db, COLLECTION_PATHS.journeys(user.uid));
-    const q = query(journeysRef, orderBy('startDate', 'desc'), limit(20));
+    const q = query(journeysRef, orderBy('startDate', 'desc'));
 
     logger.debug('🔄 Setting up real-time journey history listener...');
 
