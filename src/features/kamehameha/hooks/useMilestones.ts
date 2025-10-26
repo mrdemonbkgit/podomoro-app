@@ -1,11 +1,45 @@
 /**
  * useMilestones Hook
  * 
- * Client-side milestone detection for real-time badge creation
- * Works alongside scheduled Cloud Function as backup
+ * **Client-side milestone detection for real-time badge creation**
  * 
- * This ensures milestones are detected immediately when app is open,
- * while scheduled function handles offline scenarios
+ * This hook monitors the current journey's elapsed time and automatically
+ * creates badge documents when milestone thresholds are crossed.
+ * 
+ * **Hybrid Detection System:**
+ * - **Client-side (this hook):** Instant detection when app is open
+ * - **Server-side (Cloud Function):** Backup detection for offline scenarios
+ * 
+ * **How it works:**
+ * 1. Checks elapsed time every second
+ * 2. Compares against milestone thresholds (1 day, 3 days, 7 days, etc.)
+ * 3. Creates badge document in Firestore when threshold crossed
+ * 4. Uses deterministic badge IDs to prevent duplicates
+ * 5. Increments journey's achievementsCount
+ * 
+ * **Idempotency:**
+ * Badge IDs follow pattern: `{journeyId}-{milestoneSeconds}`
+ * This ensures creating the same badge multiple times has no effect.
+ * 
+ * @param currentJourneyId - Active journey ID (from useStreaks)
+ * @param journeyStartDate - Journey start timestamp (from useStreaks)
+ * 
+ * @example
+ * ```typescript
+ * function MyComponent() {
+ *   const { currentJourneyId, journeyStartDate } = useStreaks();
+ *   
+ *   // This hook runs automatically - no manual calls needed
+ *   useMilestones(currentJourneyId, journeyStartDate);
+ *   
+ *   // Badges are created automatically when milestones are reached
+ *   // Use useBadges() hook to display them
+ * }
+ * ```
+ * 
+ * @see {@link useBadges} - Hook to display created badges
+ * @see {@link MILESTONE_SECONDS} - Milestone threshold definitions
+ * @see {@link checkMilestonesScheduled} - Server-side backup (Cloud Function)
  */
 
 import { useEffect, useRef } from 'react';

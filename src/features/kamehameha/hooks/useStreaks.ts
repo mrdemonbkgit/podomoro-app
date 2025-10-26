@@ -1,10 +1,55 @@
 /**
  * Kamehameha - useStreaks Hook (Simplified)
  * 
- * Manages streak state by loading journey data and calculating display in real-time.
- * NO AUTO-SAVE: All timing calculated from immutable journey.startDate
+ * **Primary hook for managing streak state and display.**
  * 
- * Phase 5.1 Refactor: Removed auto-save intervals and race condition locks
+ * This hook handles all streak-related operations:
+ * - Loading streak data from Firestore
+ * - Real-time display updates (every second)
+ * - Journey management (start, reset)
+ * - Calculating time since journey start
+ * 
+ * **Architecture (Phase 5.1):**
+ * - NO AUTO-SAVE: Display calculated from immutable `journey.startDate`
+ * - Single source of truth: Journey document in Firestore
+ * - No race conditions: Removed auto-save intervals
+ * 
+ * **How it works:**
+ * 1. Loads streak document (contains journey reference)
+ * 2. Loads current journey (contains startDate)
+ * 3. Updates display every second by calculating elapsed time from startDate
+ * 4. Never modifies Firestore during normal operation (only on user actions)
+ * 
+ * @returns {UseStreaksReturn} Streak state and control functions
+ * 
+ * @example
+ * ```typescript
+ * function MyComponent() {
+ *   const {
+ *     mainDisplay,      // Current streak: { seconds, formatted: "7d 3h 15m" }
+ *     streaks,          // Raw data: { currentJourneyId, main: { longestSeconds } }
+ *     loading,          // true while loading from Firestore
+ *     error,            // Error object if load fails
+ *     resetMainStreak,  // Call on relapse to end journey and start new one
+ *     refreshStreaks,   // Force reload from Firestore
+ *   } = useStreaks();
+ * 
+ *   if (loading) return <div>Loading...</div>;
+ *   if (error) return <div>Error: {error.message}</div>;
+ * 
+ *   return (
+ *     <div>
+ *       <h2>Current Streak: {mainDisplay?.formatted}</h2>
+ *       <p>Record: {streaks?.main.longestSeconds} seconds</p>
+ *       <button onClick={resetMainStreak}>Log Relapse</button>
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * @see {@link UseStreaksReturn} - Return type interface
+ * @see {@link StreakDisplay} - Display format interface
+ * @see {@link useMilestones} - Companion hook for badge detection
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';

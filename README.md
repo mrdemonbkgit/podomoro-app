@@ -182,6 +182,7 @@ podomoro-app/
 ### Project Documentation
 All documentation is organized in the **[`docs/`](docs/)** directory:
 - **[docs/INDEX.md](docs/INDEX.md)** - Documentation hub and navigation
+- **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)** - 📚 **Complete API Reference** (hooks, services, types)
 - **[docs/zenfocus/](docs/zenfocus/)** - Timer feature documentation
 - **[docs/kamehameha/](docs/kamehameha/)** - PMO Recovery Tool (V4.0 - in development)
 

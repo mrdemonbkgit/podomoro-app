@@ -44,11 +44,28 @@ function getStreaksDocPath(userId: string): string {
 
 /**
  * Initialize default streaks for a new user
- * Also creates the initial journey (Phase 5.1)
  * 
- * @param userId User ID from Firebase Auth
- * @returns Promise that resolves when initialization is complete
- * @throws Error if initialization fails
+ * Creates the first journey and initializes the streaks document.
+ * This function is automatically called when a new user logs in for the first time.
+ * 
+ * **Phase 5.1 Journey System:**
+ * - Creates initial journey with startDate = now
+ * - Links journey ID to streaks document
+ * - Sets longestSeconds to 0 (no history yet)
+ * 
+ * @param userId - User ID from Firebase Auth
+ * @returns Promise resolving to initialized Streaks object
+ * @throws {Error} If Firestore operations fail
+ * 
+ * @example
+ * ```typescript
+ * // Automatically called by getStreaks() for new users
+ * const streaks = await initializeUserStreaks(user.uid);
+ * console.log(streaks.currentJourneyId); // "journey-abc123"
+ * ```
+ * 
+ * @see {@link getStreaks} - Main function that calls this for new users
+ * @see {@link createJourney} - Journey creation logic
  */
 export async function initializeUserStreaks(userId: string): Promise<Streaks> {
   const now = Date.now();
@@ -86,9 +103,31 @@ export async function initializeUserStreaks(userId: string): Promise<Streaks> {
 /**
  * Get user's current streaks from Firestore
  * 
- * @param userId User ID from Firebase Auth
+ * This is the main function for loading streak data. For new users,
+ * it automatically calls `initializeUserStreaks()` to create the first journey.
+ * 
+ * **What it returns:**
+ * - `currentJourneyId`: Reference to active journey
+ * - `main.longestSeconds`: All-time record streak duration
+ * - `lastUpdated`: Timestamp of last modification
+ * 
+ * @param userId - User ID from Firebase Auth
  * @returns Promise resolving to Streaks object
- * @throws Error if fetch fails
+ * @throws {Error} If Firestore read fails
+ * 
+ * @example
+ * ```typescript
+ * // Load user's streaks
+ * const streaks = await getStreaks(user.uid);
+ * 
+ * if (streaks.currentJourneyId) {
+ *   console.log('Active journey:', streaks.currentJourneyId);
+ *   console.log('Record:', streaks.main.longestSeconds, 'seconds');
+ * }
+ * ```
+ * 
+ * @see {@link initializeUserStreaks} - Called automatically for new users
+ * @see {@link useStreaks} - React hook that uses this function
  */
 export async function getStreaks(userId: string): Promise<Streaks> {
   try {
@@ -161,18 +200,39 @@ export async function updateStreaks(
 /**
  * Reset main streak (marks relapse) - ATOMIC TRANSACTION
  * 
- * Uses Firestore transaction to ensure atomicity:
- * - End current journey
- * - Create new journey
- * - Update longest streak if needed
- * - Update streaks document
+ * **⚠️ CRITICAL FUNCTION** - Uses Firestore transaction to prevent race conditions
  * 
- * All operations succeed or fail together (no intermediate states)
+ * This function is called when a user logs a PMO relapse. It performs multiple
+ * operations atomically to ensure data consistency:
  * 
- * @param userId User ID from Firebase Auth
- * @param previousSeconds Duration of the journey being ended
- * @returns Promise resolving to new streaks
- * @throws Error if reset fails
+ * 1. End current journey (set endDate, endReason, finalSeconds)
+ * 2. Create new journey (fresh start)
+ * 3. Update longest streak if this journey beat the record
+ * 4. Update streaks document with new journey reference
+ * 
+ * **All operations succeed or fail together** - no intermediate states possible.
+ * 
+ * **Transaction guarantees:**
+ * - No duplicate journeys can be created
+ * - longestSeconds is always accurate
+ * - currentJourneyId always points to valid journey
+ * 
+ * @param userId - User ID from Firebase Auth
+ * @param previousSeconds - Duration of the journey being ended (in seconds)
+ * @returns Promise resolving to updated Streaks object with new journey
+ * @throws {Error} If transaction fails or streaks document not found
+ * 
+ * @example
+ * ```typescript
+ * // User logs a relapse after 7 days (604800 seconds)
+ * const updatedStreaks = await resetMainStreak(user.uid, 604800);
+ * 
+ * console.log('Old journey ended, new journey:', updatedStreaks.currentJourneyId);
+ * console.log('Record streak:', updatedStreaks.main.longestSeconds, 'seconds');
+ * ```
+ * 
+ * @see {@link useStreaks} - Hook that calls this function
+ * @see {@link saveRelapse} - Function that uses this for PMO relapses
  */
 export async function resetMainStreak(userId: string, previousSeconds: number): Promise<Streaks> {
   try {
