@@ -2,7 +2,16 @@
  * Frontend Milestone Constants
  * 
  * Defines milestone thresholds and configurations for the UI
- * Must match backend milestoneConstants.ts
+ * 
+ * ⚠️ SYNC WARNING: This file must be kept in sync with:
+ * Backend: functions/src/milestoneConstants.ts
+ * 
+ * When updating milestones:
+ * 1. Update BOTH files (frontend + backend)
+ * 2. Run: npm run test:milestones
+ * 3. Ensure test passes before committing
+ * 
+ * DO NOT modify one without the other!
  */
 
 import type { MilestoneConfig } from '../types/kamehameha.types';

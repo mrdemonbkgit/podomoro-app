@@ -36,6 +36,9 @@
 - ✅ **All fixtures type-safe** - Match Kamehameha interfaces exactly
 - ✅ **TypeScript compilation passes**
 - 🎯 **Next:** Days 2-3 - Service Layer Tests (streakCalculations, journeyService, firestoreService)
+- 📝 Phase 2 review added: `docs/PHASE_2_REVIEW_GPT5.md` (Reviewer: gpt-5)
+- 📝 Phase 3 review added: `docs/PHASE_3_REVIEW_GPT5.md` (Reviewer: gpt-5)
+- 📝 Phase 2.5 review added: `docs/PHASE_2_5_REVIEW_GPT5.md` (Reviewer: gpt-5)
 
 **Earlier Tonight (Phase 1 Complete):**
 - 🎉 **PHASE 1 COMPLETE!** All 3 Critical Fixes (Issues #5, #4) DONE!

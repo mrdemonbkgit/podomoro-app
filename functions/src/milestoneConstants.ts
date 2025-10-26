@@ -1,5 +1,15 @@
 /**
  * Milestone definitions for badge system
+ * 
+ * ⚠️ SYNC WARNING: This file must be kept in sync with:
+ * Frontend: src/features/kamehameha/constants/milestones.ts
+ * 
+ * When updating milestones:
+ * 1. Update BOTH files (frontend + backend)
+ * 2. Run: npm run test:milestones
+ * 3. Ensure test passes before committing
+ * 
+ * DO NOT modify one without the other!
  */
 
 // Check if running in emulator (for development)
