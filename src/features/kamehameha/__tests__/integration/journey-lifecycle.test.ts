@@ -13,15 +13,15 @@
  * 6. New journey creation
  * 7. Badge preservation
  * 
- * Phase 2 Fix: Addressed gpt-5-codex review
- * - Removed service mocks (was masking real integration issues)
- * - Now uses real service implementations
- * - Firestore SDK mocked at lowest level (src/test/mocks/firebase.ts)
+ * Phase 2 Fix (v2): Addressed gpt-5-codex follow-up review
+ * - Fixed addDoc to return { id: 'docId' } instead of undefined
+ * - Fixed getDoc to be properly stubbed for ALL service paths
+ * - Services now execute without crashing on undefined mocks
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { testUser, NOW, createTestJourney } from '../../../../test/fixtures/kamehameha';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, collection, query, getDocs, where, orderBy, Timestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, collection, query, getDocs, addDoc, where, orderBy, Timestamp } from 'firebase/firestore';
 import type { Journey, Streaks } from '../../types/kamehameha.types';
 
 // Import real services (not mocked!)
@@ -43,7 +43,7 @@ vi.mock('firebase/firestore', async () => {
     getDocs: vi.fn(),
     setDoc: vi.fn(),
     updateDoc: vi.fn(),
-    addDoc: vi.fn(),
+    addDoc: vi.fn(),  // NOTE: Must return { id: 'string' } for services to work
     runTransaction: vi.fn(),
     Timestamp: {
       now: vi.fn(() => ({ toMillis: () => NOW })),
@@ -60,74 +60,63 @@ describe('Journey Lifecycle Integration', () => {
     
     // Reset Firestore mocks to default behavior
     vi.mocked(getFirestore).mockReturnValue(mockDb as any);
+    
+    // Default: addDoc returns valid doc reference with ID
+    vi.mocked(addDoc).mockResolvedValue({ id: 'generated-doc-id' } as any);
+    
+    // Default: setDoc succeeds
+    vi.mocked(setDoc).mockResolvedValue(undefined);
+    
+    // Default: updateDoc succeeds
+    vi.mocked(updateDoc).mockResolvedValue(undefined);
   });
 
   describe('Complete Flow: Init → Milestone → Relapse → New Journey', () => {
     test('initializes user with first journey', async () => {
       const userId = testUser.uid;
 
-      // Mock Firestore: User has no existing data
+      // Mock Firestore: User has no existing streaks
       vi.mocked(getDoc).mockResolvedValueOnce({
         exists: () => false,
         data: () => undefined,
       } as any);
 
-      // Mock Firestore: Journey creation succeeds
-      vi.mocked(setDoc).mockResolvedValue(undefined);
+      // Mock Firestore: addDoc returns journey ID
+      const journeyId = 'journey-init-123';
+      vi.mocked(addDoc).mockResolvedValueOnce({ id: journeyId } as any);
       
-      // Mock Firestore: Get created journey
-      const mockJourneyData: Journey = {
-        id: 'generated-id',
-        startDate: NOW,
-        endDate: null,
-        endReason: 'active',
-        finalSeconds: 0,
-        achievementsCount: 0,
-        violationsCount: 0,
-        createdAt: NOW,
-        updatedAt: NOW,
-      };
-
-      vi.mocked(getDocs).mockResolvedValueOnce({
-        empty: false,
-        size: 1,
-        docs: [{
-          id: mockJourneyData.id,
-          exists: () => true,
-          data: () => mockJourneyData,
-        }],
-      } as any);
-
       // Execute: Real service calls
       const hasExisting = await firestoreService.hasExistingStreaks(userId);
       expect(hasExisting).toBe(false);
 
       // Initialize user (creates journey + streaks doc)
-      await firestoreService.initializeUserStreaks(userId);
+      const streaks = await firestoreService.initializeUserStreaks(userId);
 
       // Verify: Firestore operations called
+      expect(addDoc).toHaveBeenCalled(); // Created journey
       expect(setDoc).toHaveBeenCalled(); // Created streaks doc
+      expect(streaks.currentJourneyId).toBe(journeyId);
     });
 
     test('handles PMO relapse: ends journey, creates new one', async () => {
       const userId = testUser.uid;
       const oldJourneyId = 'journey-old';
+      const newJourneyId = 'journey-new';
       const currentSeconds = 86400; // 1 day
 
-      // Mock Firestore: Get current streaks
+      // Mock Firestore: Get current streaks (required for resetMainStreak)
       const mockStreaks: Streaks = {
         main: { longestSeconds: 0 },
         currentJourneyId: oldJourneyId,
         lastUpdated: NOW - 86400000,
       };
 
-      vi.mocked(getDoc).mockResolvedValueOnce({
+      vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => mockStreaks,
       } as any);
 
-      // Mock Firestore: Transaction for reset (ends old journey, creates new one)
-      const newJourneyId = 'journey-new';
+      // Mock Firestore: Transaction for reset
       vi.mocked(runTransaction).mockImplementation(async (db: any, callback: any) => {
         const mockTransaction = {
           get: vi.fn().mockResolvedValue({
@@ -143,43 +132,41 @@ describe('Journey Lifecycle Integration', () => {
         };
 
         await callback(mockTransaction);
-        return {
-          currentJourneyId: newJourneyId,
-          main: { longestSeconds: currentSeconds },
-        };
+        return undefined;
       });
+
+      // Mock Firestore: addDoc for new journey creation
+      vi.mocked(addDoc).mockResolvedValueOnce({ id: newJourneyId } as any);
 
       // Execute: Real resetMainStreak service call
       const updatedStreaks = await firestoreService.resetMainStreak(userId, currentSeconds);
 
-      // Verify: Transaction executed
+      // Verify: Transaction and addDoc executed
       expect(runTransaction).toHaveBeenCalled();
-      expect(updatedStreaks.currentJourneyId).toBeTruthy();
-      expect(updatedStreaks.main.longestSeconds).toBeGreaterThanOrEqual(0);
+      expect(addDoc).toHaveBeenCalled(); // New journey created
+      expect(updatedStreaks.currentJourneyId).toBe(newJourneyId);
+      expect(updatedStreaks.main.longestSeconds).toBe(currentSeconds);
     });
 
     test('logs rule violation without ending journey', async () => {
       const userId = testUser.uid;
       const journeyId = 'journey-1';
 
-      // Mock Firestore: Get current journey
-      vi.mocked(getDoc).mockResolvedValueOnce({
+      // Mock Firestore: Get streaks (CRITICAL - saveRelapse calls getStreaks internally!)
+      vi.mocked(getDoc).mockResolvedValue({
         exists: () => true,
         data: () => ({
-          id: journeyId,
-          startDate: NOW - 43200000,
-          violationsCount: 0,
+          main: { longestSeconds: 0 },
+          currentJourneyId: journeyId,
+          lastUpdated: NOW,
         }),
       } as any);
 
-      // Mock Firestore: Save relapse
-      vi.mocked(setDoc).mockResolvedValue(undefined);
-
-      // Mock Firestore: Increment violations
-      vi.mocked(updateDoc).mockResolvedValue(undefined);
+      // Mock Firestore: addDoc for relapse
+      vi.mocked(addDoc).mockResolvedValue({ id: 'relapse-123' } as any);
 
       // Execute: Real service calls
-      await firestoreService.saveRelapse(userId, {
+      const relapseId = await firestoreService.saveRelapse(userId, {
         type: 'ruleViolation',
         streakType: 'main',
         previousStreakSeconds: 43200,
@@ -189,8 +176,9 @@ describe('Journey Lifecycle Integration', () => {
       await journeyService.incrementJourneyViolations(userId, journeyId);
 
       // Verify: Firestore operations called
-      expect(setDoc).toHaveBeenCalled(); // Relapse saved
+      expect(addDoc).toHaveBeenCalled(); // Relapse saved
       expect(updateDoc).toHaveBeenCalled(); // Violations incremented
+      expect(relapseId).toBe('relapse-123');
     });
   });
 
@@ -226,7 +214,8 @@ describe('Journey Lifecycle Integration', () => {
       const history = await journeyService.getJourneyHistory(userId);
 
       // Verify: Correct data returned
-      expect(history.length).toBeGreaterThanOrEqual(0);
+      expect(history.length).toBe(2);
+      expect(history[0].id).toBe('journey-3');
       expect(getDocs).toHaveBeenCalled();
     });
 
@@ -253,8 +242,8 @@ describe('Journey Lifecycle Integration', () => {
       // Execute: Real service call
       const journeyNumber = await journeyService.getJourneyNumber(userId, journeyId);
 
-      // Verify: Correct number calculated
-      expect(journeyNumber).toBeGreaterThanOrEqual(1);
+      // Verify: Correct number calculated (5 total journeys, this is #5)
+      expect(journeyNumber).toBe(5);
       expect(getDocs).toHaveBeenCalled();
     });
   });
@@ -311,8 +300,22 @@ describe('Journey Lifecycle Integration', () => {
     test('handles concurrent operations safely', async () => {
       const userId = testUser.uid;
 
-      // Mock Firestore: Allow concurrent saves
-      vi.mocked(setDoc).mockResolvedValue(undefined);
+      // Mock Firestore: getDoc for streaks (CRITICAL - needed by saveRelapse!)
+      vi.mocked(getDoc).mockResolvedValue({
+        exists: () => true,
+        data: () => ({
+          main: { longestSeconds: 0 },
+          currentJourneyId: 'journey-1',
+          lastUpdated: NOW,
+        }),
+      } as any);
+
+      // Mock Firestore: addDoc for relapses
+      let callCount = 0;
+      vi.mocked(addDoc).mockImplementation(async () => {
+        callCount++;
+        return { id: `relapse-${callCount}` } as any;
+      });
 
       // Execute: Real concurrent service calls
       const operations = [
@@ -328,10 +331,11 @@ describe('Journey Lifecycle Integration', () => {
         }),
       ];
 
-      await Promise.all(operations);
+      const results = await Promise.all(operations);
 
-      // Verify: Both operations completed
-      expect(setDoc).toHaveBeenCalledTimes(2);
+      // Verify: Both operations completed successfully
+      expect(results).toEqual(['relapse-1', 'relapse-2']);
+      expect(addDoc).toHaveBeenCalledTimes(2);
     });
 
     test('handles very long journey (> 1 year)', async () => {
@@ -399,11 +403,7 @@ describe('Journey Lifecycle Integration', () => {
         })),
       } as any);
 
-      // Note: Badges are NEVER deleted in real implementation
-      // They persist as permanent historical records
-      // This test verifies the query works correctly
-
-      // Execute: Real Firestore query (via getDocs mock)
+      // Execute: Real Firestore query
       const result = await getDocs(
         query(
           collection(mockDb as any, `users/${userId}/kamehameha_badges`),
@@ -420,9 +420,6 @@ describe('Journey Lifecycle Integration', () => {
       const userId = testUser.uid;
       const journeyId = 'journey-1';
 
-      // Mock Firestore: updateDoc succeeds
-      vi.mocked(updateDoc).mockResolvedValue(undefined);
-
       // Execute: Real service call
       await journeyService.incrementJourneyAchievements(userId, journeyId);
 
@@ -436,9 +433,6 @@ describe('Journey Lifecycle Integration', () => {
     test('increments journey violations atomically', async () => {
       const userId = testUser.uid;
       const journeyId = 'journey-1';
-
-      // Mock Firestore: updateDoc succeeds
-      vi.mocked(updateDoc).mockResolvedValue(undefined);
 
       // Execute: Real service call
       await journeyService.incrementJourneyViolations(userId, journeyId);
