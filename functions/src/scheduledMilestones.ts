@@ -117,6 +117,79 @@ export const checkMilestonesScheduled = onSchedule(
 );
 
 /**
+ * Create badge atomically with journey achievement count increment.
+ * Uses Firestore transaction to prevent race conditions between client and server.
+ * 
+ * @param db - Firestore database instance
+ * @param userId - User ID
+ * @param journeyId - Current journey ID
+ * @param milestoneSeconds - Milestone threshold in seconds
+ * @param badgeConfig - Badge configuration
+ * @param now - Current timestamp
+ * @returns Promise<boolean> - true if badge was created, false if already exists
+ */
+async function createBadgeAtomic(
+  db: admin.firestore.Firestore,
+  userId: string,
+  journeyId: string,
+  milestoneSeconds: number,
+  badgeConfig: any,
+  now: number
+): Promise<boolean> {
+  // Deterministic badge ID ensures idempotency
+  const badgeId = `${journeyId}_${milestoneSeconds}`;
+  const badgeRef = db
+    .collection('users')
+    .doc(userId)
+    .collection('kamehameha_badges')
+    .doc(badgeId);
+  
+  const journeyRef = db
+    .collection('users')
+    .doc(userId)
+    .collection('kamehameha_journeys')
+    .doc(journeyId);
+  
+  try {
+    const created = await db.runTransaction(async (transaction) => {
+      // Read badge to check if it exists
+      const badgeSnap = await transaction.get(badgeRef);
+      
+      if (badgeSnap.exists) {
+        console.log(`   ⏭️ Badge ${badgeId} already exists (idempotent), skipping`);
+        return false; // Already awarded
+      }
+      
+      // Atomic: Create badge + increment achievements
+      transaction.set(badgeRef, {
+        journeyId,
+        milestoneSeconds,
+        earnedAt: now,
+        badgeEmoji: badgeConfig.emoji,
+        badgeName: badgeConfig.name,
+        congratsMessage: badgeConfig.message,
+        streakType: 'main',
+        createdBy: 'scheduled_function',
+        createdAt: now,
+      });
+      
+      transaction.update(journeyRef, {
+        achievementsCount: FieldValue.increment(1),
+        updatedAt: now,
+      });
+      
+      console.log(`   🎉 Badge created atomically: ${badgeConfig.name} for user ${userId}`);
+      return true;
+    });
+    
+    return created;
+  } catch (error) {
+    console.error(`   ❌ Failed to create badge ${badgeId}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Check and create badges for a specific journey
  * Returns number of badges created
  */
@@ -138,54 +211,26 @@ async function checkJourneyMilestones(
       continue;
     }
     
-    // Use deterministic badge ID for idempotency
-    const badgeId = `${journeyId}_${milestoneSeconds}`;
-    const badgeRef = db
-      .collection('users')
-      .doc(userId)
-      .collection('kamehameha_badges')
-      .doc(badgeId);
-    
-    // Check if badge already exists (idempotent check)
-    const badgeSnap = await badgeRef.get();
-    
-    if (badgeSnap.exists) {
-      // Badge already created, skip
-      continue;
-    }
-    
-    // Create new badge
+    // Get badge configuration
     const badgeConfig = getBadgeConfig(milestoneSeconds);
     
     try {
-      // Use setDoc for idempotency (safe to call multiple times)
-      await badgeRef.set({
+      // Create badge atomically (prevents race conditions)
+      const created = await createBadgeAtomic(
+        db,
+        userId,
         journeyId,
         milestoneSeconds,
-        earnedAt: now,
-        badgeEmoji: badgeConfig.emoji,
-        badgeName: badgeConfig.name,
-        congratsMessage: badgeConfig.message,
-        createdBy: 'scheduled_function',
-      });
+        badgeConfig,
+        now
+      );
       
-      // Increment journey achievements count
-      const journeyRef = db
-        .collection('users')
-        .doc(userId)
-        .collection('kamehameha_journeys')
-        .doc(journeyId);
-      
-      await journeyRef.update({
-        achievementsCount: FieldValue.increment(1),
-        updatedAt: now,
-      });
-      
-      console.log(`   🎉 Badge created: ${badgeConfig.name} for user ${userId}, journey ${journeyId}`);
-      badgesCreated++;
+      if (created) {
+        badgesCreated++;
+      }
       
     } catch (error) {
-      console.error(`   ❌ Error creating badge ${badgeId}:`, error);
+      console.error(`   ❌ Error creating badge for ${milestoneSeconds}s:`, error);
       // Continue with next milestone
     }
   }
