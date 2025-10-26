@@ -117,6 +117,50 @@ Visit Firebase Console → Firestore → Indexes
 - 🔍 **Technical:** Scheduled function uses `collectionGroup('kamehameha')` with `FieldPath.documentId() == 'streaks'` filter
 - 📊 **Index Required:** See index configuration above for `kamehameha` collection group
 
+### Firebase Security Rules
+
+ZenFocus uses separate security rules for production and development:
+
+**📄 Production Rules:** `firestore.rules`
+- ✅ Strict authentication required for all operations
+- ❌ No test user exceptions
+- 🚀 Safe to deploy to production
+
+**📄 Development Rules:** `firestore.rules.dev`
+- ✅ Includes test user exception for automated tests
+- ⚠️ **NEVER deploy to production!**
+- 🧪 Used by Firebase emulator only
+
+**Deploy Production Rules:**
+```bash
+# Deploy secure production rules
+firebase deploy --only firestore:rules
+```
+
+**Run Emulator with Dev Rules:**
+```bash
+# Automatically swaps to dev rules and starts emulator
+npm run emulator
+
+# When done, restore production rules
+npm run emulator:restore
+```
+
+**Test Security Rules:**
+```bash
+# Start emulator first
+firebase emulators:start
+
+# In another terminal, run rules tests
+npm run test:rules
+```
+
+**⚠️ IMPORTANT:** 
+- `firestore.rules` = Production (no backdoors, strict auth)
+- `firestore.rules.dev` = Development (test user exception for CI)
+- Always use `npm run emulator` which handles rules switching automatically
+- Never manually deploy `firestore.rules.dev` to production
+
 ### Build for Production
 
 ```bash
