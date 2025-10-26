@@ -22,6 +22,7 @@ import {
   increment,
 } from 'firebase/firestore';
 import type { Journey, Relapse } from '../types/kamehameha.types';
+import { COLLECTION_PATHS, getDocPath } from './paths';
 
 /**
  * Create a new PMO journey
@@ -32,7 +33,7 @@ import type { Journey, Relapse } from '../types/kamehameha.types';
  */
 export async function createJourney(userId: string): Promise<Journey> {
   const db = getFirestore();
-  const journeysRef = collection(db, `users/${userId}/kamehameha_journeys`);
+  const journeysRef = collection(db, COLLECTION_PATHS.journeys(userId));
   const now = Date.now();
 
   const journeyData: Omit<Journey, 'id'> = {
@@ -78,7 +79,7 @@ export async function endJourney(
   finalSeconds: number
 ): Promise<void> {
   const db = getFirestore();
-  const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`);
+  const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
 
   console.log('⏹️ Ending journey:', journeyId, 'Duration:', finalSeconds, 'seconds');
 
@@ -109,7 +110,7 @@ export async function endJourney(
  */
 export async function getCurrentJourney(userId: string): Promise<Journey | null> {
   const db = getFirestore();
-  const journeysRef = collection(db, `users/${userId}/kamehameha_journeys`);
+  const journeysRef = collection(db, COLLECTION_PATHS.journeys(userId));
 
   const q = query(
     journeysRef,
@@ -147,7 +148,7 @@ export async function getJourneyHistory(
   limitCount?: number
 ): Promise<Journey[]> {
   const db = getFirestore();
-  const journeysRef = collection(db, `users/${userId}/kamehameha_journeys`);
+  const journeysRef = collection(db, COLLECTION_PATHS.journeys(userId));
 
   let q = query(
     journeysRef,
@@ -182,7 +183,7 @@ export async function incrementJourneyViolations(
   journeyId: string
 ): Promise<void> {
   const db = getFirestore();
-  const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`);
+  const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
 
   console.log('Incrementing violations for journey:', journeyId);
 
@@ -206,7 +207,7 @@ export async function incrementJourneyAchievements(
   journeyId: string
 ): Promise<void> {
   const db = getFirestore();
-  const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`);
+  const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
 
   console.log('Incrementing achievements for journey:', journeyId);
 
@@ -231,7 +232,7 @@ export async function getJourneyViolations(
   journeyId: string
 ): Promise<Relapse[]> {
   const db = getFirestore();
-  const relapsesRef = collection(db, `users/${userId}/kamehameha_relapses`);
+  const relapsesRef = collection(db, COLLECTION_PATHS.relapses(userId));
 
   const q = query(
     relapsesRef,
@@ -281,7 +282,7 @@ export async function getJourneyNumber(
   const db = getFirestore();
   
   // Get the journey's start date
-  const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`);
+  const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
   const journeyDoc = await getDoc(journeyRef);
   
   if (!journeyDoc.exists()) {
@@ -292,7 +293,7 @@ export async function getJourneyNumber(
   const journeyStartDate = journeyDoc.data().startDate;
   
   // Count all journeys with start date <= this journey's start date
-  const journeysRef = collection(db, `users/${userId}/kamehameha_journeys`);
+  const journeysRef = collection(db, COLLECTION_PATHS.journeys(userId));
   const q = query(
     journeysRef,
     where('startDate', '<=', journeyStartDate),

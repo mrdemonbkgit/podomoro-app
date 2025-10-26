@@ -22,16 +22,7 @@ import {
 import { db } from '../../../services/firebase/config';
 import type { Streaks, CheckIn, Relapse } from '../types/kamehameha.types';
 import { createJourney, incrementJourneyViolations } from './journeyService';
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const USERS_COLLECTION = 'users';
-const KAMEHAMEHA_COLLECTION = 'kamehameha';
-const STREAKS_DOC = 'streaks';
-const CHECKINS_COLLECTION = 'kamehameha_checkIns';
-const RELAPSES_COLLECTION = 'kamehameha_relapses';
+import { COLLECTION_PATHS, DOCUMENT_PATHS, getDocPath } from './paths';
 
 // ============================================================================
 // Path Helpers
@@ -42,7 +33,7 @@ const RELAPSES_COLLECTION = 'kamehameha_relapses';
  * Returns path string for use with doc()
  */
 function getStreaksDocPath(userId: string): string {
-  return `${USERS_COLLECTION}/${userId}/${KAMEHAMEHA_COLLECTION}/${STREAKS_DOC}`;
+  return DOCUMENT_PATHS.streak(userId);
 }
 
 // ============================================================================
@@ -209,9 +200,9 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
       const currentJourneyId = currentStreaks.currentJourneyId;
       
       // 2. End current journey if exists
-      if (currentJourneyId) {
-        console.log('   ⚠️ Ending journey:', currentJourneyId, `(${previousSeconds}s)`);
-        const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${currentJourneyId}`);
+            if (currentJourneyId) {
+              console.log('   ⚠️ Ending journey:', currentJourneyId, `(${previousSeconds}s)`);
+              const journeyRef = doc(db, getDocPath.journey(userId, currentJourneyId));
         
         transaction.update(journeyRef, {
           endDate: now,
@@ -222,7 +213,7 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
       }
       
       // 3. Create new journey (within transaction)
-      const newJourneyRef = doc(collection(db, `users/${userId}/kamehameha_journeys`));
+      const newJourneyRef = doc(collection(db, COLLECTION_PATHS.journeys(userId)));
       const newJourney = {
         startDate: now,
         endDate: null,
@@ -287,7 +278,7 @@ export async function saveCheckIn(
 ): Promise<CheckIn> {
   try {
     // Use collection with proper path segments
-    const checkInsRef = collection(db, 'users', userId, CHECKINS_COLLECTION);
+    const checkInsRef = collection(db, COLLECTION_PATHS.checkIns(userId));
     const now = Date.now();
     
     const checkIn: Omit<CheckIn, 'id'> = {
@@ -320,7 +311,7 @@ export async function getRecentCheckIns(
   limitCount: number = 10
 ): Promise<CheckIn[]> {
   try {
-    const checkInsRef = collection(db, 'users', userId, CHECKINS_COLLECTION);
+    const checkInsRef = collection(db, COLLECTION_PATHS.checkIns(userId));
     const q = query(checkInsRef, orderBy('timestamp', 'desc'), limit(limitCount));
     const querySnapshot = await getDocs(q);
     
@@ -352,7 +343,7 @@ export async function deleteCheckIn(
   checkInId: string
 ): Promise<void> {
   try {
-    const checkInRef = doc(db, 'users', userId, 'kamehameha', CHECKINS_COLLECTION, checkInId);
+    const checkInRef = doc(db, getDocPath.checkIn(userId, checkInId));
     await deleteDoc(checkInRef);
   } catch (error) {
     console.error('Failed to delete check-in:', error);
@@ -382,7 +373,7 @@ export async function saveRelapse(
     const currentJourneyId = currentStreaks.currentJourneyId;
     
     // Save relapse to history
-    const relapsesRef = collection(db, 'users', userId, RELAPSES_COLLECTION);
+    const relapsesRef = collection(db, COLLECTION_PATHS.relapses(userId));
     const now = Date.now();
     
     const relapse: Omit<Relapse, 'id'> = {
@@ -432,7 +423,7 @@ export async function getRecentRelapses(
   limitCount: number = 10
 ): Promise<Relapse[]> {
   try {
-    const relapsesRef = collection(db, 'users', userId, RELAPSES_COLLECTION);
+    const relapsesRef = collection(db, COLLECTION_PATHS.relapses(userId));
     const q = query(relapsesRef, orderBy('timestamp', 'desc'), limit(limitCount));
     const querySnapshot = await getDocs(q);
     
@@ -464,7 +455,7 @@ export async function deleteRelapse(
   relapseId: string
 ): Promise<void> {
   try {
-    const relapseRef = doc(db, 'users', userId, 'kamehameha', RELAPSES_COLLECTION, relapseId);
+    const relapseRef = doc(db, getDocPath.relapse(userId, relapseId));
     await deleteDoc(relapseRef);
   } catch (error) {
     console.error('Failed to delete relapse:', error);

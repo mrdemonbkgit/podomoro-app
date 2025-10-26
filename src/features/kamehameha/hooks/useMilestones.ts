@@ -11,6 +11,7 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import { doc, setDoc, getFirestore, increment, updateDoc } from 'firebase/firestore';
+import { getDocPath } from '../services/paths';
 
 // Milestone thresholds in seconds
 const MILESTONE_SECONDS = [
@@ -73,7 +74,7 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
           try {
             // Create badge with deterministic ID (idempotent)
             const badgeId = `${currentJourneyId}_${milestone}`;
-            const badgeRef = doc(db, `users/${user.uid}/kamehameha_badges/${badgeId}`);
+            const badgeRef = doc(db, getDocPath.badge(user.uid, badgeId));
             
             const badgeConfig = BADGE_CONFIGS[milestone] || {
               emoji: '🎯',
@@ -93,7 +94,7 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
             });
 
             // Increment journey achievements count
-            const journeyRef = doc(db, `users/${user.uid}/kamehameha_journeys/${currentJourneyId}`);
+            const journeyRef = doc(db, getDocPath.journey(user.uid, currentJourneyId));
             await updateDoc(journeyRef, {
               achievementsCount: increment(1),
               updatedAt: Date.now(),
