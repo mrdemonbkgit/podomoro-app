@@ -5,15 +5,79 @@
 
 import { useEffect, useRef } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
-import { doc, setDoc, getFirestore, increment, updateDoc } from 'firebase/firestore';
+import { doc, runTransaction, increment } from 'firebase/firestore';
+import { db } from '../../../services/firebase/config';
 import { getDocPath } from '../services/paths';
 import { INTERVALS } from '../constants/app.constants';
 import { MILESTONE_SECONDS, getMilestoneConfig } from '../constants/milestones';
 import { logger } from '../../../utils/logger';
+import type { MilestoneConfig } from '../types/kamehameha.types';
 
 interface UseMilestonesProps {
   currentJourneyId: string | null;
   journeyStartDate: number | null;
+}
+
+/**
+ * Create badge atomically with journey achievement count increment.
+ * Uses Firestore transaction to prevent race conditions between client and server.
+ * 
+ * @param userId - User ID
+ * @param journeyId - Current journey ID
+ * @param milestoneSeconds - Milestone threshold in seconds
+ * @param badgeConfig - Badge configuration (emoji, name, message)
+ * @returns Promise that resolves when badge is created
+ * 
+ * @remarks
+ * - Uses deterministic badge ID: {journeyId}_{milestoneSeconds}
+ * - Idempotent: Won't create duplicate badges
+ * - Atomic: Badge creation and count increment happen together
+ */
+export async function createBadgeAtomic(
+  userId: string,
+  journeyId: string,
+  milestoneSeconds: number,
+  badgeConfig: MilestoneConfig
+): Promise<void> {
+  // Deterministic badge ID ensures idempotency
+  const badgeId = `${journeyId}_${milestoneSeconds}`;
+  const badgeRef = doc(db, getDocPath.badge(userId, badgeId));
+  const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      // Read badge to check if it exists
+      const badgeSnap = await transaction.get(badgeRef);
+
+      if (badgeSnap.exists()) {
+        logger.info(`Badge ${badgeId} already exists, skipping`);
+        return; // Already awarded (idempotent)
+      }
+
+      // Atomic: Create badge + increment achievements
+      transaction.set(badgeRef, {
+        journeyId,
+        milestoneSeconds,
+        earnedAt: Date.now(),
+        badgeEmoji: badgeConfig.emoji,
+        badgeName: badgeConfig.name,
+        congratsMessage: badgeConfig.message,
+        streakType: 'main',
+        createdBy: 'client',
+        createdAt: Date.now(),
+      });
+
+      transaction.update(journeyRef, {
+        achievementsCount: increment(1),
+        updatedAt: Date.now(),
+      });
+
+      logger.debug(`✅ Badge created atomically (client): ${badgeConfig.name}`);
+    });
+  } catch (error) {
+    logger.error('Failed to create badge atomically', { error, badgeId });
+    throw error;
+  }
 }
 
 /**
@@ -29,8 +93,6 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
       return;
     }
 
-    const db = getFirestore();
-
     const checkMilestones = async () => {
       const currentSeconds = Math.floor((Date.now() - journeyStartDate) / 1000);
 
@@ -40,31 +102,12 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
           logger.debug(`🎯 Client detected milestone: ${milestone}s`);
 
           try {
-            // Create badge with deterministic ID (idempotent)
-            const badgeId = `${currentJourneyId}_${milestone}`;
-            const badgeRef = doc(db, getDocPath.badge(user.uid, badgeId));
-            
             const badgeConfig = getMilestoneConfig(milestone);
-
-            // Use setDoc for idempotency (won't duplicate if already exists)
-            await setDoc(badgeRef, {
-              journeyId: currentJourneyId,
-              milestoneSeconds: milestone,
-              earnedAt: Date.now(),
-              badgeEmoji: badgeConfig.emoji,
-              badgeName: badgeConfig.name,
-              congratsMessage: badgeConfig.message,
-              createdBy: 'client',
-            });
-
-            // Increment journey achievements count
-            const journeyRef = doc(db, getDocPath.journey(user.uid, currentJourneyId));
-            await updateDoc(journeyRef, {
-              achievementsCount: increment(1),
-              updatedAt: Date.now(),
-            });
-
-            logger.debug(`✅ Badge created (client): ${badgeConfig.name}`);
+            
+            // Create badge atomically (prevents race conditions)
+            await createBadgeAtomic(user.uid, currentJourneyId, milestone, badgeConfig);
+            
+            logger.debug(`✅ Badge created atomically: ${badgeConfig.name}`);
           } catch (error) {
             logger.error(`Failed to create badge for ${milestone}s:`, error);
             // Don't throw - just log and continue
