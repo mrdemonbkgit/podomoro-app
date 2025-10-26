@@ -1,14 +1,22 @@
 /**
  * Scheduled Milestone Detection Cloud Function
  * 
- * Runs every 1 minute via Cloud Scheduler
- * Checks all active journeys and creates badges for crossed milestones
+ * ⚠️ **DEPRECATED - NON-FUNCTIONAL** ⚠️
  * 
- * Benefits:
- * - Works even when app is closed (offline milestone detection)
- * - No race conditions (not triggered by client writes)
- * - Reliable timing
- * - Idempotent (safe to retry)
+ * **Problem:**
+ * This function uses collectionGroup('streaks') query but our schema stores
+ * streaks as a DOCUMENT at users/{uid}/kamehameha/streaks, not a subcollection.
+ * Collection group queries only find SUBCOLLECTIONS, so this returns ZERO documents.
+ * 
+ * **Current Status:**
+ * - ✅ Client-side detection works (useMilestones hook) - 99% coverage
+ * - ❌ This scheduled backup is NON-FUNCTIONAL with current schema
+ * 
+ * **To Fix (Future):**
+ * Migrate schema to users/{uid}/streaks/{streakId} subcollection structure
+ * 
+ * **For Now:**
+ * Keep for reference. Primary milestone detection is client-side.
  */
 
 import {onSchedule} from 'firebase-functions/v2/scheduler';

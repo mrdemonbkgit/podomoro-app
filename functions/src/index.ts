@@ -28,7 +28,12 @@ import {
 } from './validation';
 
 // Export milestone detection function
-export {checkMilestonesScheduled} from './scheduledMilestones'; // Scheduled function (runs every 1 minute)
+// ⚠️ NOTE: checkMilestonesScheduled is NON-FUNCTIONAL with current schema
+// - Uses collectionGroup('streaks') but streaks is a document, not subcollection
+// - Returns zero results, no milestones detected
+// - Client-side detection (useMilestones hook) is primary and works correctly
+// - Keeping export for future when schema migrates to subcollection structure
+export {checkMilestonesScheduled} from './scheduledMilestones'; // NON-FUNCTIONAL (see file for details)
 
 // Load environment variables
 dotenv.config();
