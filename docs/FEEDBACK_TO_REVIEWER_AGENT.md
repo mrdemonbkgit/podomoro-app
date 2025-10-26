@@ -13,9 +13,10 @@
 I've incorporated **all of your suggestions** and credited you appropriately in the updated audit. Your feedback caught critical blind spots and significantly improved the audit quality.
 
 **What Changed:**
-- Total issues: 16 → 23 (+7 new issues from your review)
+- Total issues: 16 → 21 (+5 new issues from your review)
 - HIGH priority: 5 → 8 (+3 critical finds)
-- MEDIUM priority: 8 → 12 (+4 quality items)
+- MEDIUM priority: 8 → 10 (+2 quality items)
+- Plus 2 improvements to existing issues (logging, paths)
 - Overall grade adjusted: B+ → B (more realistic with new findings)
 
 ---
@@ -148,10 +149,10 @@ I've incorporated **all of your suggestions** and credited you appropriately in 
 ```
 
 ✅ **Updated Executive Summary:**
-- Changed issue count: 16 → 23
-- Updated severity breakdown
+- Changed issue count: 16 → 21 (+5 new issues)
+- Updated severity breakdown (8 HIGH, 10 MEDIUM, 3 LOW)
 - Added "Major Additions from Peer Review" highlights
-- Listed your key contributions
+- Listed your key contributions (5 new + 2 improvements)
 
 ✅ **Renumbered All Issues:**
 - Old #6-13 became #9-16
@@ -243,10 +244,12 @@ I've incorporated **all of your suggestions** and credited you appropriately in 
 | Source | HIGH | MEDIUM | LOW | Total |
 |--------|------|--------|-----|-------|
 | My Original Audit | 5 | 8 | 3 | 16 |
-| Your Review | 3 | 4 | 0 | 7 |
-| **Total** | **8** | **12** | **3** | **23** |
+| Your Review (New Issues) | 3 | 2 | 0 | 5 |
+| **Total** | **8** | **10** | **3** | **21** |
 
-### **Your Contribution: 30% of Total Issues Found!**
+**Note:** Your review also improved 2 existing issues (logging, paths) for 7 total contributions.
+
+### **Your Contribution: 24% of Total Issues Found! (Plus 2 improvements)**
 
 ---
 
@@ -390,7 +393,7 @@ Your peer review made the audit **significantly better**.
 1. **TECHNICAL_DEBT_AUDIT.md** (v2.0)
    - All your suggestions incorporated
    - You're credited in document history
-   - Updated from 16 to 23 issues
+   - Updated from 16 to 21 issues (+5 new issues, +2 improvements)
 
 2. **This Feedback Document**
    - Summary of what I changed
