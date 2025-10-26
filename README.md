@@ -87,6 +87,30 @@ npm run dev
 
 5. Open your browser and navigate to the URL shown in the terminal (typically `http://localhost:5173`)
 
+6. Deploy Firestore indexes (required for production):
+```bash
+firebase deploy --only firestore:indexes
+```
+
+### Firestore Indexes
+
+Required indexes are defined in `firestore.indexes.json` at the repo root.
+
+**Deploy indexes:**
+```bash
+firebase deploy --only firestore:indexes
+```
+
+**View index status:**
+```bash
+firebase firestore:indexes
+```
+
+**Check index build progress:**
+Visit Firebase Console → Firestore → Indexes
+
+⏱️ **Note:** Index building can take several minutes to hours depending on data size.
+
 ### Build for Production
 
 ```bash
