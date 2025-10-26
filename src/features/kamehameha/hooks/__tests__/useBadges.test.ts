@@ -117,7 +117,7 @@ describe('useBadges', () => {
       expect(result.current.badges).toEqual([]);
     });
 
-    test('sets error state on Firestore error', () => {
+    test('sets error state on Firestore error', async () => {
       const { result } = renderHook(() => useBadges(testJourney.id));
 
       const error = new Error('Firestore connection failed');
@@ -133,7 +133,7 @@ describe('useBadges', () => {
       // Re-render to trigger error
       renderHook(() => useBadges(testJourney.id));
 
-      waitFor(() => {
+      await waitFor(() => {
         expect(result.current.error).toBeTruthy();
         expect(result.current.loading).toBe(false);
       });
