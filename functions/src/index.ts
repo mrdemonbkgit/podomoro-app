@@ -21,6 +21,11 @@ import {
   OpenAIMessage,
   AI_CONFIG,
 } from './types';
+import {
+  validateRequest,
+  chatRequestSchema,
+  getChatHistorySchema,
+} from './validation';
 
 // Export milestone detection function
 export {checkMilestonesScheduled} from './scheduledMilestones'; // Scheduled function (runs every 1 minute)
@@ -62,19 +67,16 @@ export const chatWithAI = onCall(
       }
 
       const userId = request.auth.uid;
-      const data = request.data as ChatRequest;
 
-      // 2. Validate input
-      if (!data.message || data.message.trim().length === 0) {
-        throw new HttpsError('invalid-argument', 'Message cannot be empty');
+      // 2. Validate input with Zod
+      let validatedData;
+      try {
+        validatedData = validateRequest(chatRequestSchema, request.data);
+      } catch (error: any) {
+        throw new HttpsError('invalid-argument', error.message);
       }
 
-      if (data.message.length > 2000) {
-        throw new HttpsError(
-          'invalid-argument',
-          'Message too long (max 2000 characters)'
-        );
-      }
+      const data = validatedData as ChatRequest;
 
       // 3. Check rate limit
       const rateLimitResult = await checkRateLimit(userId);
@@ -218,7 +220,16 @@ export const getChatHistory = onCall(
       }
 
       const userId = request.auth.uid;
-      const limit = request.data?.limit || 50;
+
+      // Validate input with Zod
+      let validatedData;
+      try {
+        validatedData = validateRequest(getChatHistorySchema, request.data || {});
+      } catch (error: any) {
+        throw new HttpsError('invalid-argument', error.message);
+      }
+
+      const limit = validatedData.limit;
 
       const messagesRef = db
         .collection('users')
@@ -252,6 +263,7 @@ export const getChatHistory = onCall(
 
 /**
  * Clear chat history for a user
+ * Note: No input validation needed (no parameters expected)
  */
 export const clearChatHistory = onCall(async (request) => {
   try {
