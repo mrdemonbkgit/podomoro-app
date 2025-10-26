@@ -18,6 +18,7 @@ import {
   getDocs,
   deleteDoc,
   runTransaction,
+  UpdateData,
 } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
 import type { Streaks, CheckIn, Relapse } from '../types/kamehameha.types';
@@ -146,7 +147,7 @@ export async function updateStreaks(
       lastUpdated: Date.now(),
     };
     
-    await updateDoc(streaksRef, updatedStreaks as any);
+    await updateDoc(streaksRef, updatedStreaks as UpdateData<Streaks>);
   } catch (error) {
     logger.error('Failed to update streaks:', error);
     throw new Error('Failed to save streaks');
