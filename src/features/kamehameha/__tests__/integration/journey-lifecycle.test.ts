@@ -166,7 +166,7 @@ describe('Journey Lifecycle Integration', () => {
       vi.mocked(addDoc).mockResolvedValue({ id: 'relapse-123' } as any);
 
       // Execute: Real service calls
-      const relapseId = await firestoreService.saveRelapse(userId, {
+      const relapse = await firestoreService.saveRelapse(userId, {
         type: 'ruleViolation',
         streakType: 'main',
         previousStreakSeconds: 43200,
@@ -178,7 +178,9 @@ describe('Journey Lifecycle Integration', () => {
       // Verify: Firestore operations called
       expect(addDoc).toHaveBeenCalled(); // Relapse saved
       expect(updateDoc).toHaveBeenCalled(); // Violations incremented
-      expect(relapseId).toBe('relapse-123');
+      expect(relapse.id).toBe('relapse-123');
+      expect(relapse.journeyId).toBe(journeyId);
+      expect(relapse.type).toBe('ruleViolation');
     });
   });
 
@@ -334,7 +336,10 @@ describe('Journey Lifecycle Integration', () => {
       const results = await Promise.all(operations);
 
       // Verify: Both operations completed successfully
-      expect(results).toEqual(['relapse-1', 'relapse-2']);
+      // saveRelapse returns full Relapse objects, not just IDs
+      expect(results.map(r => r.id)).toEqual(['relapse-1', 'relapse-2']);
+      expect(results[0]).toHaveProperty('journeyId', 'journey-1');
+      expect(results[1]).toHaveProperty('journeyId', 'journey-1');
       expect(addDoc).toHaveBeenCalledTimes(2);
     });
 
