@@ -111,13 +111,11 @@ Visit Firebase Console → Firestore → Indexes
 
 ⏱️ **Note:** Index building can take several minutes to hours depending on data size.
 
-**⚠️ Known Limitation:** The scheduled milestone function (`checkMilestonesScheduled`) is **NON-FUNCTIONAL** with the current schema:
-- **Problem:** Uses `collectionGroup('streaks')` query but streaks is stored as a DOCUMENT, not a subcollection
-- **Result:** Returns ZERO documents, no milestones detected by scheduled function
-- ✅ **Client-side detection WORKS** (`useMilestones` hook) - primary method, 99% coverage
-- ❌ **Scheduled function DOES NOT WORK** - requires schema migration
-- 📝 **To Fix:** Migrate to `users/{uid}/streaks/{streakId}` subcollection structure (future enhancement)
-- 💡 **Impact:** Users must have app open to earn milestones (acceptable for MVP)
+**Milestone Detection:** Uses a hybrid approach for reliability:
+- ✅ **Client-side detection** (`useMilestones` hook) - Primary, instant feedback when app is open
+- ✅ **Scheduled Cloud Function** (`checkMilestonesScheduled`) - Backup, runs every minute for offline detection
+- 🔍 **Technical:** Scheduled function uses `collectionGroup('kamehameha')` with `FieldPath.documentId() == 'streaks'` filter
+- 📊 **Index Required:** See index configuration above for `kamehameha` collection group
 
 ### Build for Production
 

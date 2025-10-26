@@ -1,27 +1,24 @@
 /**
  * Scheduled Milestone Detection Cloud Function
  * 
- * ⚠️ **DEPRECATED - NON-FUNCTIONAL** ⚠️
+ * Runs every 1 minute via Cloud Scheduler
+ * Checks all active journeys and creates badges for crossed milestones
  * 
- * **Problem:**
- * This function uses collectionGroup('streaks') query but our schema stores
- * streaks as a DOCUMENT at users/{uid}/kamehameha/streaks, not a subcollection.
- * Collection group queries only find SUBCOLLECTIONS, so this returns ZERO documents.
+ * Benefits:
+ * - Works even when app is closed (offline milestone detection)
+ * - No race conditions (not triggered by client writes)
+ * - Reliable timing
+ * - Idempotent (safe to retry)
  * 
- * **Current Status:**
- * - ✅ Client-side detection works (useMilestones hook) - 99% coverage
- * - ❌ This scheduled backup is NON-FUNCTIONAL with current schema
- * 
- * **To Fix (Future):**
- * Migrate schema to users/{uid}/streaks/{streakId} subcollection structure
- * 
- * **For Now:**
- * Keep for reference. Primary milestone detection is client-side.
+ * Technical Implementation:
+ * - Uses collectionGroup('kamehameha') to find all kamehameha collections
+ * - Filters by FieldPath.documentId() == 'streaks' to get streak documents
+ * - This works with our schema: users/{uid}/kamehameha/streaks (document)
  */
 
 import {onSchedule} from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
-import {FieldValue} from 'firebase-admin/firestore';
+import {FieldValue, FieldPath} from 'firebase-admin/firestore';
 import {MILESTONE_SECONDS, getBadgeConfig} from './milestoneConstants';
 
 /**
@@ -43,8 +40,11 @@ export const checkMilestonesScheduled = onSchedule(
     
     try {
       // Get all users with an active journey (currentJourneyId exists)
+      // Query kamehameha collection group and filter for 'streaks' documents
+      // This works with schema: users/{uid}/kamehameha/streaks (document)
       const usersSnapshot = await db
-        .collectionGroup('streaks')
+        .collectionGroup('kamehameha')
+        .where(FieldPath.documentId(), '==', 'streaks')
         .where('currentJourneyId', '!=', null)
         .get();
       
