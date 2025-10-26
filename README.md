@@ -70,12 +70,22 @@ cd podomoro-app
 npm install
 ```
 
-3. Start the development server:
+3. Set up environment variables:
+```bash
+# Copy the example files
+cp .env.example .env
+cp functions/.env.example functions/.env
+
+# Edit .env with your Firebase config (get from Firebase Console)
+# Edit functions/.env with your OpenAI API key (for AI chat feature)
+```
+
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to the URL shown in the terminal (typically `http://localhost:5173`)
+5. Open your browser and navigate to the URL shown in the terminal (typically `http://localhost:5173`)
 
 ### Build for Production
 
