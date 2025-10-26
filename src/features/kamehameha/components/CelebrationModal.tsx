@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import type { Badge } from '../types/kamehameha.types';
+import { TIMEOUTS } from '../constants/app.constants';
 
 interface CelebrationModalProps {
   badge: Badge | null;
@@ -19,7 +20,7 @@ export function CelebrationModal({ badge, onClose }: CelebrationModalProps) {
     if (!badge) return;
 
     // Trigger confetti animation
-    const duration = 3000;
+    const duration = TIMEOUTS.TOAST_DURATION_MS;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
@@ -55,7 +56,7 @@ export function CelebrationModal({ badge, onClose }: CelebrationModalProps) {
     // Auto-close after 5 seconds
     const autoCloseTimer = setTimeout(() => {
       onClose();
-    }, 5000);
+    }, TIMEOUTS.ERROR_MESSAGE_MS);
 
     return () => {
       clearInterval(interval);

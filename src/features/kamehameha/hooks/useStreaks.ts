@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import type { Streaks, StreakDisplay, UseStreaksReturn } from '../types/kamehameha.types';
 import { logger } from '../../../utils/logger';
+import { INTERVALS } from '../constants/app.constants';
 import {
   getStreaks,
   resetMainStreak as resetMainStreakService,
@@ -19,12 +20,6 @@ import { getCurrentJourney } from '../services/journeyService';
 import {
   calculateStreakFromStart,
 } from '../services/streakCalculations';
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-const UPDATE_INTERVAL = 1000; // Update display every second
 
 // ============================================================================
 // useStreaks Hook
@@ -157,7 +152,7 @@ export function useStreaks(): UseStreaksReturn {
     // Then update every second
     updateIntervalRef.current = setInterval(() => {
       updateDisplay();
-    }, UPDATE_INTERVAL);
+    }, INTERVALS.UPDATE_DISPLAY_MS);
     
     return () => {
       if (updateIntervalRef.current) {

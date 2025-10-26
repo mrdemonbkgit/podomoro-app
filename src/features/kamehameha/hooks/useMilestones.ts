@@ -12,6 +12,7 @@ import { useEffect, useRef } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import { doc, setDoc, getFirestore, increment, updateDoc } from 'firebase/firestore';
 import { getDocPath } from '../services/paths';
+import { INTERVALS } from '../constants/app.constants';
 import { logger } from '../../../utils/logger';
 
 // Milestone thresholds in seconds
@@ -116,7 +117,7 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
     checkMilestones();
 
     // Then check every second
-    checkIntervalRef.current = setInterval(checkMilestones, 1000);
+    checkIntervalRef.current = setInterval(checkMilestones, INTERVALS.MILESTONE_CHECK_MS);
 
     return () => {
       if (checkIntervalRef.current) {

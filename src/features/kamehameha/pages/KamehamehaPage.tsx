@@ -13,6 +13,7 @@ import { CelebrationModal } from '../components/CelebrationModal';
 import { MilestoneProgress } from '../components/MilestoneProgress';
 import { JourneyInfo } from '../components/JourneyInfo'; // ← Phase 5.1
 import { type StreakDisplay } from '../types/kamehameha.types';
+import { TIMEOUTS } from '../constants/app.constants';
 
 /**
  * Kamehameha Recovery Tool - Main Page
@@ -42,7 +43,7 @@ export function KamehamehaPage() {
     try {
       await createCheckIn(checkInData);
       setSuccessMessage('✅ Check-in saved successfully!');
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setTimeout(() => setSuccessMessage(null), TIMEOUTS.SUCCESS_MESSAGE_MS);
     } catch (error) {
       console.error('Failed to save check-in:', error);
       // Error notification could be added here
@@ -54,7 +55,7 @@ export function KamehamehaPage() {
     try {
       await createRelapse(relapseData);
       setSuccessMessage('✅ Relapse recorded. Streak reset. You got this!');
-      setTimeout(() => setSuccessMessage(null), 5000);
+      setTimeout(() => setSuccessMessage(null), TIMEOUTS.ERROR_MESSAGE_MS);
       // Refresh streaks to show updated data
       await refreshStreaks();
     } catch (error) {
