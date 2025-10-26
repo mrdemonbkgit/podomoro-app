@@ -7,10 +7,13 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { db } from '../../../services/firebase/config';
 import { UserProfile } from '../../auth/components/UserProfile';
 import { logger } from '../../../utils/logger';
 import { useAuth } from '../../auth/context/AuthContext';
-import { getJourneyHistory, getJourneyViolations } from '../services/journeyService';
+import { getJourneyViolations } from '../services/journeyService';
+import { COLLECTION_PATHS } from '../services/paths';
 import type { Journey, Relapse } from '../types/kamehameha.types';
 
 export function JourneyHistoryPage() {
@@ -23,17 +26,29 @@ export function JourneyHistoryPage() {
   const [loadingViolations, setLoadingViolations] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.uid) return;
 
-    async function loadJourneys() {
-      try {
-        logger.debug('🔄 Reloading journey history...');
-        const history = await getJourneyHistory(user!.uid);
-        setJourneys(history);
-        logger.debug('✅ Loaded journeys:', history.length, 'journeys');
-        if (history.length > 0) {
-          const latest = history[0];
-          const duration = latest.endDate 
+    // Real-time listener for journey history
+    const journeysRef = collection(db, COLLECTION_PATHS.journeys(user.uid));
+    const q = query(journeysRef, orderBy('startDate', 'desc'), limit(20));
+
+    logger.debug('🔄 Setting up real-time journey history listener...');
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const journeysList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Journey[];
+
+        setJourneys(journeysList);
+        setLoading(false);
+
+        logger.debug('✅ Journey history updated:', journeysList.length, 'journeys');
+        if (journeysList.length > 0) {
+          const latest = journeysList[0];
+          const duration = latest.endDate
             ? latest.finalSeconds || 0
             : Math.floor((Date.now() - latest.startDate) / 1000);
           const minutes = Math.floor(duration / 60);
@@ -45,24 +60,18 @@ export function JourneyHistoryPage() {
             endReason: latest.endReason,
             durationSeconds: duration,
             durationDisplay: `${minutes}m ${seconds}s`,
-            isActive: !latest.endDate
+            isActive: !latest.endDate,
           });
         }
-      } catch (error) {
-        console.error('Failed to load journey history:', error);
-      } finally {
+      },
+      (error) => {
+        logger.error('Journey history listener error:', error);
         setLoading(false);
       }
-    }
+    );
 
-    loadJourneys();
-    
-    // Reload every 5 seconds to catch updates
-    // TODO: Replace with real-time listener for better performance
-    const intervalId = setInterval(loadJourneys, 5000);
-    
-    return () => clearInterval(intervalId);
-  }, [user]);
+    return () => unsubscribe();
+  }, [user?.uid]);
 
   const toggleJourneyExpansion = async (journeyId: string) => {
     if (expandedJourneyId === journeyId) {
@@ -77,7 +86,7 @@ export function JourneyHistoryPage() {
           const violations = await getJourneyViolations(user.uid, journeyId);
           setJourneyViolations(prev => ({ ...prev, [journeyId]: violations }));
         } catch (error) {
-          console.error('Failed to load violations:', error);
+          logger.error('Failed to load violations:', error);
         } finally {
           setLoadingViolations(prev => ({ ...prev, [journeyId]: false }));
         }
