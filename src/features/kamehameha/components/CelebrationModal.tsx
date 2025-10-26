@@ -56,7 +56,7 @@ export function CelebrationModal({ badge, onClose }: CelebrationModalProps) {
     // Auto-close after 5 seconds
     const autoCloseTimer = setTimeout(() => {
       onClose();
-    }, TIMEOUTS.ERROR_MESSAGE_MS);
+    }, TIMEOUTS.CELEBRATION_DURATION_MS);
 
     return () => {
       clearInterval(interval);

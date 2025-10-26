@@ -1,13 +1,9 @@
 /**
- * Application Constants
- * 
- * Named constants for all magic numbers in the Kamehameha feature.
- * This improves code readability and maintainability.
+ * Application Constants - Named constants for timing, limits, and timeouts.
+ * @see docs/API_REFERENCE.md for complete documentation
  */
 
-/**
- * Time intervals for various operations (in milliseconds)
- */
+/** Time intervals for operations (milliseconds) */
 export const INTERVALS = {
   /** Display update interval (1 second) */
   UPDATE_DISPLAY_MS: 1000,
@@ -19,29 +15,16 @@ export const INTERVALS = {
   POLLING_MS: 5000,
 } as const;
 
-/**
- * Limits for various features
- */
+/** Feature limits */
 export const LIMITS = {
   /** Maximum AI chat message length */
   MAX_MESSAGE_LENGTH: 2000,
   
   /** Rate limit: messages per minute */
   RATE_LIMIT_MESSAGES_PER_MIN: 10,
-  
-  /** Maximum check-ins to display in UI */
-  MAX_CHECKINS_DISPLAY: 10,
-  
-  /** Maximum relapses to display in UI */
-  MAX_RELAPSES_DISPLAY: 10,
-  
-  /** Maximum journey history to display (removed limit in Phase 3) */
-  MAX_JOURNEY_HISTORY_DISPLAY: 20,
 } as const;
 
-/**
- * Timeouts for UI feedback (in milliseconds)
- */
+/** UI feedback timeouts (milliseconds) */
 export const TIMEOUTS = {
   /** Success message display duration */
   SUCCESS_MESSAGE_MS: 3000,
@@ -51,6 +34,9 @@ export const TIMEOUTS = {
   
   /** Toast notification duration */
   TOAST_DURATION_MS: 3000,
+  
+  /** Celebration modal auto-close duration */
+  CELEBRATION_DURATION_MS: 5000,
 } as const;
 
 /**

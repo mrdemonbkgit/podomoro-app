@@ -1,45 +1,7 @@
 /**
- * useMilestones Hook
- * 
- * **Client-side milestone detection for real-time badge creation**
- * 
- * This hook monitors the current journey's elapsed time and automatically
- * creates badge documents when milestone thresholds are crossed.
- * 
- * **Hybrid Detection System:**
- * - **Client-side (this hook):** Instant detection when app is open
- * - **Server-side (Cloud Function):** Backup detection for offline scenarios
- * 
- * **How it works:**
- * 1. Checks elapsed time every second
- * 2. Compares against milestone thresholds (1 day, 3 days, 7 days, etc.)
- * 3. Creates badge document in Firestore when threshold crossed
- * 4. Uses deterministic badge IDs to prevent duplicates
- * 5. Increments journey's achievementsCount
- * 
- * **Idempotency:**
- * Badge IDs follow pattern: `{journeyId}-{milestoneSeconds}`
- * This ensures creating the same badge multiple times has no effect.
- * 
- * @param currentJourneyId - Active journey ID (from useStreaks)
- * @param journeyStartDate - Journey start timestamp (from useStreaks)
- * 
- * @example
- * ```typescript
- * function MyComponent() {
- *   const { currentJourneyId, journeyStartDate } = useStreaks();
- *   
- *   // This hook runs automatically - no manual calls needed
- *   useMilestones(currentJourneyId, journeyStartDate);
- *   
- *   // Badges are created automatically when milestones are reached
- *   // Use useBadges() hook to display them
- * }
- * ```
- * 
- * @see {@link useBadges} - Hook to display created badges
- * @see {@link MILESTONE_SECONDS} - Milestone threshold definitions
- * @see {@link checkMilestonesScheduled} - Server-side backup (Cloud Function)
+ * Client-side milestone detection for real-time badge creation.
+ * Monitors journey elapsed time and creates badges when thresholds are crossed.
+ * @see docs/API_REFERENCE.md for complete documentation
  */
 
 import { useEffect, useRef } from 'react';
@@ -47,37 +9,8 @@ import { useAuth } from '../../auth/context/AuthContext';
 import { doc, setDoc, getFirestore, increment, updateDoc } from 'firebase/firestore';
 import { getDocPath } from '../services/paths';
 import { INTERVALS } from '../constants/app.constants';
+import { MILESTONE_SECONDS, getMilestoneConfig } from '../constants/milestones';
 import { logger } from '../../../utils/logger';
-
-// Milestone thresholds in seconds
-const MILESTONE_SECONDS = [
-  60,      // 1 minute (dev)
-  300,     // 5 minutes (dev)
-  86400,   // 1 day
-  259200,  // 3 days
-  604800,  // 7 days
-  1209600, // 14 days
-  2592000, // 30 days
-  5184000, // 60 days
-  7776000, // 90 days
-  15552000, // 180 days
-  31536000, // 365 days
-];
-
-// Badge configurations
-const BADGE_CONFIGS: Record<number, { emoji: string; name: string; message: string }> = {
-  60: { emoji: '⚡', name: 'One Minute Wonder', message: "You've reached 1 minute! Every second counts." },
-  300: { emoji: '💪', name: 'Five Minute Fighter', message: "5 minutes strong! You're building momentum." },
-  86400: { emoji: '🌱', name: 'First Step', message: "You've completed your first day! This is the beginning of something great." },
-  259200: { emoji: '💪', name: 'Building Momentum', message: "3 days strong! You're proving your commitment." },
-  604800: { emoji: '⚔️', name: 'One Week Warrior', message: "A full week! You're a warrior on this journey." },
-  1209600: { emoji: '🏆', name: 'Two Week Champion', message: "2 weeks of dedication! You're unstoppable." },
-  2592000: { emoji: '👑', name: 'Monthly Master', message: "30 days! You've mastered the first month." },
-  5184000: { emoji: '🌟', name: 'Two Month Legend', message: "60 days of strength! You're becoming legendary." },
-  7776000: { emoji: '💎', name: 'Three Month Diamond', message: "90 days! Your dedication shines like a diamond." },
-  15552000: { emoji: '🦅', name: 'Half Year Hero', message: "180 days! You're soaring to new heights." },
-  31536000: { emoji: '🔥', name: 'One Year Phoenix', message: "365 days! You've risen like a phoenix. Incredible!" },
-};
 
 interface UseMilestonesProps {
   currentJourneyId: string | null;
@@ -112,11 +45,7 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
             const badgeId = `${currentJourneyId}_${milestone}`;
             const badgeRef = doc(db, getDocPath.badge(user.uid, badgeId));
             
-            const badgeConfig = BADGE_CONFIGS[milestone] || {
-              emoji: '🎯',
-              name: 'Achievement Unlocked',
-              message: 'Congratulations on reaching this milestone!',
-            };
+            const badgeConfig = getMilestoneConfig(milestone);
 
             // Use setDoc for idempotency (won't duplicate if already exists)
             await setDoc(badgeRef, {

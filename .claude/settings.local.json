@@ -26,7 +26,8 @@
       "Bash(npm run format:check)",
       "Bash(git checkout 010b959)",
       "Bash(cat .github/workflows/ci.yml)",
-      "Bash(npx prettier --version)"
+      "Bash(npx prettier --version)",
+      "Bash(npx vitest run milestoneConstants.test.ts)"
     ],
     "deny": [],
     "ask": []
