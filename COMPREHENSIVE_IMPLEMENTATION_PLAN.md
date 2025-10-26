@@ -2,9 +2,14 @@
 
 **Project:** ZenFocus - Kamehameha Recovery Tool  
 **Date:** October 26, 2025  
-**Status:** Planning Phase  
+**Version:** 2.0 (Peer-Reviewed & Corrected)  
+**Status:** Ready for Execution  
 **Scope:** All 21 identified technical debt issues  
 **Target:** Production-ready codebase
+
+> **✅ This plan has been peer-reviewed and corrected.**  
+> All critical issues identified in `docs/COMPREHENSIVE_PLAN_REVIEW.md` have been addressed.  
+> See `docs/PLAN_REVIEW_RESPONSE.md` for detailed review response.
 
 ---
 
@@ -18,11 +23,12 @@ This plan provides a **complete roadmap** to address all 21 technical debt issue
 - 🟢 **3 LOW PRIORITY** (Nice to have)
 
 **Timeline:** 6-7 weeks total
-- **Phase 1 (Quick Wins):** 2 hours
-- **Phase 2 (Critical Fixes):** 1.5 weeks
-- **Phase 3 (Testing & Stability):** 2 weeks
-- **Phase 4 (Quality & Performance):** 1.5 weeks
-- **Phase 5 (Polish):** 1 week
+- **Phase 0 (Quick Wins):** 2.5 hours
+- **Phase 1 (Critical Fixes):** 1.5 weeks
+- **Phase 2 (Testing & Stability):** 2 weeks
+- **Phase 2.5 (CI/CD Pipeline):** 1 day
+- **Phase 3 (Quality & Performance):** 1.5 weeks
+- **Phase 4 (Polish):** 1 week
 
 ---
 
@@ -266,16 +272,24 @@ ls lib/
 
 ---
 
-### **Quick Win #5: Fix Delete Operation Paths (1 hour)**
+### **Quick Win #5: Centralize Paths & Fix Deletes (1.5 hours)**
 
-**Issue:** #10 - Delete operations use wrong paths
+**Issue:** #10 - Delete operations use wrong paths  
+**Improvement:** Create shared `paths.ts` for all services to use
 
 **Steps:**
 
-1. **Create centralized path builders** (add to `firestoreService.ts`):
+1. **Create shared paths file** `src/features/kamehameha/services/paths.ts`:
 ```typescript
-// Add after existing constants
-const COLLECTION_PATHS = {
+/**
+ * Centralized Firestore collection paths
+ * Single source of truth for all path construction
+ * 
+ * IMPORTANT: All services and hooks MUST import from this file.
+ * Do NOT use hardcoded path strings elsewhere.
+ */
+
+export const COLLECTION_PATHS = {
   streaks: (userId: string) => `users/${userId}/kamehameha/streaks`,
   checkIns: (userId: string) => `users/${userId}/kamehameha_checkIns`,
   relapses: (userId: string) => `users/${userId}/kamehameha_relapses`,
@@ -283,33 +297,97 @@ const COLLECTION_PATHS = {
   badges: (userId: string) => `users/${userId}/kamehameha_badges`,
   chatMessages: (userId: string) => `users/${userId}/kamehameha_chat_messages`,
 } as const;
+
+// Helper to get full document paths
+export const getDocPath = {
+  streak: (userId: string) => `${COLLECTION_PATHS.streaks(userId)}/streaks`,
+  checkIn: (userId: string, id: string) => `${COLLECTION_PATHS.checkIns(userId)}/${id}`,
+  relapse: (userId: string, id: string) => `${COLLECTION_PATHS.relapses(userId)}/${id}`,
+  journey: (userId: string, id: string) => `${COLLECTION_PATHS.journeys(userId)}/${id}`,
+  badge: (userId: string, id: string) => `${COLLECTION_PATHS.badges(userId)}/${id}`,
+  chatMessage: (userId: string, id: string) => `${COLLECTION_PATHS.chatMessages(userId)}/${id}`,
+} as const;
 ```
 
-2. **Fix deleteCheckIn** (line ~355):
+2. **Update firestoreService.ts** - Add import and update all paths:
 ```typescript
+import { COLLECTION_PATHS, getDocPath } from './paths';
+
+// Update deleteCheckIn (line ~355)
 // BEFORE
 const checkInRef = doc(db, 'users', userId, 'kamehameha', CHECKINS_COLLECTION, checkInId);
-
 // AFTER
-const checkInRef = doc(db, COLLECTION_PATHS.checkIns(userId), checkInId);
-```
+const checkInRef = doc(db, getDocPath.checkIn(userId, checkInId));
 
-3. **Fix deleteRelapse** (line ~467):
-```typescript
+// Update deleteRelapse (line ~467)
 // BEFORE
 const relapseRef = doc(db, 'users', userId, 'kamehameha', RELAPSES_COLLECTION, relapseId);
-
 // AFTER
-const relapseRef = doc(db, COLLECTION_PATHS.relapses(userId), relapseId);
+const relapseRef = doc(db, getDocPath.relapse(userId, relapseId));
 ```
 
-4. **Update all collection references** to use COLLECTION_PATHS:
-- saveCheckIn (line ~290)
-- getRecentCheckIns (line ~323)
-- saveRelapse (line ~385)
-- getRecentRelapses (line ~435)
+3. **Update journeyService.ts** - Import and use paths:
+```typescript
+import { COLLECTION_PATHS } from '../services/paths';
 
-5. **Test manually**:
+// Update all collection() calls
+const journeysRef = collection(db, COLLECTION_PATHS.journeys(userId));
+```
+
+4. **Update hooks** (useBadges, useCheckIns, useRelapses, etc.):
+```typescript
+import { COLLECTION_PATHS } from '../services/paths';
+
+// Update snapshot queries
+const badgesRef = collection(db, COLLECTION_PATHS.badges(user.uid));
+```
+
+5. **Scan for hardcoded paths** (find any we missed):
+```bash
+# Add to package.json
+"scripts": {
+  "scan:paths": "node scripts/scan-hardcoded-paths.js"
+}
+```
+
+Create `scripts/scan-hardcoded-paths.js`:
+```javascript
+import { readFileSync, readdirSync } from 'fs';
+import { join } from 'path';
+
+const pathPatterns = [
+  /users\/\${.*?}\/kamehameha/,
+  /'users\/.*?\/kamehameha/,
+  /"users\/.*?\/kamehameha/,
+];
+
+let found = false;
+const files = readdirSync('src/features/kamehameha', { recursive: true, withFileTypes: true });
+
+for (const file of files) {
+  if (file.isFile() && file.name.match(/\.(ts|tsx)$/)) {
+    const filePath = join(file.path, file.name);
+    if (filePath.includes('services/paths.ts')) continue; // Skip the source file
+    
+    const content = readFileSync(filePath, 'utf-8');
+    for (const pattern of pathPatterns) {
+      if (content.match(pattern)) {
+        console.error(`⚠️  Hardcoded path in: ${filePath}`);
+        found = true;
+      }
+    }
+  }
+}
+
+if (found) {
+  console.error('\n❌ Found hardcoded paths. Use COLLECTION_PATHS from services/paths.ts instead.');
+  process.exit(1);
+} else {
+  console.log('✅ No hardcoded paths found. All using centralized paths!');
+}
+```
+
+6. **Test manually**:
 ```bash
 # Start emulator
 firebase emulators:start
@@ -317,25 +395,47 @@ firebase emulators:start
 # In app:
 # - Create check-in → Delete it → Verify gone
 # - Create relapse → Delete it → Verify gone
+# - Journey history loads correctly
+# - Badges load correctly
 ```
 
-6. Commit:
+7. **Verify no hardcoded paths**:
 ```bash
+npm run scan:paths
+```
+
+8. Commit:
+```bash
+git add src/features/kamehameha/services/paths.ts
 git add src/features/kamehameha/services/firestoreService.ts
-git commit -m "fix: Correct delete operation paths and centralize path builders"
+git add src/features/kamehameha/services/journeyService.ts
+git add src/features/kamehameha/hooks/
+git add scripts/scan-hardcoded-paths.js
+git add package.json
+git commit -m "feat: Centralize Firestore paths and fix delete operations
+
+- Created shared services/paths.ts for all path construction
+- Updated all services and hooks to use centralized paths
+- Fixed delete operation paths (checkIns, relapses)
+- Added scan script to prevent future hardcoded paths
+- Single source of truth for all collection paths"
 ```
 
 **Validation:**
-- [ ] COLLECTION_PATHS constant created
-- [ ] All collection references use centralized paths
+- [ ] paths.ts file created with all collection paths
+- [ ] firestoreService.ts imports and uses paths
+- [ ] journeyService.ts imports and uses paths
+- [ ] All hooks import and use paths
 - [ ] Delete operations actually delete data
 - [ ] No Firestore errors in console
+- [ ] `npm run scan:paths` passes (no hardcoded paths)
+- [ ] All features still work correctly
 
 ---
 
 ### **Quick Wins Summary**
 
-**Time:** 2 hours total  
+**Time:** 2.5 hours total  
 **Issues Fixed:** 5 HIGH PRIORITY (#1, #2, #3, #6, #7) + 1 MEDIUM (#10)  
 **Risk:** Minimal (all reversible)  
 **Impact:** HUGE (clean foundation for real work)
@@ -345,7 +445,9 @@ git commit -m "fix: Correct delete operation paths and centralize path builders"
 - [ ] Build artifacts removed from Git
 - [ ] Nested functions folder deleted
 - [ ] Deprecated compiled code cleaned
+- [ ] Centralized paths created (paths.ts)
 - [ ] Delete operations fixed
+- [ ] Path scan script added
 - [ ] All changes committed
 - [ ] Project still builds and runs
 
@@ -488,22 +590,74 @@ console.groupEnd(...) → logger.groupEnd()
    - Components
 
 **Day 2 Afternoon:**
-7. **Verification**:
+7. **Verification (Cross-Platform)**:
+
+**Option A: Use ESLint (Recommended)**
 ```bash
-# Should find ZERO console.log statements (except in logger.ts itself)
-grep -r "console\.log" src/features/kamehameha --exclude-dir=node_modules
+# ESLint will catch console statements automatically
+npm run lint
 
-# Should find ZERO console.warn (except in logger.ts)
-grep -r "console\.warn" src/features/kamehameha --exclude-dir=node_modules
+# Should see NO errors for console.log/warn in kamehameha files
+```
 
-# console.error is OK (becomes logger.error)
+**Option B: Use NPM Script**
+```bash
+# Add to package.json scripts
+"scan:console": "node scripts/scan-console.js"
+
+# Then run
+npm run scan:console
+```
+
+Create `scripts/scan-console.js`:
+```javascript
+import { readFileSync, readdirSync } from 'fs';
+import { join } from 'path';
+
+const consolePatterns = [
+  { regex: /console\.log\(/, type: 'console.log' },
+  { regex: /console\.warn\(/, type: 'console.warn' },
+];
+
+let found = false;
+const files = readdirSync('src/features/kamehameha', { recursive: true, withFileTypes: true });
+
+for (const file of files) {
+  if (file.isFile() && file.name.match(/\.(ts|tsx)$/)) {
+    const filePath = join(file.path, file.name);
+    
+    // Skip logger.ts itself
+    if (filePath.includes('utils/logger.ts')) continue;
+    
+    const content = readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n');
+    
+    lines.forEach((line, idx) => {
+      for (const pattern of consolePatterns) {
+        if (line.match(pattern.regex)) {
+          console.error(`⚠️  ${pattern.type} found in: ${filePath}:${idx + 1}`);
+          console.error(`   ${line.trim()}`);
+          found = true;
+        }
+      }
+    });
+  }
+}
+
+if (found) {
+  console.error('\n❌ Found console.log/warn statements. Use logger instead!');
+  process.exit(1);
+} else {
+  console.log('✅ No console.log/warn statements found!');
+}
 ```
 
 8. **Production build test**:
 ```bash
 npm run build
-# Check dist bundle - should contain NO console statements
-grep -r "console\." dist/assets/
+
+# Verify build size is reasonable (console stripping works)
+# Check that build succeeds without errors
 ```
 
 **Commit Strategy:**
@@ -512,17 +666,20 @@ grep -r "console\." dist/assets/
 
 **Validation:**
 - [ ] Logger utility created
-- [ ] Build-time stripping configured
+- [ ] Build-time stripping configured (`esbuild.drop`)
 - [ ] All 74 console.log replaced
 - [ ] All console.warn replaced
 - [ ] console.error changed to logger.error
+- [ ] `npm run lint` passes (or `npm run scan:console`)
 - [ ] Dev mode shows logs
-- [ ] Production build has NO logs
+- [ ] Production build succeeds
 - [ ] App functions normally
 
 ---
 
 ### **Day 3: Runtime Validation with Zod (Issue #8)**
+
+**Goal:** Add Zod validation to **ALL** callable Cloud Functions
 
 **Steps:**
 
@@ -536,13 +693,40 @@ npm install zod
 ```typescript
 import { z } from 'zod';
 
-// Chat request validation
+/**
+ * Chat request validation schema
+ * @example Valid: { message: "Hello", isEmergency: false }
+ * @example Invalid: { message: "", isEmergency: "yes" }
+ */
 export const ChatRequestSchema = z.object({
   message: z.string().min(1).max(2000),
   isEmergency: z.boolean().optional().default(false),
 });
 
+/**
+ * Get chat history request validation schema
+ * @example Valid: { limitCount: 20 }
+ * @example Invalid: { limitCount: -5 }
+ */
+export const GetChatHistorySchema = z.object({
+  limitCount: z.number().int().min(1).max(100).optional().default(20),
+});
+
+/**
+ * Clear chat history request validation schema
+ * @example Valid: { confirm: true }
+ * @example Invalid: { confirm: false }
+ */
+export const ClearChatHistorySchema = z.object({
+  confirm: z.boolean().refine(val => val === true, {
+    message: 'Must confirm deletion by setting confirm: true'
+  }),
+});
+
+// Export types
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
+export type GetChatHistoryRequest = z.infer<typeof GetChatHistorySchema>;
+export type ClearChatHistoryRequest = z.infer<typeof ClearChatHistorySchema>;
 
 // Export validation helper
 export function validateRequest<T>(
@@ -558,6 +742,8 @@ export function validateRequest<T>(
 ```
 
 3. **Update Cloud Functions** (`functions/src/index.ts`):
+
+**chatWithAI:**
 ```typescript
 import { ChatRequestSchema, validateRequest } from './validation';
 
@@ -578,41 +764,90 @@ export const chatWithAI = onCall(async (request) => {
 });
 ```
 
-4. **Test validation**:
+**getChatHistory:**
+```typescript
+import { GetChatHistorySchema, validateRequest } from './validation';
+
+export const getChatHistory = onCall(async (request) => {
+  const validation = validateRequest(GetChatHistorySchema, request.data || {});
+  
+  if (!validation.success) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Invalid request format',
+      validation.errors.errors
+    );
+  }
+  
+  const { limitCount } = validation.data;
+  // ... rest of function
+});
+```
+
+**clearChatHistory:**
+```typescript
+import { ClearChatHistorySchema, validateRequest } from './validation';
+
+export const clearChatHistory = onCall(async (request) => {
+  const validation = validateRequest(ClearChatHistorySchema, request.data);
+  
+  if (!validation.success) {
+    throw new HttpsError(
+      'invalid-argument',
+      'Must confirm deletion',
+      validation.errors.errors
+    );
+  }
+  
+  // Type-safe and validated!
+  // ... rest of function
+});
+```
+
+4. **Test validation for ALL functions**:
 ```bash
 # Start emulator
 firebase emulators:start
 
-# Test with valid data - should work
-# Test with invalid data - should get clear error
-# Test with missing fields - should get clear error
-# Test with wrong types - should get clear error
+# Test chatWithAI
+# - Valid: { message: "Help me" } → Should work
+# - Invalid: { message: "" } → Should error
+# - Invalid: { message: 123 } → Should error
+
+# Test getChatHistory  
+# - Valid: { limitCount: 20 } → Should work
+# - Valid: {} → Should use default (20)
+# - Invalid: { limitCount: -5 } → Should error
+
+# Test clearChatHistory
+# - Valid: { confirm: true } → Should work
+# - Invalid: { confirm: false } → Should error
+# - Invalid: {} → Should error
 ```
 
-5. **Document schemas** (add JSDoc):
-```typescript
-/**
- * Chat request validation schema
- * 
- * @example
- * Valid: { message: "Hello", isEmergency: false }
- * Invalid: { message: "", isEmergency: "yes" }
- */
-```
-
-6. Commit:
+5. Commit:
 ```bash
-git add functions/
-git commit -m "feat(functions): Add Zod runtime validation for Cloud Functions"
+git add functions/src/validation.ts
+git add functions/src/index.ts
+git commit -m "feat(functions): Add Zod runtime validation for ALL Cloud Functions
+
+- Added validation schemas for all callable functions
+- chatWithAI: message length and type validation
+- getChatHistory: limitCount validation with defaults
+- clearChatHistory: confirmation requirement
+- Type-safe with inferred types from schemas
+- Clear error messages for invalid requests"
 ```
 
 **Validation:**
 - [ ] Zod installed in functions
-- [ ] Validation schemas created
-- [ ] All Cloud Functions use validation
+- [ ] Validation schemas created for ALL functions
+- [ ] chatWithAI validates message
+- [ ] getChatHistory validates limitCount
+- [ ] clearChatHistory validates confirm
 - [ ] Invalid requests return clear errors
-- [ ] Type safety maintained
-- [ ] Tests pass
+- [ ] Type safety maintained (inferred types)
+- [ ] All tests pass
 
 ---
 
@@ -643,9 +878,14 @@ git commit -m "feat(functions): Add Zod runtime validation for Cloud Functions"
 ```bash
 npm install --save-dev \
   @firebase/rules-unit-testing \
-  @testing-library/react-hooks \
+  @testing-library/react \
+  @testing-library/user-event \
+  @testing-library/jest-dom \
   msw
 ```
+
+> **Note:** `@testing-library/react` already includes `renderHook` (no need for deprecated `@testing-library/react-hooks`).
+> Vitest environment is already configured (jsdom) in `vitest.config.ts`.
 
 2. **Create Firebase mocks** (`src/test/mocks/firebase.ts`):
 ```typescript
@@ -691,8 +931,17 @@ export const testBadge = {
 };
 ```
 
-4. **Configure test utilities** (`src/test/utils.tsx`):
+4. **Add jest-dom to test setup** (`src/test/setup.ts`):
 ```typescript
+// Add to existing setup file
+import '@testing-library/jest-dom';
+```
+
+5. **Configure test utilities** (`src/test/utils.tsx`):
+```typescript
+import { render } from '@testing-library/react';
+import { renderHook } from '@testing-library/react'; // Built-in since React 18
+
 // Wrapper with providers
 export function renderWithProviders(ui: React.ReactElement) {
   return render(
@@ -702,6 +951,19 @@ export function renderWithProviders(ui: React.ReactElement) {
       </StreaksProvider>
     </AuthProvider>
   );
+}
+
+// Hook wrapper
+export function renderHookWithProviders<T>(hook: () => T) {
+  return renderHook(hook, {
+    wrapper: ({ children }) => (
+      <AuthProvider>
+        <StreaksProvider>
+          {children}
+        </StreaksProvider>
+      </AuthProvider>
+    ),
+  });
 }
 ```
 
@@ -958,6 +1220,14 @@ import {
 } from '@firebase/rules-unit-testing';
 
 describe('Firestore Security Rules', () => {
+  // Use deterministic fixtures (not Date.now()) for consistency
+  const FIXED_TIMESTAMP = 1700000000000;
+  
+  beforeEach(async () => {
+    // Isolate test environment - clear data between tests
+    await testEnv.clearFirestore();
+  });
+  
   test('users can read own data', async () => {
     const db = testEnv.authenticatedContext('user123');
     await assertSucceeds(
@@ -987,10 +1257,19 @@ describe('Firestore Security Rules', () => {
 });
 ```
 
-2. **Add to CI pipeline**:
-```yaml
-- name: Test Firestore Rules
-  run: npm run test:rules
+> **Best Practices:**
+> - Use `testEnv.clearFirestore()` between tests for isolation
+> - Use deterministic timestamps (not `Date.now()`)
+> - Proper async/await handling
+> - Separate test environment from dev emulator
+
+2. **Add test script to package.json**:
+```json
+{
+  "scripts": {
+    "test:rules": "vitest run firestore.rules.test.ts"
+  }
+}
 ```
 
 ---
@@ -1004,6 +1283,217 @@ describe('Firestore Security Rules', () => {
 
 **Test Count:** 100+ tests
 **Coverage:** >70% overall, 100% for critical paths
+
+---
+
+## 🛡️ Phase 2.5: CI/CD Pipeline Guardrails (1 day)
+
+**Goal:** Add continuous integration checks to catch issues early
+
+**Why:** Prevents broken code from reaching production, catches errors at commit time
+
+### **Setup GitHub Actions CI Pipeline**
+
+**Create:** `.github/workflows/ci.yml`
+```yaml
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  frontend-quality:
+    name: Frontend Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: TypeScript type check
+        run: npm run typecheck
+      
+      - name: Lint
+        run: npm run lint
+      
+      - name: Unit tests
+        run: npm test -- --run
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Check build size
+        run: |
+          SIZE=$(du -sh dist | cut -f1)
+          echo "Build size: $SIZE"
+  
+  functions-quality:
+    name: Cloud Functions Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+      
+      - name: Install functions dependencies
+        working-directory: ./functions
+        run: npm ci
+      
+      - name: TypeScript type check (functions)
+        working-directory: ./functions
+        run: npx tsc --noEmit
+      
+      - name: Build functions
+        working-directory: ./functions
+        run: npm run build
+      
+      - name: Verify no deprecated code compiled
+        working-directory: ./functions
+        run: |
+          if [ -f "lib/milestones.js" ]; then
+            echo "❌ Deprecated milestones.js found in build!"
+            exit 1
+          fi
+          echo "✅ No deprecated files in build"
+  
+  firestore-rules:
+    name: Firestore Security Rules Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Test Firestore rules
+        run: npm run test:rules
+  
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check for console.log statements
+        run: npm run scan:console
+      
+      - name: Check for hardcoded paths
+        run: npm run scan:paths
+      
+      - name: Format check
+        run: npm run format:check
+```
+
+### **Update package.json Scripts**
+
+```json
+{
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest",
+    "test:rules": "vitest run firestore.rules.test.ts",
+    "scan:console": "node scripts/scan-console.js",
+    "scan:paths": "node scripts/scan-hardcoded-paths.js",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "ci": "npm run typecheck && npm run lint && npm run test -- --run && npm run build"
+  }
+}
+```
+
+### **Benefits of CI Pipeline**
+
+1. **Early Error Detection**
+   - Catches TypeScript errors before merge
+   - Catches linting issues before merge
+   - Catches test failures before merge
+
+2. **Prevents Technical Debt**
+   - Enforces console.log removal
+   - Enforces centralized paths
+   - Enforces code formatting
+
+3. **Security Validation**
+   - Tests Firestore rules on every change
+   - Prevents security regressions
+
+4. **Build Verification**
+   - Ensures project builds successfully
+   - Verifies no deprecated code in output
+   - Checks build size
+
+### **Local Pre-Commit Hook**
+
+**Create:** `.husky/pre-commit` (if using Husky)
+```bash
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npm run typecheck
+npm run lint
+npm run test -- --run
+```
+
+Or use lint-staged:
+```json
+{
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
+```
+
+### **Validation**
+
+- [ ] CI workflow file created
+- [ ] All jobs run successfully on push
+- [ ] TypeScript errors caught by CI
+- [ ] Lint errors caught by CI
+- [ ] Test failures caught by CI
+- [ ] Build failures caught by CI
+- [ ] Rules tests run in CI
+- [ ] Code quality checks pass
 
 ---
 
@@ -1111,7 +1601,7 @@ useEffect(() => {
 
 #### **Fix #1: Create Firestore Indexes (Issue #13)**
 
-**Create:** `firestore.indexes.json`
+**Create:** `firestore.indexes.json` (at repo root)
 ```json
 {
   "indexes": [
@@ -1124,7 +1614,7 @@ useEffect(() => {
     },
     {
       "collectionGroup": "kamehameha_relapses",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         { "fieldPath": "journeyId", "order": "ASCENDING" },
         { "fieldPath": "streakType", "order": "ASCENDING" },
@@ -1135,9 +1625,35 @@ useEffect(() => {
 }
 ```
 
+> **Note:** `streakType` field is used in the current schema for categorization. If this field is being removed/renamed in Phase 5.1, update the index accordingly.
+
 **Deploy:**
 ```bash
 firebase deploy --only firestore:indexes
+```
+
+**Document in README:**
+
+Add to README.md:
+```markdown
+### Firestore Indexes
+
+Required indexes are defined in `firestore.indexes.json` at the repo root.
+
+**Deploy indexes:**
+```bash
+firebase deploy --only firestore:indexes
+```
+
+**View index status:**
+```bash
+firebase firestore:indexes
+```
+
+**Check index build progress:**
+Visit Firebase Console → Firestore → Indexes
+
+⏱️ **Note:** Index building can take several minutes to hours depending on data size.
 ```
 
 ---
@@ -1484,9 +2000,10 @@ export const chatWithAI = onCall(
 
 | Phase | Duration | Issues Fixed | Risk Level |
 |-------|----------|--------------|------------|
-| **Phase 0: Quick Wins** | 2 hours | 6 issues (5 HIGH, 1 MED) | Low |
+| **Phase 0: Quick Wins** | 2.5 hours | 6 issues (5 HIGH, 1 MED) | Low |
 | **Phase 1: Critical Fixes** | 1.5 weeks | 2 HIGH issues | Medium |
 | **Phase 2: Testing** | 2 weeks | 1 HIGH, 2 MED issues | Medium |
+| **Phase 2.5: CI/CD** | 1 day | Infrastructure | Low |
 | **Phase 3: Performance** | 1.5 weeks | 6 MED issues | Low |
 | **Phase 4: Polish** | 1 week | 1 MED, 3 LOW issues | Low |
 | **Final Validation** | 2 days | - | - |
@@ -1507,6 +2024,7 @@ export const chatWithAI = onCall(
 - Days 11-12: Integration tests
 - Day 13: Error boundaries
 - Day 14: Firestore rules tests
+- Day 15: CI/CD pipeline setup
 
 **Week 4-5: Performance**
 - Day 15: Type fixes
