@@ -13,7 +13,13 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "scan:paths": "node scripts/scan-hardcoded-paths.js",
+    "scan:console": "node scripts/scan-console.js",
+    "test:rules": "vitest run firestore.rules.test.ts",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "ci": "npm run typecheck && npm run test -- --run && npm run build"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
