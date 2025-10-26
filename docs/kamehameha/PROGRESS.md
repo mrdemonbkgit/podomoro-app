@@ -22,17 +22,19 @@
 - ✅ Milestone Badges & Gamification System
 - ✅ Zero console errors
 
-**Latest Updates (October 26, 2025 - Evening):**
-- ✅ **COMPLETE:** Phase -1 Prerequisites (30 minutes) - Package.json scripts ready!
-- ✅ **COMPLETE:** Phase 0 Quick Wins (2.5 hours) - 6 HIGH PRIORITY issues fixed!
-- 📝 Created `.env.example` templates for root and functions
-- 🧹 Removed build artifacts from Git (tsconfig.tsbuildinfo, added functions/lib/ to .gitignore)
-- 🔥 **CRITICAL FIX:** Deleted nested `functions/functions/` folder (deployment risk!)
-- 🔍 Created `scan-hardcoded-paths.cjs` scanner (found 3 files to fix in Phase 1)
-- 🔍 Created `scan-console.cjs` scanner (found 46 console statements to replace in Phase 1)
-- 🏷️ Tagged: `v2.2-prerequisites` and `v2.2-phase0-complete`
-- 📖 README updated with environment setup instructions
-- 🎯 **Next:** Phase 1 - Logger utility + Zod validation + Centralized paths
+**Latest Updates (October 26, 2025 - Late Evening):**
+- ✅ **COMPLETE:** Phase 0 Quick Wins - ALL 6 issues TRULY fixed! (after reviewer feedback)
+- 🐛 **CRITICAL FIX #1:** Deleted nested `functions/functions/` folder (deployment risk!)
+- 🐛 **CRITICAL FIX #2:** Fixed delete operations bug - users can now delete check-ins/relapses!
+  - deleteCheckIn() was using wrong path with extra `/kamehameha/` segment
+  - deleteRelapse() was using wrong path with extra `/kamehameha/` segment
+- 📝 Created centralized `services/paths.ts` - single source of truth for all Firestore paths
+- 🧹 Cleaned deprecated compiled code (milestones.js removed)
+- ✅ All hardcoded paths centralized (19 locations fixed)
+- ✅ Scanner verification passes: `npm run scan:paths` ✅
+- ✅ TypeScript compilation passes: `npm run typecheck` ✅
+- 🏷️ Tagged: `v2.2-phase0-corrected` (previous tag was premature)
+- 🎯 **Next:** Phase 1 - Logger utility + Zod validation
 
 **Earlier Today (October 26, 2025 - Afternoon):**
 - 📋 **AUDIT COMPLETE:** Comprehensive technical debt audit - 21 issues identified
