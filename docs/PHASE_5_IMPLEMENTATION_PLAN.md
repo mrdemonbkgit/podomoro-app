@@ -37,7 +37,7 @@ Phase 5 addresses **2 critical production blockers** and **2 low-priority improv
 | 6 | `.env.local` hygiene check | ~~P2~~ | ✅ **CORRECT** | Already following best practice | 0h |
 | 7 | Client update cadence | ~~P2~~ | ✅ **ACCEPTABLE** | By design, monitor only | 0h |
 
-**Immediate Work Required:** 5-6 hours (Issues #1, #2 only)  
+**Immediate Work Required:** 6-7 hours (Issues #1, #2 only - includes 1h buffer for reviewer fixes)  
 **Future Work (Optional):** 3 hours (Issues #4, #5)  
 **Total Time Saved:** 2 hours (3 issues already resolved)
 
@@ -108,17 +108,17 @@ Both client (`useMilestones.ts:50`) and scheduled function (`scheduledMilestones
 **File:** `src/features/kamehameha/hooks/useMilestones.ts`
 
 ```typescript
-import { runTransaction, doc } from 'firebase/firestore';
+import { db } from '../../../services/firebase/config'; // ✅ Use imported singleton
+import { runTransaction, doc, increment } from 'firebase/firestore';
+import { logger } from '../../../utils/logger';
 
 // Replace current badge creation with transaction
-const createBadgeAtomic = async (
+export async function createBadgeAtomic( // ✅ Export for testing
   userId: string,
   journeyId: string,
   milestoneSeconds: number,
   badgeConfig: BadgeConfig
-) => {
-  const db = getFirestore();
-  
+) {
   // Deterministic badge ID ensures idempotency
   const badgeId = `${journeyId}_${milestoneSeconds}`;
   const badgeRef = doc(db, `users/${userId}/kamehameha_badges/${badgeId}`);
@@ -143,10 +143,13 @@ const createBadgeAtomic = async (
         badgeName: badgeConfig.name,
         congratsMessage: badgeConfig.message,
         journeyId,
+        createdBy: 'client', // ✅ Preserve metadata for auditability
+        createdAt: Date.now(), // ✅ Preserve metadata
       });
       
       transaction.update(journeyRef, {
         achievementsCount: increment(1),
+        updatedAt: Date.now(), // ✅ Preserve metadata
       });
       
       logger.info(`Badge ${badgeId} created atomically`);
@@ -155,15 +158,17 @@ const createBadgeAtomic = async (
     logger.error('Failed to create badge atomically', { error, badgeId });
     throw error;
   }
-};
+}
 ```
 
 **Changes:**
-1. Import `runTransaction` from `firebase/firestore`
-2. Use deterministic badge ID: `{journeyId}_{milestoneSeconds}`
-3. Wrap create + increment in single transaction
-4. Check for existing badge (idempotency)
-5. Use `logger` instead of `console.log`
+1. ✅ Use imported `db` from config (not `getFirestore()`)
+2. ✅ Export function for testing
+3. Use deterministic badge ID: `{journeyId}_{milestoneSeconds}`
+4. Wrap create + increment in single transaction
+5. Check for existing badge (idempotency)
+6. ✅ Preserve `createdBy`, `createdAt`, `updatedAt` metadata
+7. Use `logger` instead of `console.log`
 
 ---
 
@@ -205,10 +210,13 @@ async function createBadgeAtomic(
         badgeName: badgeConfig.name,
         congratsMessage: badgeConfig.message,
         journeyId,
+        createdBy: 'scheduled_function', // ✅ Preserve metadata
+        createdAt: Date.now(), // ✅ Preserve metadata
       });
       
       transaction.update(journeyRef, {
         achievementsCount: admin.firestore.FieldValue.increment(1),
+        updatedAt: Date.now(), // ✅ Preserve metadata
       });
       
       console.log(`🎉 Badge ${badgeId} created atomically (server)`);
@@ -225,7 +233,8 @@ async function createBadgeAtomic(
 2. Use `db.runTransaction()` for atomicity
 3. Check for existing badge (idempotency)
 4. Atomic create + increment
-5. Better error handling
+5. ✅ Preserve `createdBy: 'scheduled_function'`, `createdAt`, `updatedAt` metadata
+6. Better error handling
 
 ---
 
@@ -233,20 +242,52 @@ async function createBadgeAtomic(
 
 **File:** `src/features/kamehameha/types/kamehameha.types.ts`
 
-Add `journeyId` to Badge interface:
+Add optional `journeyId` to Badge interface:
 
 ```typescript
 export interface Badge {
-  id: string; // Now deterministic: {journeyId}_{milestoneSeconds}
+  id: string; // Legacy: auto-generated | New: {journeyId}_{milestoneSeconds}
   streakType: 'main' | 'discipline';
   milestoneSeconds: number;
   earnedAt: number;
   badgeEmoji: string;
   badgeName: string;
   congratsMessage: string;
-  journeyId: string; // NEW: Links badge to specific journey
+  journeyId?: string; // ✅ OPTIONAL for backward compatibility
+  
+  // Metadata (preserves existing behavior)
+  createdBy?: 'client' | 'scheduled_function';
+  createdAt?: number;
+  
+  // Legacy badges: Auto-generated Firebase ID, no journeyId
+  // New badges: Deterministic ID {journeyId}_{milestoneSeconds}, has journeyId
 }
 ```
+
+**Optional Helper for Components:**
+```typescript
+/**
+ * Get journey ID from badge (handles legacy badges)
+ */
+export function getBadgeJourneyId(badge: Badge): string | undefined {
+  // New badges have journeyId field
+  if (badge.journeyId) return badge.journeyId;
+  
+  // Try to extract from deterministic ID format: {journeyId}_{milestoneSeconds}
+  const parts = badge.id.split('_');
+  if (parts.length >= 2) {
+    const possibleJourneyId = parts.slice(0, -1).join('_');
+    // Validate it looks like a Firebase-generated ID (20 chars)
+    if (possibleJourneyId.length === 20) {
+      return possibleJourneyId;
+    }
+  }
+  
+  return undefined; // Legacy badge with non-deterministic ID
+}
+```
+
+**Note:** Making `journeyId` optional ensures backward compatibility with existing badges in production that don't have this field.
 
 ---
 
@@ -257,61 +298,171 @@ export interface Badge {
 ```typescript
 /**
  * Test: Badge awarding race condition prevention
+ * 
+ * Prerequisites:
+ * - Firebase emulator must be running
+ * - Run with: firebase emulators:exec "npm test badge-race-condition"
  */
 
-import { describe, it, expect } from 'vitest';
-import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
+import { createBadgeAtomic } from '../hooks/useMilestones'; // ✅ Import exported function
+import { getMilestoneConfig } from '../constants/milestones';
 
 describe('Badge Race Condition Prevention', () => {
+  const userId = 'test-user-concurrent';
+  const journeyId = 'test-journey-123';
+  const milestoneSeconds = 60; // 1 minute (dev milestone)
+  
+  beforeEach(async () => {
+    // ✅ Seed journey document (required for transaction)
+    const journeyRef = doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`);
+    await setDoc(journeyRef, {
+      id: journeyId,
+      startDate: Date.now() - 70000, // Started 70 seconds ago
+      achievementsCount: 0,
+      violationsCount: 0,
+      isActive: true,
+      createdAt: Date.now() - 70000,
+      updatedAt: Date.now(),
+    });
+  });
+  
   it('should not double-increment achievementsCount when awarded concurrently', async () => {
-    const userId = 'test-user-concurrent';
-    const journeyId = 'journey-123';
-    const milestoneSeconds = 86400; // 1 day
+    const badgeConfig = getMilestoneConfig(milestoneSeconds);
     
-    // Simulate concurrent awarding (client + server)
-    const award1 = createBadgeAtomic(userId, journeyId, milestoneSeconds);
-    const award2 = createBadgeAtomic(userId, journeyId, milestoneSeconds);
+    // ✅ Simulate concurrent awarding (client + server scenario)
+    const award1 = createBadgeAtomic(userId, journeyId, milestoneSeconds, badgeConfig);
+    const award2 = createBadgeAtomic(userId, journeyId, milestoneSeconds, badgeConfig);
     
+    // Both calls execute simultaneously
     await Promise.all([award1, award2]);
     
-    // Verify: Only 1 badge created
+    // Verify: Only 1 badge created (deterministic ID prevents duplicates)
     const badgeId = `${journeyId}_${milestoneSeconds}`;
     const badgeSnap = await getDoc(doc(db, `users/${userId}/kamehameha_badges/${badgeId}`));
     expect(badgeSnap.exists()).toBe(true);
     
-    // Verify: achievementsCount incremented only once
+    // Verify: achievementsCount incremented ONLY ONCE (atomic transaction)
     const journeySnap = await getDoc(doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`));
     const journey = journeySnap.data();
-    expect(journey?.achievementsCount).toBe(1); // Not 2!
+    expect(journey?.achievementsCount).toBe(1); // ✅ Not 2! Transaction prevents race
+    
+    // Verify: Badge has metadata
+    const badge = badgeSnap.data();
+    expect(badge?.createdBy).toBeDefined();
+    expect(badge?.journeyId).toBe(journeyId);
+  });
+  
+  it('should handle three concurrent awards correctly', async () => {
+    const badgeConfig = getMilestoneConfig(milestoneSeconds);
+    
+    // ✅ Test extreme concurrency
+    const awards = [
+      createBadgeAtomic(userId, journeyId, milestoneSeconds, badgeConfig),
+      createBadgeAtomic(userId, journeyId, milestoneSeconds, badgeConfig),
+      createBadgeAtomic(userId, journeyId, milestoneSeconds, badgeConfig),
+    ];
+    
+    await Promise.all(awards);
+    
+    const journeySnap = await getDoc(doc(db, `users/${userId}/kamehameha_journeys/${journeyId}`));
+    const journey = journeySnap.data();
+    expect(journey?.achievementsCount).toBe(1); // Still 1, not 3!
   });
 });
 ```
+
+**Note:** This test requires the `createBadgeAtomic` function to be exported from `useMilestones.ts` (already done in Step 1.1).
 
 ---
 
 ### Issue #2: Dev Test User Security Rule
 
 **Problem:**
-`firestore.rules` lines 8 and 15 allow special test user access **without environment gating**. This is a **production security vulnerability**.
+`firestore.rules` lines 8-10 and 15-17 have **inline conditions** `|| (userId == 'dev-test-user-12345')` that allow unrestricted access **without environment gating**. This is a **production security vulnerability**.
 
-**Current Implementation:**
+**Current Implementation (ACTUAL):**
 ```javascript
-// firestore.rules:8
-match /users/test-user-12345 {
-  allow read, write: if true; // ❌ ALWAYS ALLOWED!
+// firestore.rules:8-10
+match /users/{userId} {
+  allow read, write: if (
+    (request.auth != null && request.auth.uid == userId) ||
+    (userId == 'dev-test-user-12345')  // ❌ INLINE BACKDOOR #1
+  );
+  
+  // firestore.rules:15-17
+  match /{collection}/{document=**} {
+    allow read, write: if (
+      (request.auth != null && request.auth.uid == userId) ||
+      (userId == 'dev-test-user-12345')  // ❌ INLINE BACKDOOR #2
+    );
+  }
 }
 ```
 
-**Risk:** If deployed to production, anyone could access/modify the test user's data.
+**Risk:** If deployed to production, anyone could access/modify `dev-test-user-12345` data without authentication.
 
-**Solution:** Separate dev and prod rules.
+**Solution:** Remove inline conditions from production rules, add separate match block in dev rules.
 
 ---
 
-#### Step 2.1: Create Dev Rules File (30 min)
+#### Step 2.1: Update Production Rules - Remove Inline Conditions (20 min)
 
-**File:** `firestore.rules.dev`
+**File:** `firestore.rules`
+
+**BEFORE (Current - with inline backdoors):**
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // ❌ REMOVE the || (userId == 'dev-test-user-12345') part
+      allow read, write: if (
+        (request.auth != null && request.auth.uid == userId) ||
+        (userId == 'dev-test-user-12345')  // ❌ DELETE THIS LINE
+      );
+      
+      match /{collection}/{document=**} {
+        // ❌ REMOVE the || (userId == 'dev-test-user-12345') part here too
+        allow read, write: if (
+          (request.auth != null && request.auth.uid == userId) ||
+          (userId == 'dev-test-user-12345')  // ❌ DELETE THIS LINE TOO
+        );
+      }
+    }
+  }
+}
+```
+
+**AFTER (Production - secure, no backdoors):**
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // ✅ CLEAN: Only authenticated users can access their own data
+      allow read, write: if (request.auth != null && request.auth.uid == userId);
+      
+      match /{collection}/{document=**} {
+        // ✅ CLEAN: Only authenticated users can access their own subcollections
+        allow read, write: if (request.auth != null && request.auth.uid == userId);
+      }
+    }
+  }
+}
+```
+
+**Critical Change:**
+- **REMOVE** both `|| (userId == 'dev-test-user-12345')` conditions
+- Keep ONLY the authentication check: `request.auth != null && request.auth.uid == userId`
+
+---
+
+#### Step 2.2: Create Dev Rules File - Add Separate Match Block (20 min)
+
+**File:** `firestore.rules.dev` (NEW FILE)
 
 ```javascript
 rules_version = '2';
@@ -319,90 +470,97 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // ===== DEV ONLY: Test User Exception =====
-    // This special test user is used for automated testing
-    match /users/test-user-12345/{document=**} {
+    // ✅ ADD this BEFORE the /users/{userId} match
+    // This allows automated tests to access test user without auth
+    match /users/dev-test-user-12345/{document=**} {
       allow read, write: if true;
     }
     // ===== END DEV ONLY =====
     
-    // ... rest of rules (same as production)
+    // Then include the SAME rules as production (without inline conditions)
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if (request.auth != null && request.auth.uid == userId);
       
-      match /kamehameha/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      match /kamehameha_badges/{badgeId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      match /kamehameha_journeys/{journeyId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      match /kamehameha_relapses/{relapseId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if request.auth != null && request.auth.uid == userId;
+      match /{collection}/{document=**} {
+        allow read, write: if (request.auth != null && request.auth.uid == userId);
       }
     }
   }
 }
 ```
 
+**Why This Works:**
+- Separate match block (`/users/dev-test-user-12345`) is evaluated BEFORE generic match
+- Allows test user access in dev environment only
+- Production rules have NO test user access
+
 ---
 
-#### Step 2.2: Update Production Rules (30 min)
+#### Step 2.3: Setup Emulator Rules Switching (20 min)
 
-**File:** `firestore.rules`
+**Problem:** Firebase CLI does NOT support per-emulator rules override in `firebase.json`.
+
+**Solution:** Use script-based approach to swap rules files.
+
+---
+
+**File 1:** `package.json` - Add emulator scripts
+
+```json
+{
+  "scripts": {
+    "emulator": "npm run emulator:swap && firebase emulators:start",
+    "emulator:swap": "node scripts/swap-rules.js dev",
+    "emulator:restore": "node scripts/swap-rules.js prod"
+  }
+}
+```
+
+---
+
+**File 2:** `scripts/swap-rules.js` (NEW) - Rules swapping script
 
 ```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    // ===== PRODUCTION RULES (No Test User Exception) =====
-    
-    match /users/{userId} {
-      // Only authenticated user can access their own data
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.uid == userId;
-      
-      match /kamehameha/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      match /kamehameha_badges/{badgeId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      match /kamehameha_journeys/{journeyId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if request.auth != null && request.auth.uid == userId;
-      }
-      
-      match /kamehameha_relapses/{relapseId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if request.auth != null && request.auth.uid == userId;
-      }
-    }
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+const mode = process.argv[2] || 'dev';
+const root = path.join(__dirname, '..');
+
+if (mode === 'dev') {
+  // Backup production rules
+  if (fs.existsSync(path.join(root, 'firestore.rules'))) {
+    fs.copyFileSync(
+      path.join(root, 'firestore.rules'),
+      path.join(root, 'firestore.rules.prod.bak')
+    );
   }
+  
+  // Copy dev rules to main rules file (emulator uses this)
+  fs.copyFileSync(
+    path.join(root, 'firestore.rules.dev'),
+    path.join(root, 'firestore.rules')
+  );
+  
+  console.log('✅ Switched to dev rules for emulator');
+} else if (mode === 'prod') {
+  // Restore production rules
+  if (fs.existsSync(path.join(root, 'firestore.rules.prod.bak'))) {
+    fs.copyFileSync(
+      path.join(root, 'firestore.rules.prod.bak'),
+      path.join(root, 'firestore.rules')
+    );
+    fs.unlinkSync(path.join(root, 'firestore.rules.prod.bak'));
+  }
+  
+  console.log('✅ Restored production rules');
 }
 ```
 
-**Changes:**
-- ❌ **REMOVED:** Test user exception (lines 8, 15)
-- ✅ **Secure:** All access requires authentication and ownership
-
 ---
 
-#### Step 2.3: Update firebase.json for Emulator (15 min)
-
-**File:** `firebase.json`
+**File 3:** `firebase.json` - Add top-level Firestore config
 
 ```json
 {
@@ -410,10 +568,16 @@ service cloud.firestore {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18"
+  },
   "emulators": {
     "firestore": {
-      "port": 8080,
-      "rules": "firestore.rules.dev"
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
     },
     "ui": {
       "enabled": true,
@@ -423,34 +587,149 @@ service cloud.firestore {
 }
 ```
 
-**Change:** Emulator uses `firestore.rules.dev` (with test user), production uses `firestore.rules` (without).
+---
+
+**File 4:** `.gitignore` - Ignore backup files
+
+```gitignore
+# Firebase rules backup (created by swap script)
+firestore.rules.prod.bak
+```
+
+---
+
+**Usage:**
+```bash
+# Start emulator with dev rules:
+npm run emulator
+
+# After stopping emulator, restore prod rules:
+npm run emulator:restore
+
+# Or manually:
+node scripts/swap-rules.js dev   # Switch to dev
+node scripts/swap-rules.js prod  # Switch back to prod
+```
+
+**Why This Works:**
+- Emulator always reads `firestore.rules` file
+- Script swaps files before emulator starts
+- Production rules are backed up and restored after
+- Git ignores backup files
 
 ---
 
 #### Step 2.4: Update Rules Tests (30 min)
 
-**File:** `firestore.rules.test.ts`
+**File:** `src/__tests__/firestore.rules.test.ts`
 
-Remove tests that rely on test user exception:
+**Changes Required:**
+
+1. **Remove or update tests that rely on dev-test-user backdoor**
+2. **Add production security tests to verify backdoor is removed**
 
 ```typescript
-// ❌ REMOVE: Tests that assume test user backdoor
-describe('Dev Test User Access', () => {
-  it('should allow unauthenticated access to test user', async () => {
-    // This test is no longer valid (test user only in dev rules)
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import {
+  initializeTestEnvironment,
+  RulesTestEnvironment,
+  assertFails,
+  assertSucceeds,
+} from '@firebase/rules-unit-testing';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+
+let testEnv: RulesTestEnvironment;
+
+beforeAll(async () => {
+  testEnv = await initializeTestEnvironment({
+    projectId: 'test-project',
+    firestore: {
+      rules: fs.readFileSync('firestore.rules', 'utf8'), // ✅ Test PRODUCTION rules
+      host: 'localhost',
+      port: 8080,
+    },
   });
 });
 
-// ✅ ADD: Tests that verify test user is NOT accessible in prod rules
-describe('Production Security', () => {
-  it('should NOT allow unauthenticated access to any user', async () => {
+afterAll(async () => {
+  await testEnv.cleanup();
+});
+
+// ❌ REMOVE THIS TEST (only valid with dev rules):
+/*
+describe('Dev Test User Access', () => {
+  it('should allow unauthenticated access to test user', async () => {
     const testDb = testEnv.unauthenticatedContext().firestore();
-    const testUserDoc = doc(testDb, 'users/test-user-12345/kamehameha/streaks');
+    const testDoc = doc(testDb, 'users/dev-test-user-12345/kamehameha/streaks');
     
-    await expect(getDoc(testUserDoc)).rejects.toThrow(/permission-denied/);
+    // This would pass with dev rules, but should fail with production rules
+    await expect(getDoc(testDoc)).resolves.not.toThrow();
+  });
+});
+*/
+
+// ✅ ADD THESE TESTS (verify production security):
+describe('Production Security - No Dev Backdoor', () => {
+  it('should DENY unauthenticated access to dev-test-user-12345', async () => {
+    const unauthedDb = testEnv.unauthenticatedContext().firestore();
+    const testUserDoc = doc(unauthedDb, 'users/dev-test-user-12345/kamehameha/streaks');
+    
+    // ✅ In production rules, this should be DENIED
+    await assertFails(getDoc(testUserDoc));
+  });
+  
+  it('should DENY unauthenticated access to any user', async () => {
+    const unauthedDb = testEnv.unauthenticatedContext().firestore();
+    const anyUserDoc = doc(unauthedDb, 'users/random-user-id/kamehameha/streaks');
+    
+    await assertFails(getDoc(anyUserDoc));
+  });
+  
+  it('should ALLOW authenticated user to access their own data', async () => {
+    const authedDb = testEnv.authenticatedContext('user-123').firestore();
+    const ownDoc = doc(authedDb, 'users/user-123/kamehameha/streaks');
+    
+    await assertSucceeds(setDoc(ownDoc, { test: true }));
+    await assertSucceeds(getDoc(ownDoc));
+  });
+  
+  it('should DENY authenticated user from accessing other user data', async () => {
+    const user1Db = testEnv.authenticatedContext('user-123').firestore();
+    const user2Doc = doc(user1Db, 'users/user-456/kamehameha/streaks');
+    
+    await assertFails(getDoc(user2Doc));
+  });
+});
+
+// ✅ Optional: Create separate test file for dev rules
+// File: src/__tests__/firestore.rules.dev.test.ts
+describe('Development Rules - Test User Access', () => {
+  // Only run this against dev rules (manually or in separate CI job)
+  it('should allow dev-test-user access in dev environment', async () => {
+    const devTestEnv = await initializeTestEnvironment({
+      projectId: 'test-project-dev',
+      firestore: {
+        rules: fs.readFileSync('firestore.rules.dev', 'utf8'), // ✅ Test DEV rules
+      },
+    });
+    
+    const unauthedDb = devTestEnv.unauthenticatedContext().firestore();
+    const testDoc = doc(unauthedDb, 'users/dev-test-user-12345/kamehameha/streaks');
+    
+    // ✅ In dev rules, this should be ALLOWED
+    await assertSucceeds(setDoc(testDoc, { test: true }));
+    await assertSucceeds(getDoc(testDoc));
+    
+    await devTestEnv.cleanup();
   });
 });
 ```
+
+**Summary of Changes:**
+1. ✅ Remove tests assuming dev backdoor works in production
+2. ✅ Add tests verifying dev-test-user is DENIED without auth
+3. ✅ Add tests verifying proper authentication is required
+4. ✅ Optional: Create separate test file for dev rules validation
 
 ---
 
@@ -680,7 +959,7 @@ useEffect(() => {
 
 ## 📋 Implementation Timeline (UPDATED)
 
-### **IMMEDIATE (Day 1): Critical Production Blockers (5-6 hours)**
+### **IMMEDIATE (Day 1): Critical Production Blockers (6-7 hours)**
 
 **Morning (3-4 hours):**
 - 🔴 **Issue #1: Transactional badge awarding** (P0)
@@ -702,7 +981,7 @@ useEffect(() => {
 - ✅ Deploy critical changes
 - ✅ Update documentation
 
-**Total Day 1:** 5-6 hours (MUST COMPLETE before production)
+**Total Day 1:** 6-7 hours (MUST COMPLETE before production - includes 1h buffer for plan fixes)
 
 ---
 
@@ -883,9 +1162,9 @@ After completion, update:
 **Minimal cost increase:**
 
 ### Transactions
-- **Before:** Separate writes (badge + journey)
-- **After:** Single transaction
-- **Cost:** Same (transactions count as 1 write)
+- **Before:** 2 separate writes (1 badge create + 1 journey update) = 2 operations
+- **After:** 1 transaction with 2 writes (badge + journey) = 2 operations
+- **Cost:** Same (each write in a transaction is billed separately, no extra transaction fee)
 
 ### Rules
 - **No change:** Rules evaluation is free
@@ -930,9 +1209,18 @@ If issues arise after deployment:
 ### Immediate Rollback (Functions)
 
 ```bash
-# Revert to previous deployment
-firebase functions:config:get > /tmp/prev-config.json
-firebase deploy --only functions --config /tmp/prev-config.json
+# Rollback to previous code version
+git checkout <previous-tag>  # e.g., phase-4-complete
+firebase deploy --only functions
+
+# OR use previous commit:
+git checkout HEAD~1 functions/
+firebase deploy --only functions
+git checkout main functions/  # restore after
+
+# Config rollback (separate from code):
+firebase functions:config:get > /tmp/prev-config.json  # Backup current config
+firebase functions:config:set key=value  # Restore previous values if needed
 ```
 
 ### Rules Rollback
@@ -971,7 +1259,7 @@ firebase deploy --only firestore:rules
 ### Future Work (Optional):
 - ⏭️ Issues #4, #5 - Schedule for post-production hardening
 
-**Estimated Completion:** 1 day (5-6 hours) instead of 2-3 days
+**Estimated Completion:** 1 day (6-7 hours) instead of 2-3 days
 
 **Time Saved:** ~1.5 days due to reviewer feedback identifying already-resolved issues
 
