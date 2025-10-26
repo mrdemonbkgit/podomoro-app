@@ -2,14 +2,18 @@
 
 **Project:** ZenFocus - Kamehameha Recovery Tool  
 **Date:** October 26, 2025  
-**Version:** 2.0 (Peer-Reviewed & Corrected)  
+**Version:** 2.1 (Second Review Corrected)  
 **Status:** Ready for Execution  
 **Scope:** All 21 identified technical debt issues  
 **Target:** Production-ready codebase
 
-> **✅ This plan has been peer-reviewed and corrected.**  
-> All critical issues identified in `docs/COMPREHENSIVE_PLAN_REVIEW.md` have been addressed.  
-> See `docs/PLAN_REVIEW_RESPONSE.md` for detailed review response.
+> **✅ This plan has been peer-reviewed TWICE and corrected.**  
+> - **First Review:** Fixed testing libraries, indexes, Windows compatibility
+> - **Second Review:** Fixed chat paths, document/collection confusion, console stripping, Node.js API issues
+> 
+> **Review Documents:**
+> - First Review: `docs/COMPREHENSIVE_PLAN_REVIEW.md` → `docs/PLAN_REVIEW_RESPONSE.md`
+> - Second Review: `docs/COMPREHENSIVE_PLAN_SECOND_REVIEW.md` → `docs/SECOND_REVIEW_RESPONSE.md`
 
 ---
 
@@ -282,25 +286,33 @@ ls lib/
 1. **Create shared paths file** `src/features/kamehameha/services/paths.ts`:
 ```typescript
 /**
- * Centralized Firestore collection paths
+ * Centralized Firestore paths
  * Single source of truth for all path construction
  * 
- * IMPORTANT: All services and hooks MUST import from this file.
+ * IMPORTANT: Distinguishes between COLLECTIONS and DOCUMENTS
+ * - COLLECTION_PATHS: Contains multiple documents (use with collection())
+ * - DOCUMENT_PATHS: Single documents (use with doc())
+ * 
+ * All services and hooks MUST import from this file.
  * Do NOT use hardcoded path strings elsewhere.
  */
 
+// Collections (contain multiple documents)
 export const COLLECTION_PATHS = {
-  streaks: (userId: string) => `users/${userId}/kamehameha/streaks`,
   checkIns: (userId: string) => `users/${userId}/kamehameha_checkIns`,
   relapses: (userId: string) => `users/${userId}/kamehameha_relapses`,
   journeys: (userId: string) => `users/${userId}/kamehameha_journeys`,
   badges: (userId: string) => `users/${userId}/kamehameha_badges`,
-  chatMessages: (userId: string) => `users/${userId}/kamehameha_chat_messages`,
+  chatMessages: (userId: string) => `users/${userId}/kamehameha_chatHistory`, // NOTE: Production uses 'chatHistory' not 'chat_messages'
 } as const;
 
-// Helper to get full document paths
+// Documents (single documents, NOT collections)
+export const DOCUMENT_PATHS = {
+  streak: (userId: string) => `users/${userId}/kamehameha/streaks`, // This is a DOCUMENT, not a collection!
+} as const;
+
+// Helper to get document references within collections
 export const getDocPath = {
-  streak: (userId: string) => `${COLLECTION_PATHS.streaks(userId)}/streaks`,
   checkIn: (userId: string, id: string) => `${COLLECTION_PATHS.checkIns(userId)}/${id}`,
   relapse: (userId: string, id: string) => `${COLLECTION_PATHS.relapses(userId)}/${id}`,
   journey: (userId: string, id: string) => `${COLLECTION_PATHS.journeys(userId)}/${id}`,
@@ -311,7 +323,13 @@ export const getDocPath = {
 
 2. **Update firestoreService.ts** - Add import and update all paths:
 ```typescript
-import { COLLECTION_PATHS, getDocPath } from './paths';
+import { COLLECTION_PATHS, DOCUMENT_PATHS, getDocPath } from './paths';
+
+// Update streak document references
+// BEFORE
+const streaksRef = doc(db, 'users', userId, 'kamehameha', 'streaks');
+// AFTER
+const streaksRef = doc(db, DOCUMENT_PATHS.streak(userId));
 
 // Update deleteCheckIn (line ~355)
 // BEFORE
@@ -361,20 +379,36 @@ const pathPatterns = [
   /"users\/.*?\/kamehameha/,
 ];
 
-let found = false;
-const files = readdirSync('src/features/kamehameha', { recursive: true, withFileTypes: true });
-
-for (const file of files) {
-  if (file.isFile() && file.name.match(/\.(ts|tsx)$/)) {
-    const filePath = join(file.path, file.name);
-    if (filePath.includes('services/paths.ts')) continue; // Skip the source file
+// Manual recursive directory walker (Node.js doesn't support recursive option)
+function walkDirectory(dir, fileList = []) {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
     
-    const content = readFileSync(filePath, 'utf-8');
-    for (const pattern of pathPatterns) {
-      if (content.match(pattern)) {
-        console.error(`⚠️  Hardcoded path in: ${filePath}`);
-        found = true;
-      }
+    if (entry.isDirectory()) {
+      // Recurse into subdirectory
+      walkDirectory(fullPath, fileList);
+    } else if (entry.name.match(/\.(ts|tsx)$/)) {
+      fileList.push(fullPath);
+    }
+  }
+  
+  return fileList;
+}
+
+let found = false;
+const files = walkDirectory('src/features/kamehameha');
+
+for (const filePath of files) {
+  // Skip the source file itself
+  if (filePath.includes('services/paths.ts') || filePath.includes('services\\paths.ts')) continue;
+  
+  const content = readFileSync(filePath, 'utf-8');
+  for (const pattern of pathPatterns) {
+    if (content.match(pattern)) {
+      console.error(`⚠️  Hardcoded path in: ${filePath}`);
+      found = true;
     }
   }
 }
@@ -526,20 +560,27 @@ export const logger = {
 };
 ```
 
-2. **Add build-time log stripping to `vite.config.ts`**:
+2. **Configure build optimization in `vite.config.ts`**:
 ```typescript
 export default defineConfig({
   // ... existing config
   esbuild: {
-    drop: ['console', 'debugger'], // Strip in production builds
+    drop: ['debugger'], // Only drop debugger statements, NOT console!
+    // NOTE: We DON'T drop 'console' because:
+    // - logger.error() relies on console.error for production logging
+    // - Dropping 'console' would remove ALL console methods including .error
+    // - logger.debug/info already check isDevelopment at runtime
   },
 });
 ```
 
+> **CRITICAL:** Do NOT add `'console'` to the drop array! This would strip `console.error`, 
+> breaking `logger.error()` which is the only production logging mechanism.
+
 3. **Test logger**:
-- Run in dev mode - logs should appear
-- Build for production - logs should be stripped
-- Errors should always appear
+- Run in dev mode - all logs should appear (logger checks `isDevelopment`)
+- Build for production - only errors appear (logger.error bypasses check)
+- Errors should ALWAYS appear in production (critical!)
 
 4. Commit:
 ```bash
@@ -619,29 +660,43 @@ const consolePatterns = [
   { regex: /console\.warn\(/, type: 'console.warn' },
 ];
 
-let found = false;
-const files = readdirSync('src/features/kamehameha', { recursive: true, withFileTypes: true });
-
-for (const file of files) {
-  if (file.isFile() && file.name.match(/\.(ts|tsx)$/)) {
-    const filePath = join(file.path, file.name);
+// Manual recursive directory walker (Node.js doesn't support recursive option)
+function walkDirectory(dir, fileList = []) {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
     
-    // Skip logger.ts itself
-    if (filePath.includes('utils/logger.ts')) continue;
-    
-    const content = readFileSync(filePath, 'utf-8');
-    const lines = content.split('\n');
-    
-    lines.forEach((line, idx) => {
-      for (const pattern of consolePatterns) {
-        if (line.match(pattern.regex)) {
-          console.error(`⚠️  ${pattern.type} found in: ${filePath}:${idx + 1}`);
-          console.error(`   ${line.trim()}`);
-          found = true;
-        }
-      }
-    });
+    if (entry.isDirectory()) {
+      // Recurse into subdirectory
+      walkDirectory(fullPath, fileList);
+    } else if (entry.name.match(/\.(ts|tsx)$/)) {
+      fileList.push(fullPath);
+    }
   }
+  
+  return fileList;
+}
+
+let found = false;
+const files = walkDirectory('src/features/kamehameha');
+
+for (const filePath of files) {
+  // Skip logger.ts itself
+  if (filePath.includes('utils/logger.ts') || filePath.includes('utils\\logger.ts')) continue;
+  
+  const content = readFileSync(filePath, 'utf-8');
+  const lines = content.split('\n');
+  
+  lines.forEach((line, idx) => {
+    for (const pattern of consolePatterns) {
+      if (line.match(pattern.regex)) {
+        console.error(`⚠️  ${pattern.type} found in: ${filePath}:${idx + 1}`);
+        console.error(`   ${line.trim()}`);
+        found = true;
+      }
+    }
+  });
 }
 
 if (found) {
@@ -1625,7 +1680,15 @@ useEffect(() => {
 }
 ```
 
-> **Note:** `streakType` field is used in the current schema for categorization. If this field is being removed/renamed in Phase 5.1, update the index accordingly.
+> **IMPORTANT NOTES:**
+> 1. `streakType` field is used in the current schema for categorization. If this field is being removed/renamed in Phase 5.1, update the index accordingly.
+> 
+> 2. **Scheduled Function & Collection Group Query:** The `collectionGroup('streaks')` index is for **future use**. Current schema stores streaks as individual DOCUMENTS (`users/{uid}/kamehameha/streaks`), NOT as a collection. The scheduled milestone function (`checkMilestonesScheduled`) uses collection group queries, but won't find existing streak documents in the current schema. This is OK because:
+>    - **Primary detection:** Client-side `useMilestones` hook (works now, covers 99% of cases)
+>    - **Scheduled function:** Backup for offline scenarios (future enhancement after schema change)
+>    - **No immediate action needed:** Deploy the index for future use
+> 
+> 3. If you want scheduled function to work NOW: Consider migrating to `users/{uid}/streaks/{streakId}` collection structure (major change, requires data migration).
 
 **Deploy:**
 ```bash
