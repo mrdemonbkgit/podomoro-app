@@ -160,20 +160,6 @@ export function formatDays(seconds: number): string {
 }
 
 // ============================================================================
-// DEPRECATED FUNCTIONS (Phase 5.1 Refactor)
-// These functions are no longer used - timing calculated from journey.startDate
-// ============================================================================
-
-// NOTE: updateStreakData() and resetStreak() removed in Phase 5.1 Refactor
-// Timing is now calculated directly from journey.startDate, not stored in StreakData
-
-// ============================================================================
-// Validation Functions (Deprecated)
-// ============================================================================
-
-// NOTE: isValidStreakData() deprecated - StreakData simplified to only store longestSeconds
-
-// ============================================================================
 // Milestone Functions
 // ============================================================================
 

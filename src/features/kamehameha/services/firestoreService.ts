@@ -154,14 +154,6 @@ export async function updateStreaks(
   }
 }
 
-/**
- * Save current streak state (called periodically)
- * Phase 5.1: Only saves main streak now
- * 
- * @param userId User ID from Firebase Auth
- * @param mainCurrent Current main streak seconds
- * @returns Promise that resolves when save is complete
- */
 // ============================================================================
 // Reset Operations
 // ============================================================================

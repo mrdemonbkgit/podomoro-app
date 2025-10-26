@@ -204,18 +204,6 @@ export interface MilestoneConfig {
   message: string;
 }
 
-/**
- * @deprecated Use Badge instead (Phase 5.1: Only main streak badges now)
- */
-export interface Milestone {
-  id: string;
-  days: number; // 1, 3, 7, 14, 30, 60, 90, 180, 365
-  achievedAt: number;
-  badge: string; // Badge emoji/icon
-  title: string;
-  description: string;
-}
-
 // ============================================================================
 // Journey Types (Phase 5.1)
 // ============================================================================
