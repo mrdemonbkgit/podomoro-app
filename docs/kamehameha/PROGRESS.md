@@ -1,7 +1,7 @@
 # Kamehameha - Progress Tracker
 
-**Last Updated:** October 22, 2025 @ 10:30 PM  
-**Current Phase:** Phase 5.1 - Journey System Refactor (In Progress)  
+**Last Updated:** October 26, 2025 @ 5:30 PM  
+**Current Phase:** Phase 5.1 - Journey System Refactor (COMPLETE ✅)  
 **Next Phase:** Phase 6 - Settings & Configuration
 
 ---
@@ -22,19 +22,20 @@
 - ✅ Milestone Badges & Gamification System
 - ✅ Zero console errors
 
-**Latest Updates:**
-- ✅ **COMPLETE:** Phase 5.1 Journey System Refactor - Clean Architecture Implemented!
-- 🎯 **NEW:** Scheduled Cloud Function - runs every 1 minute, works offline
-- ⚡ **SIMPLIFIED:** useStreaks hook reduced by 150+ lines, no auto-save
+**Latest Updates (October 26, 2025):**
+- ✅ **COMPLETE:** Phase 5.1 Journey System Refactor - Clean Architecture Deployed!
+- 🎯 **HYBRID:** Client-side detection (primary) + Scheduled Cloud Function (backup)
+- ⚡ **INSTANT:** Milestones detected immediately at mark (no 1-minute wait)
 - 🔒 **ATOMIC:** Transaction-based reset - no race conditions possible
-- 🎉 **SMART:** Celebrates only highest milestone when multiple earned
-- 📊 **CLEAN:** Journey.startDate is single source of truth
-- 🏷️ Badges are permanent historical records across all journeys
-- 📖 Data model simplified - removed currentSeconds/startDate from StreakData
-- 🗑️ Removed 200+ lines of deprecated code
-- 📝 Old Cloud Function marked deprecated, ready for removal after testing
+- 🎉 **SMART:** Celebrates only highest milestone when multiple earned offline
+- 📊 **CLEAN:** Journey.startDate is single source of truth for all timing
+- 🏷️ Badges are permanent historical records with journeyId linking
+- 📖 Data model simplified - removed 4 fields from StreakData interface
+- 🗑️ Removed 200+ lines of deprecated code (auto-save, locking, etc.)
+- 📝 All documentation updated to reflect current architecture
+- 🚀 Deployed to production and tested successfully
 
-**Working on:** Backend implementation (journey service, Cloud Functions)
+**Next:** Phase 6 - Settings & Configuration (allowing custom rules, notifications)
 
 **Previously:** Phase 5 Complete! ✅
 - 🏆 Automatic badge detection via Cloud Function trigger
@@ -47,7 +48,7 @@
 
 ## 📊 Overall Progress
 
-**Phases Complete:** 5 / 6 (83%)
+**Phases Complete:** 5.1 / 6 (85%)
 
 ```
 [████████████████████████████████████████] Documentation (100%)
@@ -56,6 +57,7 @@
 [████████████████████████████████████████] Phase 3 (100%) ✅
 [████████████████████████████████████████] Phase 4 (100%) ✅
 [████████████████████████████████████████] Phase 5 (100%) ✅
+[████████████████████████████████████████] Phase 5.1 (100%) ✅ Refactor
 [------------------------------------] Phase 6 (0%)
 ```
 
@@ -576,6 +578,140 @@ None
 
 **Testing Results:**
 - ✅ TypeScript compilation successful (frontend + functions)
+
+---
+
+## ✅ Phase 5.1: Journey System Refactor
+
+**Status:** ✅ COMPLETE  
+**Duration:** Multi-session (October 26, 2025)  
+**Progress:** 8 / 8 tasks (100%)
+
+### Tasks
+
+#### 5.1.1 Simplify Data Model
+- [x] Remove `discipline` streak (simplified to single PMO journey)
+- [x] Remove `startDate` from StreakData (moved to Journey)
+- [x] Remove `currentSeconds` from StreakData (calculated on-demand)
+- [x] Remove `lastUpdated` from StreakData
+- [x] Update TypeScript interfaces
+- [x] Update all components to use new schema
+
+#### 5.1.2 Remove Auto-Save System
+- [x] Remove auto-save interval (was writing every 60s)
+- [x] Remove `saveStreakState()` function
+- [x] Remove all locking mechanisms (`isResettingRef`)
+- [x] Calculate timing on-demand from Journey.startDate
+- [x] Simplify useStreaks hook (-150 lines)
+
+#### 5.1.3 Implement Atomic Reset
+- [x] Refactor `resetMainStreak` to use Firestore transaction
+- [x] End journey + Create journey + Update streaks in single transaction
+- [x] Ensure no intermediate states possible
+- [x] Test for race conditions
+
+#### 5.1.4 Hybrid Milestone Detection
+- [x] Create `useMilestones.ts` hook for client-side detection
+- [x] Implement scheduled Cloud Function as backup
+- [x] Use deterministic badge IDs (`${journeyId}_${milestoneSeconds}`)
+- [x] Ensure idempotent badge creation
+- [x] Test both client and server can't create duplicates
+
+#### 5.1.5 Smart Celebration
+- [x] Implement "celebrate highest milestone only" logic
+- [x] Update `useBadges` to filter for current journey
+- [x] Update `useBadges` to check for recent badges (<10s)
+- [x] Test offline scenario (multiple badges earned)
+
+#### 5.1.6 Badge Lifecycle
+- [x] Make badges permanent historical records
+- [x] Add `journeyId` field to Badge interface
+- [x] Update Badge Gallery to show all badges across journeys
+- [x] Update Journey History to show achievement counts
+
+#### 5.1.7 Remove Deprecated Code
+- [x] Remove old `checkMilestones` Cloud Function
+- [x] Remove `updateStreakData()` function
+- [x] Remove `resetStreak()` function
+- [x] Remove `isValidStreakData()` function
+- [x] Clean up imports and unused code
+
+#### 5.1.8 Update Documentation
+- [x] Update SPEC.md (FR-5.2, FR-5.3)
+- [x] Update DATA_SCHEMA.md (Streaks interface)
+- [x] Update DEVELOPER_NOTES.md (Phase 5.1 section)
+- [x] Create PHASE_5.1_COMPLETE.md
+- [x] Update PROGRESS.md
+- [x] Commit documentation changes
+
+### Blockers
+None
+
+### Notes
+
+**What Was Accomplished:**
+
+**1. Architecture Simplification:**
+- Removed ~200 lines of complex code
+- Eliminated auto-save intervals and locking mechanisms
+- Simplified data model (4 fields removed from StreakData)
+- Journey.startDate is now single source of truth
+
+**2. Hybrid Milestone Detection:**
+- CLIENT-SIDE (Primary): Runs every second when app open, instant detection
+- SERVER-SIDE (Backup): Scheduled function every 1 minute, offline support
+- Both use same badge ID format → no duplicates possible
+- Deterministic IDs: `${journeyId}_${milestoneSeconds}`
+
+**3. Atomic Operations:**
+- Transaction-based journey reset
+- All operations succeed or fail together
+- No race conditions possible
+- Consistent state guaranteed
+
+**4. Smart Celebration:**
+- Only celebrates highest milestone when multiple earned
+- Prevents celebration spam for offline users
+- All badges still visible in gallery
+- Better user experience
+
+**5. Permanent Badges:**
+- Badges never deleted
+- Complete achievement history
+- Linked to journeys via journeyId
+- Motivational to see all progress
+
+**Key Files Modified:**
+- `src/features/kamehameha/hooks/useStreaks.ts` - Simplified (-150 lines)
+- `src/features/kamehameha/services/firestoreService.ts` - Transaction-based reset
+- `src/features/kamehameha/hooks/useBadges.ts` - Smart celebration
+- `src/features/kamehameha/types/kamehameha.types.ts` - Simplified interfaces
+- `functions/src/scheduledMilestones.ts` - NEW scheduled function
+- `src/features/kamehameha/hooks/useMilestones.ts` - NEW client-side detection
+
+**Files Removed:**
+- `functions/src/milestones.ts` - Deprecated document-trigger function
+
+**Benefits:**
+- ✅ Code Quality: Simpler, cleaner, easier to maintain
+- ✅ Reliability: No race conditions, no stale data
+- ✅ Performance: Fewer Firestore writes, instant detection
+- ✅ User Experience: Timer always accurate, milestones instant, no spam
+
+**Testing Results:**
+- ✅ Milestone appears at 60-second mark (instant)
+- ✅ Journey reset creates new journey with 0 achievements
+- ✅ Old badges preserved in gallery
+- ✅ No celebration of old badges
+- ✅ Multiple milestones celebrate only highest
+- ✅ TypeScript compilation successful
+- ✅ All functions deployed successfully
+
+### Time Log
+- Estimated: 1 day
+- Actual: Multi-session (October 26, 2025)
+
+---
 - ✅ Build successful
 - ✅ All components render without errors
 - ✅ Ready for emulator testing with dev milestones
