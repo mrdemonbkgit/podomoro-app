@@ -34,6 +34,7 @@
 - 🗑️ Removed 200+ lines of deprecated code (auto-save, locking, etc.)
 - 📝 All documentation updated to reflect current architecture
 - 🚀 Deployed to production and tested successfully
+- 📝 Added `docs/TECHNICAL_DEBT_AUDIT_REVIEW.md` capturing actionable review notes for `TECHNICAL_DEBT_AUDIT.md` (for future agents)
 
 **Next:** Phase 6 - Settings & Configuration (allowing custom rules, notifications)
 
