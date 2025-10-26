@@ -73,78 +73,49 @@ interface UserProfile {
 
 ---
 
-### Streaks
+### Streaks (Simplified in Phase 5.1 Refactor)
 
 ```typescript
 interface Streaks {
   currentJourneyId: string;      // ← Phase 5.1: Current PMO journey ID
   main: StreakData;
-  discipline: StreakData;
   lastUpdated: number; // timestamp
 }
 
 interface StreakData {
-  startDate: number; // timestamp when current streak started
-  currentSeconds: number; // current streak length in seconds
-  longestSeconds: number; // longest streak ever in seconds
-  lastUpdated: number; // timestamp of last update (Phase 2) ✅
+  longestSeconds: number; // longest streak ever in seconds (all-time record)
 }
 ```
 
 **Firestore Path:** `users/{userId}/kamehameha/streaks`
 
-**Note (Phase 5.1):** `StreakHistory` is replaced by the Journey system (see below)
+**Important Changes (Phase 5.1 Refactor):**
+- ❌ Removed `discipline` streak (simplified to single PMO journey)
+- ❌ Removed `startDate` from StreakData (now in Journey document)
+- ❌ Removed `currentSeconds` from StreakData (calculated from Journey.startDate)
+- ❌ Removed `lastUpdated` from StreakData
+- ✅ Journey.startDate is the single source of truth for timing
+- ✅ All timing calculated in real-time from immutable startDate
+- ✅ No auto-save intervals needed
+- ✅ Streaks document is just a pointer to current journey + all-time record
 
 **Example:**
 ```json
 {
+  "currentJourneyId": "abc123xyz",
   "main": {
-    "startDate": 1697932800000,
-    "currentSeconds": 1296000,
-    "longestSeconds": 3888000,
-    "lastUpdated": 1697932800000
-  },
-  "discipline": {
-    "startDate": 1697932800000,
-    "currentSeconds": 864000,
-    "longestSeconds": 2592000,
-    "lastUpdated": 1697932800000
+    "longestSeconds": 3888000
   },
   "lastUpdated": 1697932800000
 }
 ```
 
-<!-- Phase 2 Implementation (October 21, 2025):
-- ✅ Implemented: startDate, currentSeconds, longestSeconds, lastUpdated
-- ⏳ Not yet implemented: history field (planned for Phase 4)
--->
+**How Timing Works Now:**
+```typescript
+// Current duration calculated on-demand:
+const currentSeconds = (Date.now() - journey.startDate) / 1000;
 
-**Example with History (Phase 4):**
-```json
-{
-  "main": {
-    "startDate": 1697932800000,
-    "currentSeconds": 1296000,
-    "longestSeconds": 3888000,
-    "lastUpdated": 1697932800000,
-    "history": [
-      {
-        "id": "streak_001",
-        "startDate": 1694000000000,
-        "endDate": 1697932799999,
-        "durationSeconds": 3888000,
-        "endReason": "relapse"
-      }
-    ]
-  },
-  "discipline": {
-    "startDate": 1698019200000,
-    "currentSeconds": 1036800,
-    "longestSeconds": 2592000,
-    "history": []
-  },
-  "lastUpdated": 1698106000000
-}
+// No storage needed, always accurate
 ```
 
 ---

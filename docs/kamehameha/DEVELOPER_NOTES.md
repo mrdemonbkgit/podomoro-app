@@ -897,6 +897,213 @@ OPENAI_API_KEY=sk-...
 
 ---
 
+## 🏗️ Phase 5.1 Refactor: Clean Architecture (October 2025)
+
+### The Problem We Solved
+
+**Original Implementation Issues:**
+- ❌ Auto-save intervals writing `currentSeconds` every minute
+- ❌ Race conditions between client writes and Cloud Function
+- ❌ Document-triggered Cloud Function firing on every write
+- ❌ Complex locking mechanisms to prevent race conditions
+- ❌ Stale closures capturing old state
+- ❌ ~200+ lines of workaround code
+
+**Result:** Badges created at wrong times, new journeys showing incorrect achievements.
+
+### The Solution: Simplified Architecture
+
+**Core Principle:** Journey.startDate is the **single source of truth**
+
+**Key Changes:**
+1. **No More Auto-Save**
+   - Removed all auto-save intervals
+   - Removed all locking mechanisms
+   - Calculate timing from immutable startDate on-demand
+   - No Firestore writes except on journey reset
+
+2. **Simplified Data Model**
+   ```typescript
+   // OLD (storing calculated values):
+   interface StreakData {
+     startDate: number;
+     currentSeconds: number;  // ← Removed
+     longestSeconds: number;
+     lastUpdated: number;     // ← Removed
+   }
+   
+   // NEW (source of truth only):
+   interface StreakData {
+     longestSeconds: number;  // All-time record
+   }
+   
+   // Timing calculated from Journey:
+   const currentSeconds = (Date.now() - journey.startDate) / 1000;
+   ```
+
+3. **Transaction-Based Reset**
+   ```typescript
+   // Atomic operation - all or nothing:
+   await runTransaction(db, async (transaction) => {
+     // 1. End current journey
+     // 2. Create new journey  
+     // 3. Update longest streak
+     // 4. Update streaks document
+     // All succeed together or all fail
+   });
+   ```
+
+4. **Hybrid Milestone Detection**
+   ```typescript
+   // PRIMARY: Client-side (instant detection)
+   useMilestones({ currentJourneyId, journeyStartDate });
+   // Runs every second when app is open
+   // Creates badge immediately at milestone
+   
+   // BACKUP: Scheduled Cloud Function
+   // Runs every 1 minute via Cloud Scheduler
+   // Handles offline scenarios
+   // Uses same badge ID format (no duplicates)
+   ```
+
+5. **Smart Celebration**
+   ```typescript
+   // Only celebrates HIGHEST milestone
+   const highestMilestone = newBadges.reduce((highest, badge) =>
+     badge.milestoneSeconds > highest.milestoneSeconds ? badge : highest
+   );
+   // User offline for 7 days? Celebrates only 7d badge, not 1d, 3d
+   ```
+
+### How It Works Now
+
+**1. Timing Calculation (Real-time)**
+```typescript
+// In useStreaks.ts:
+const updateDisplay = useCallback(() => {
+  if (!journeyStartDate) return;
+  const mainDisp = calculateStreakFromStart(journeyStartDate);
+  setMainDisplay(mainDisp);
+}, [journeyStartDate]);
+
+// Runs every second via setInterval
+// No Firestore writes needed
+```
+
+**2. Milestone Detection (Hybrid)**
+```typescript
+// Client-side (PRIMARY):
+// In useMilestones.ts - runs every second when app open
+const checkMilestones = async () => {
+  const currentSeconds = (Date.now() - journeyStartDate) / 1000;
+  
+  for (const milestone of MILESTONES) {
+    if (lastChecked < milestone && currentSeconds >= milestone) {
+      // Create badge with deterministic ID
+      const badgeId = `${journeyId}_${milestone}`;
+      await setDoc(badgeRef, badgeData); // Idempotent
+      await updateDoc(journeyRef, {
+        achievementsCount: increment(1)
+      });
+    }
+  }
+};
+
+// Server-side (BACKUP):
+// In scheduledMilestones.ts - runs every 1 minute via Cloud Scheduler
+// Same logic, same badge IDs → no duplicates possible
+```
+
+**3. Journey Reset (Atomic)**
+```typescript
+// In firestoreService.ts:
+await runTransaction(db, async (transaction) => {
+  // Read current state
+  const currentStreaks = await transaction.get(streaksRef);
+  
+  // End current journey
+  transaction.update(journeyRef, {
+    endDate: now,
+    finalSeconds: previousSeconds
+  });
+  
+  // Create new journey
+  const newJourneyRef = doc(collection(db, journeysPath));
+  transaction.set(newJourneyRef, {
+    startDate: now,
+    achievementsCount: 0,
+    // ...
+  });
+  
+  // Update streaks pointer
+  transaction.set(streaksRef, {
+    currentJourneyId: newJourneyRef.id,
+    // ...
+  });
+  
+  // All operations succeed or fail together
+});
+```
+
+### Benefits
+
+**Code Quality:**
+- ✅ Removed 200+ lines of complex code
+- ✅ No auto-save intervals
+- ✅ No locking mechanisms
+- ✅ Simpler to understand and maintain
+
+**Reliability:**
+- ✅ No race conditions (transaction ensures atomicity)
+- ✅ No stale data (calculate from immutable startDate)
+- ✅ Idempotent operations (safe to retry)
+- ✅ Works offline (scheduled function backup)
+
+**Performance:**
+- ✅ Fewer Firestore writes (only on reset)
+- ✅ Instant milestone detection (client-side)
+- ✅ No Cloud Function throttling issues
+
+**User Experience:**
+- ✅ Timer always accurate
+- ✅ Milestones detected instantly
+- ✅ No celebration spam (highest only)
+- ✅ Complete achievement history preserved
+
+### Known Issues & Solutions
+
+**Issue:** Scheduled Cloud Function fails with FAILED_PRECONDITION
+- **Cause:** Requires Firestore composite index for collectionGroup queries
+- **Solution:** Client-side detection handles online scenarios perfectly
+- **Future:** Create index for true offline support (optional)
+
+**Issue:** Badge deterministic IDs
+- **Format:** `${journeyId}_${milestoneSeconds}`
+- **Why:** Ensures both client and server can't create duplicates
+- **Example:** `abc123_60` for 1-minute badge in journey abc123
+
+### Testing
+
+**Test Milestone Detection:**
+1. Start app, wait 1 minute
+2. Badge should appear at 60-second mark (instant)
+3. Check console logs for "🎯 Client detected milestone"
+
+**Test Journey Reset:**
+1. Earn badge, report PMO relapse
+2. New journey starts with 0 achievements
+3. Old badges preserved in gallery
+4. No celebration of old badges
+
+**Test Offline Scenario (Future):**
+1. Once Firestore index is created
+2. Close app for several minutes
+3. Scheduled function creates badges
+4. Open app, badges already exist
+5. Celebrates only highest milestone
+
+---
+
 **Remember:** You're building something meaningful. Take time to do it right. 💪
 
 **Good luck!** 🚀

@@ -625,16 +625,28 @@ Kamehameha provides a comprehensive, compassionate recovery companion for indivi
   - Congratulatory message
 - Milestones for both streaks
 
-**FR-5.2: Milestone Detection**
-- Automatic detection when streak reaches milestone
-- Firestore Cloud Function trigger (optional)
-- Client-side detection backup
-- Award badge immediately
+**FR-5.2: Milestone Detection (Phase 5.1 Refactor - Hybrid Approach)**
+- **PRIMARY:** Client-side detection (runs every second when app is open)
+  - Detects milestones instantly
+  - Creates badges with deterministic IDs (idempotent)
+  - Updates journey achievementsCount
+- **BACKUP:** Scheduled Cloud Function (runs every 1 minute)
+  - Handles offline milestone detection
+  - Uses same badge ID format (no duplicates)
+  - Requires Firestore composite index
+- Both methods create badges atomically using `setDoc` with deterministic ID: `${journeyId}_${milestoneSeconds}`
+- First detection wins, second is no-op (idempotent)
 
-**FR-5.3: Celebration Animation**
+**FR-5.3: Celebration Animation (Phase 5.1 - Smart Celebration)**
 - Confetti animation (canvas-confetti)
 - Modal with badge display
 - Congratulatory message
+- **NEW:** Only celebrates highest milestone when multiple earned
+  - If user offline and earns 1d, 3d, 7d badges → celebrates only 7d
+  - Prevents celebration spam
+  - All badges still recorded in gallery
+- Only celebrates badges from current journey
+- Only celebrates recently earned badges (< 10 seconds)
 - Option to share (future)
 - Sound effect (optional)
 
