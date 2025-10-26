@@ -1,6 +1,6 @@
 # ZenFocus Documentation Index
 
-**Last Updated:** Phase 4 Day 3 - October 26, 2025
+**Last Updated:** Phase 5 Planning - October 26, 2025
 
 ## 📚 API Reference
 
@@ -58,10 +58,11 @@ Start with `core/ARCHITECTURE.md` to understand the overall application structur
 
 **Phase Summaries:**
 - `phase-summaries/` - Implementation plans and completion reports for each phase
-  - Phase 1: Firebase Auth setup
-  - Phase 2: Streak tracking foundation
-  - Phase 3: Check-ins and relapse tracking
-  - Phase 4: AI therapist chat (in progress)
+  - Phase 1: Firebase Auth setup ✅
+  - Phase 2: Streak tracking foundation ✅
+  - Phase 3: Check-ins and relapse tracking ✅
+  - Phase 4: AI therapist chat ✅
+  - Phase 5: Security & production hardening (see `PHASE_5_IMPLEMENTATION_PLAN.md`)
 
 ### `tools/` - Development Tools
 - MCP setup and testing workflows
