@@ -172,9 +172,9 @@ export interface Relapse {
  * Stored in Firestore: users/{userId}/kamehameha_badges/{badgeId}
  */
 export interface Badge {
-  /** Document ID */
+  /** Document ID - Legacy: auto-generated | New: {journeyId}_{milestoneSeconds} */
   id: string;
-  /** Journey this badge belongs to (Phase 5.1) */
+  /** Journey this badge belongs to (optional for backward compatibility with legacy badges) */
   journeyId?: string;
   /** Which streak this badge is for (deprecated - all badges are for main streak now) */
   streakType?: 'main' | 'discipline';
@@ -188,6 +188,10 @@ export interface Badge {
   badgeName: string;
   /** Congratulations message */
   congratsMessage: string;
+  /** Who created this badge (added in Phase 5 for auditability) */
+  createdBy?: 'client' | 'scheduled_function';
+  /** When this badge was created (milliseconds) */
+  createdAt?: number;
 }
 
 /**
