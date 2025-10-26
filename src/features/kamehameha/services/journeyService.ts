@@ -23,6 +23,7 @@ import {
 } from 'firebase/firestore';
 import type { Journey, Relapse } from '../types/kamehameha.types';
 import { COLLECTION_PATHS, getDocPath } from './paths';
+import { logger } from '../../../utils/logger';
 
 /**
  * Create a new PMO journey
@@ -47,7 +48,7 @@ export async function createJourney(userId: string): Promise<Journey> {
     updatedAt: now,
   };
 
-  console.log('📝 Creating new journey for user:', userId, 'with data:', journeyData);
+  logger.debug('📝 Creating new journey for user:', userId, 'with data:', journeyData);
   
   const docRef = await addDoc(journeysRef, journeyData);
 
@@ -56,7 +57,7 @@ export async function createJourney(userId: string): Promise<Journey> {
     ...journeyData,
   };
 
-  console.log('✅ Journey created in Firestore:', {
+  logger.debug('✅ Journey created in Firestore:', {
     id: journey.id,
     achievementsCount: journey.achievementsCount,
     violationsCount: journey.violationsCount
@@ -81,13 +82,13 @@ export async function endJourney(
   const db = getFirestore();
   const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
 
-  console.log('⏹️ Ending journey:', journeyId, 'Duration:', finalSeconds, 'seconds');
+  logger.debug('⏹️ Ending journey:', journeyId, 'Duration:', finalSeconds, 'seconds');
 
   // Read current journey data before ending
   const journeySnap = await getDoc(journeyRef);
   if (journeySnap.exists()) {
     const currentData = journeySnap.data();
-    console.log('   Current journey achievementsCount:', currentData.achievementsCount);
+    logger.debug('   Current journey achievementsCount:', currentData.achievementsCount);
   }
 
   // Update journey document
@@ -98,7 +99,7 @@ export async function endJourney(
     updatedAt: Date.now(),
   });
 
-  console.log('✅ Journey ended:', journeyId, '(badges preserved for history)');
+  logger.debug('✅ Journey ended:', journeyId, '(badges preserved for history)');
 }
 
 
@@ -121,7 +122,7 @@ export async function getCurrentJourney(userId: string): Promise<Journey | null>
   const snapshot = await getDocs(q);
 
   if (snapshot.empty) {
-    console.log('No active journey found for user:', userId);
+    logger.debug('No active journey found for user:', userId);
     return null;
   }
 
@@ -131,7 +132,7 @@ export async function getCurrentJourney(userId: string): Promise<Journey | null>
     ...docData.data(),
   } as Journey;
 
-  console.log('Found active journey:', journey.id);
+  logger.debug('Found active journey:', journey.id);
 
   return journey;
 }
@@ -166,7 +167,7 @@ export async function getJourneyHistory(
     ...doc.data(),
   } as Journey));
 
-  console.log('Loaded journey history:', journeys.length, 'journeys');
+  logger.debug('Loaded journey history:', journeys.length, 'journeys');
 
   return journeys;
 }
@@ -185,14 +186,14 @@ export async function incrementJourneyViolations(
   const db = getFirestore();
   const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
 
-  console.log('Incrementing violations for journey:', journeyId);
+  logger.debug('Incrementing violations for journey:', journeyId);
 
   await updateDoc(journeyRef, {
     violationsCount: increment(1),
     updatedAt: Date.now(),
   });
 
-  console.log('Violations incremented for journey:', journeyId);
+  logger.debug('Violations incremented for journey:', journeyId);
 }
 
 /**
@@ -209,14 +210,14 @@ export async function incrementJourneyAchievements(
   const db = getFirestore();
   const journeyRef = doc(db, getDocPath.journey(userId, journeyId));
 
-  console.log('Incrementing achievements for journey:', journeyId);
+  logger.debug('Incrementing achievements for journey:', journeyId);
 
   await updateDoc(journeyRef, {
     achievementsCount: increment(1),
     updatedAt: Date.now(),
   });
 
-  console.log('Achievements incremented for journey:', journeyId);
+  logger.debug('Achievements incremented for journey:', journeyId);
 }
 
 /**
@@ -249,13 +250,13 @@ export async function getJourneyViolations(
       ...doc.data(),
     } as Relapse));
 
-    console.log('Loaded violations for journey:', journeyId, 'Count:', violations.length);
+    logger.debug('Loaded violations for journey:', journeyId, 'Count:', violations.length);
 
     return violations;
   } catch (error) {
     console.error('Failed to get journey violations:', error);
     // If query fails (e.g., missing index), fall back to fetching all and filtering
-    console.warn('Falling back to client-side filtering (may be slow)');
+    logger.warn('Falling back to client-side filtering (may be slow)');
     
     const allRelapsesSnapshot = await getDocs(relapsesRef);
     const violations = allRelapsesSnapshot.docs
@@ -311,7 +312,7 @@ export async function getJourneyNumber(
       }
     });
     
-    console.log('Journey number:', journeyNumber, 'for journey:', journeyId);
+    logger.debug('Journey number:', journeyNumber, 'for journey:', journeyId);
     
     return journeyNumber;
   } catch (error) {

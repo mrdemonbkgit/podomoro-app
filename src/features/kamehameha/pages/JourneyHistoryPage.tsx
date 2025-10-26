@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '../../auth/components/UserProfile';
+import { logger } from '../../../utils/logger';
 import { useAuth } from '../../auth/context/AuthContext';
 import { getJourneyHistory, getJourneyViolations } from '../services/journeyService';
 import type { Journey, Relapse } from '../types/kamehameha.types';
@@ -26,10 +27,10 @@ export function JourneyHistoryPage() {
 
     async function loadJourneys() {
       try {
-        console.log('🔄 Reloading journey history...');
+        logger.debug('🔄 Reloading journey history...');
         const history = await getJourneyHistory(user!.uid);
         setJourneys(history);
-        console.log('✅ Loaded journeys:', history.length, 'journeys');
+        logger.debug('✅ Loaded journeys:', history.length, 'journeys');
         if (history.length > 0) {
           const latest = history[0];
           const duration = latest.endDate 
@@ -37,7 +38,7 @@ export function JourneyHistoryPage() {
             : Math.floor((Date.now() - latest.startDate) / 1000);
           const minutes = Math.floor(duration / 60);
           const seconds = duration % 60;
-          console.log('   Latest journey:', {
+          logger.debug('   Latest journey:', {
             id: latest.id,
             achievementsCount: latest.achievementsCount,
             violationsCount: latest.violationsCount,

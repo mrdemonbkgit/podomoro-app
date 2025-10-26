@@ -12,6 +12,7 @@ import { useEffect, useRef } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import { doc, setDoc, getFirestore, increment, updateDoc } from 'firebase/firestore';
 import { getDocPath } from '../services/paths';
+import { logger } from '../../../utils/logger';
 
 // Milestone thresholds in seconds
 const MILESTONE_SECONDS = [
@@ -69,7 +70,7 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
       // Find milestones that were just crossed
       for (const milestone of MILESTONE_SECONDS) {
         if (lastCheckedSecond.current < milestone && currentSeconds >= milestone) {
-          console.log(`🎯 Client detected milestone: ${milestone}s`);
+          logger.debug(`🎯 Client detected milestone: ${milestone}s`);
 
           try {
             // Create badge with deterministic ID (idempotent)
@@ -100,9 +101,9 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
               updatedAt: Date.now(),
             });
 
-            console.log(`✅ Badge created (client): ${badgeConfig.name}`);
+            logger.debug(`✅ Badge created (client): ${badgeConfig.name}`);
           } catch (error) {
-            console.error(`Failed to create badge for ${milestone}s:`, error);
+            logger.error(`Failed to create badge for ${milestone}s:`, error);
             // Don't throw - just log and continue
           }
         }

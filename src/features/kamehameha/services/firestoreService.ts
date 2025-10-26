@@ -23,6 +23,7 @@ import { db } from '../../../services/firebase/config';
 import type { Streaks, CheckIn, Relapse } from '../types/kamehameha.types';
 import { createJourney, incrementJourneyViolations } from './journeyService';
 import { COLLECTION_PATHS, DOCUMENT_PATHS, getDocPath } from './paths';
+import { logger } from '../../../utils/logger';
 
 // ============================================================================
 // Path Helpers
@@ -53,7 +54,7 @@ export async function initializeUserStreaks(userId: string): Promise<Streaks> {
   
   try {
     // Create initial journey (Phase 5.1 Refactor)
-    console.log('Creating initial journey for user:', userId);
+    logger.debug('Creating initial journey for user:', userId);
     const journey = await createJourney(userId);
     
     // Simplified streaks document (no timing data, just journey reference)
@@ -68,11 +69,11 @@ export async function initializeUserStreaks(userId: string): Promise<Streaks> {
     const streaksRef = doc(db, getStreaksDocPath(userId));
     await setDoc(streaksRef, defaultStreaks);
     
-    console.log('Streaks initialized with journey:', journey.id);
+    logger.debug('Streaks initialized with journey:', journey.id);
     
     return defaultStreaks;
   } catch (error) {
-    console.error('Failed to initialize user streaks:', error);
+    logger.error('Failed to initialize user streaks:', error);
     throw new Error('Failed to initialize streaks');
   }
 }
@@ -100,7 +101,7 @@ export async function getStreaks(userId: string): Promise<Streaks> {
     
     return streaksDoc.data() as Streaks;
   } catch (error) {
-    console.error('Failed to get streaks:', error);
+    logger.error('Failed to get streaks:', error);
     throw new Error('Failed to load streaks');
   }
 }
@@ -117,7 +118,7 @@ export async function hasExistingStreaks(userId: string): Promise<boolean> {
     const streaksDoc = await getDoc(streaksRef);
     return streaksDoc.exists();
   } catch (error) {
-    console.error('Failed to check existing streaks:', error);
+    logger.error('Failed to check existing streaks:', error);
     return false;
   }
 }
@@ -147,7 +148,7 @@ export async function updateStreaks(
     
     await updateDoc(streaksRef, updatedStreaks as any);
   } catch (error) {
-    console.error('Failed to update streaks:', error);
+    logger.error('Failed to update streaks:', error);
     throw new Error('Failed to save streaks');
   }
 }
@@ -182,7 +183,7 @@ export async function updateStreaks(
  */
 export async function resetMainStreak(userId: string, previousSeconds: number): Promise<Streaks> {
   try {
-    console.log('🔄 resetMainStreak START (TRANSACTION):', { userId, previousSeconds });
+    logger.debug('🔄 resetMainStreak START (TRANSACTION):', { userId, previousSeconds });
     
     const now = Date.now();
     
@@ -201,7 +202,7 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
       
       // 2. End current journey if exists
             if (currentJourneyId) {
-              console.log('   ⚠️ Ending journey:', currentJourneyId, `(${previousSeconds}s)`);
+              logger.debug('   ⚠️ Ending journey:', currentJourneyId, `(${previousSeconds}s)`);
               const journeyRef = doc(db, getDocPath.journey(userId, currentJourneyId));
         
         transaction.update(journeyRef, {
@@ -226,7 +227,7 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
       };
       
       transaction.set(newJourneyRef, newJourney);
-      console.log('   🆕 Creating new journey:', newJourneyRef.id);
+      logger.debug('   🆕 Creating new journey:', newJourneyRef.id);
       
       // 4. Update longest streak if this journey beat the record
       const newLongestSeconds = Math.max(
@@ -245,17 +246,17 @@ export async function resetMainStreak(userId: string, previousSeconds: number): 
       };
       
       transaction.set(streaksRef, updatedStreaks);
-      console.log('   💾 Updating streaks document with new journey');
+      logger.debug('   💾 Updating streaks document with new journey');
       
       // Return updated streaks
       return updatedStreaks;
     });
     
-    console.log('✅ resetMainStreak TRANSACTION COMPLETE');
+    logger.debug('✅ resetMainStreak TRANSACTION COMPLETE');
     
     return result;
   } catch (error) {
-    console.error('❌ Failed to reset main streak:', error);
+    logger.error('❌ Failed to reset main streak:', error);
     throw new Error('Failed to reset main streak');
   }
 }
@@ -293,7 +294,7 @@ export async function saveCheckIn(
       id: docRef.id,
     };
   } catch (error) {
-    console.error('Failed to save check-in:', error);
+    logger.error('Failed to save check-in:', error);
     throw new Error('Failed to save check-in');
   }
 }
@@ -325,7 +326,7 @@ export async function getRecentCheckIns(
     
     return checkIns;
   } catch (error) {
-    console.error('Failed to get recent check-ins:', error);
+    logger.error('Failed to get recent check-ins:', error);
     throw new Error('Failed to load check-ins');
   }
 }
@@ -346,7 +347,7 @@ export async function deleteCheckIn(
     const checkInRef = doc(db, getDocPath.checkIn(userId, checkInId));
     await deleteDoc(checkInRef);
   } catch (error) {
-    console.error('Failed to delete check-in:', error);
+    logger.error('Failed to delete check-in:', error);
     throw new Error('Failed to delete check-in');
   }
 }
@@ -390,14 +391,14 @@ export async function saveRelapse(
     if (relapseData.streakType === 'main') {
       // PMO relapse - reset main streak and end journey
       await resetMainStreak(userId, previousSeconds); // ← Phase 5.1: Pass previousSeconds
-      console.log('PMO relapse saved:', docRef.id, 'Journey ended:', currentJourneyId);
+      logger.debug('PMO relapse saved:', docRef.id, 'Journey ended:', currentJourneyId);
     } else {
       // Rule violation - just increment journey violations count (no streak reset)
       if (currentJourneyId) {
-        console.log('Rule violation logged in journey:', currentJourneyId);
+        logger.debug('Rule violation logged in journey:', currentJourneyId);
         await incrementJourneyViolations(userId, currentJourneyId);
       }
-      console.log('Rule violation saved:', docRef.id, 'Journey continues:', currentJourneyId);
+      logger.debug('Rule violation saved:', docRef.id, 'Journey continues:', currentJourneyId);
     }
     
     return {
@@ -405,7 +406,7 @@ export async function saveRelapse(
       id: docRef.id,
     };
   } catch (error) {
-    console.error('Failed to save relapse:', error);
+    logger.error('Failed to save relapse:', error);
     throw new Error('Failed to save relapse');
   }
 }
@@ -437,7 +438,7 @@ export async function getRecentRelapses(
     
     return relapses;
   } catch (error) {
-    console.error('Failed to get recent relapses:', error);
+    logger.error('Failed to get recent relapses:', error);
     throw new Error('Failed to load relapses');
   }
 }
@@ -458,7 +459,7 @@ export async function deleteRelapse(
     const relapseRef = doc(db, getDocPath.relapse(userId, relapseId));
     await deleteDoc(relapseRef);
   } catch (error) {
-    console.error('Failed to delete relapse:', error);
+    logger.error('Failed to delete relapse:', error);
     throw new Error('Failed to delete relapse');
   }
 }

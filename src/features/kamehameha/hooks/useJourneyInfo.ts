@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
+import { logger } from '../../../utils/logger';
 import { getJourneyNumber, getJourneyViolations } from '../services/journeyService';
 
 interface UseJourneyInfoReturn {
@@ -44,7 +45,7 @@ export function useJourneyInfo(journeyId: string | null): UseJourneyInfoReturn {
         setLoading(true);
         setError(null);
         
-        console.log('Loading journey info for:', journeyId);
+        logger.debug('Loading journey info for:', journeyId);
         
         // Load journey number and violations in parallel
         const [number, violations] = await Promise.all([
@@ -55,7 +56,7 @@ export function useJourneyInfo(journeyId: string | null): UseJourneyInfoReturn {
         setJourneyNumber(number);
         setViolationsCount(violations.length);
         
-        console.log('Journey info loaded:', { number, violations: violations.length });
+        logger.debug('Journey info loaded:', { number, violations: violations.length });
       } catch (err) {
         console.error('Failed to load journey info:', err);
         setError('Failed to load journey info');

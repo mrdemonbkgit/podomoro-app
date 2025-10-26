@@ -10,6 +10,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import type { Streaks, StreakDisplay, UseStreaksReturn } from '../types/kamehameha.types';
+import { logger } from '../../../utils/logger';
 import {
   getStreaks,
   resetMainStreak as resetMainStreakService,
@@ -69,7 +70,7 @@ export function useStreaks(): UseStreaksReturn {
           const mainDisp = calculateStreakFromStart(journey.startDate);
           setMainDisplay(mainDisp);
         } else {
-          console.warn('No active journey found');
+          logger.warn('No active journey found');
           setMainDisplay(null);
         }
       } else {
@@ -78,7 +79,7 @@ export function useStreaks(): UseStreaksReturn {
       
       setLoading(false);
     } catch (err) {
-      console.error('Failed to load streaks:', err);
+      logger.error('Failed to load streaks:', err);
       setError(err as Error);
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export function useStreaks(): UseStreaksReturn {
     try {
       setError(null);
       
-      console.log('[useStreaks] Resetting main streak...');
+      logger.debug('[useStreaks] Resetting main streak...');
       
       // Reset journey (transaction-based, atomic)
       const updatedStreaks = await resetMainStreakService(user.uid, mainDisplay.totalSeconds);
@@ -125,9 +126,9 @@ export function useStreaks(): UseStreaksReturn {
         }
       }
       
-      console.log('[useStreaks] Reset complete');
+      logger.debug('[useStreaks] Reset complete');
     } catch (err) {
-      console.error('Failed to reset main streak:', err);
+      logger.error('Failed to reset main streak:', err);
       setError(err as Error);
       throw err;
     }

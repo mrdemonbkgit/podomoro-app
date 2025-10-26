@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import {db, functions} from '../../../services/firebase/config';
 import type {ChatMessage} from '../types/kamehameha.types';
+import {logger} from '../../../utils/logger';
 
 // ============================================================================
 // Cloud Function Interfaces
@@ -175,7 +176,7 @@ export async function clearChatHistory(): Promise<void> {
       throw new Error('Failed to clear chat history');
     }
     
-    console.log('Chat history cleared:', result.data.message);
+    logger.debug('Chat history cleared:', result.data.message);
   } catch (error: any) {
     console.error('Error clearing chat history:', error);
     

@@ -11,6 +11,7 @@ import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../services/firebase/config';
 import { useAuth } from '../../auth/context/AuthContext';
 import type { Badge, UseBadgesReturn } from '../types/kamehameha.types';
+import { logger } from '../../../utils/logger';
 
 /**
  * Hook to manage ALL badges (permanent records)
@@ -33,7 +34,7 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
       return;
     }
 
-    console.log('useBadges: Listening for ALL badges (permanent records)');
+    logger.debug('useBadges: Listening for ALL badges (permanent records)');
 
     const badgesRef = collection(db, 'users', user.uid, 'kamehameha_badges');
     
@@ -80,9 +81,9 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
             badge.milestoneSeconds > highest.milestoneSeconds ? badge : highest
           );
           
-          console.log(`🎉 Celebrating highest milestone: ${highestMilestone.badgeName} (${highestMilestone.milestoneSeconds}s)`);
+          logger.debug(`🎉 Celebrating highest milestone: ${highestMilestone.badgeName} (${highestMilestone.milestoneSeconds}s)`);
           if (newBadgesFromCurrentJourney.length > 1) {
-            console.log(`   ⏭️ Skipping ${newBadgesFromCurrentJourney.length - 1} lower milestone(s)`);
+            logger.debug(`   ⏭️ Skipping ${newBadgesFromCurrentJourney.length - 1} lower milestone(s)`);
           }
           
           setCelebrationBadge(highestMilestone);
@@ -111,7 +112,7 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
   // Reset seen badges when journey changes to prevent memory leaks
   useEffect(() => {
     if (currentJourneyId) {
-      console.log('useBadges: Journey changed, clearing seen badges set for new journey:', currentJourneyId);
+      logger.debug('useBadges: Journey changed, clearing seen badges set for new journey:', currentJourneyId);
       seenBadgeIds.current.clear();
       isInitialLoad.current = true;
     }
