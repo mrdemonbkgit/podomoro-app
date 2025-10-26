@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "scan:paths": "node scripts/scan-hardcoded-paths.cjs",
-    "scan:console": "node scripts/scan-console.js",
+    "scan:console": "node scripts/scan-console.cjs",
     "test:rules": "vitest run firestore.rules.test.ts",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
