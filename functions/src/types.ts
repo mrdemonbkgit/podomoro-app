@@ -34,20 +34,17 @@ export interface ChatResponse {
 
 export interface UserContext {
   userId: string;
-  mainStreak: StreakInfo;
-  disciplineStreak: StreakInfo;
+  currentJourney: {
+    durationSeconds: number;
+    achievementsCount: number;
+    violationsCount: number;
+  } | null;
+  longestStreak: number; // in seconds
   recentCheckIns: CheckInSummary[];
   recentRelapses: RelapseSummary[];
   recentMessages: ChatMessage[];
   systemPrompt: string;
   isEmergency: boolean;
-}
-
-export interface StreakInfo {
-  currentSeconds: number;
-  longestSeconds: number;
-  currentDays: number;
-  longestDays: number;
 }
 
 export interface CheckInSummary {
@@ -118,17 +115,9 @@ export interface OpenAIRequest {
 // ============================================================================
 
 export interface FirestoreStreaks {
+  currentJourneyId: string;
   main: {
-    currentSeconds: number;
     longestSeconds: number;
-    startTime: number;
-    lastUpdated: number;
-  };
-  discipline: {
-    currentSeconds: number;
-    longestSeconds: number;
-    startTime: number;
-    lastUpdated: number;
   };
   lastUpdated: number;
 }

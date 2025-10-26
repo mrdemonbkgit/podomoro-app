@@ -6,7 +6,6 @@
 import * as admin from 'firebase-admin';
 import {
   UserContext,
-  StreakInfo,
   CheckInSummary,
   RelapseSummary,
   ChatMessage,
@@ -51,8 +50,8 @@ export async function buildUserContext(
 
     return {
       userId,
-      mainStreak: streaksData.main,
-      disciplineStreak: streaksData.discipline,
+      currentJourney: streaksData.currentJourney,
+      longestStreak: streaksData.longestStreak,
       recentCheckIns: checkInsData,
       recentRelapses: relapsesData,
       recentMessages: messagesData,
@@ -64,8 +63,8 @@ export async function buildUserContext(
     // Return minimal context on error
     return {
       userId,
-      mainStreak: {currentSeconds: 0, longestSeconds: 0, currentDays: 0, longestDays: 0},
-      disciplineStreak: {currentSeconds: 0, longestSeconds: 0, currentDays: 0, longestDays: 0},
+      currentJourney: null,
+      longestStreak: 0,
       recentCheckIns: [],
       recentRelapses: [],
       recentMessages: [],
@@ -78,9 +77,12 @@ export async function buildUserContext(
 }
 
 /**
- * Get user's current streak information
+ * Get user's current journey and streak information (Phase 5.1 Schema)
  */
-async function getStreakInfo(userId: string): Promise<{main: StreakInfo; discipline: StreakInfo}> {
+async function getStreakInfo(userId: string): Promise<{
+  currentJourney: { durationSeconds: number; achievementsCount: number; violationsCount: number } | null;
+  longestStreak: number;
+}> {
   try {
     const streaksRef = admin.firestore()
       .collection('users')
@@ -92,37 +94,48 @@ async function getStreakInfo(userId: string): Promise<{main: StreakInfo; discipl
 
     if (!streaksDoc.exists) {
       return {
-        main: {currentSeconds: 0, longestSeconds: 0, currentDays: 0, longestDays: 0},
-        discipline: {currentSeconds: 0, longestSeconds: 0, currentDays: 0, longestDays: 0},
+        currentJourney: null,
+        longestStreak: 0,
       };
     }
 
     const data = streaksDoc.data() as FirestoreStreaks;
-    const now = Date.now();
+    const currentJourneyId = data.currentJourneyId;
+    let currentJourney = null;
 
-    // Calculate current streaks
-    const mainCurrent = Math.floor((now - data.main.startTime) / 1000);
-    const disciplineCurrent = Math.floor((now - data.discipline.startTime) / 1000);
+    // If there's an active journey, fetch its details
+    if (currentJourneyId) {
+      const journeyRef = admin.firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('kamehameha_journeys')
+        .doc(currentJourneyId);
+
+      const journeyDoc = await journeyRef.get();
+      if (journeyDoc.exists) {
+        const journeyData = journeyDoc.data();
+        const now = Date.now();
+        const durationSeconds = journeyData?.endDate
+          ? (journeyData.finalSeconds || 0)
+          : Math.floor((now - (journeyData?.startDate || now)) / 1000);
+
+        currentJourney = {
+          durationSeconds,
+          achievementsCount: journeyData?.achievementsCount || 0,
+          violationsCount: journeyData?.violationsCount || 0,
+        };
+      }
+    }
 
     return {
-      main: {
-        currentSeconds: mainCurrent,
-        longestSeconds: data.main.longestSeconds,
-        currentDays: Math.floor(mainCurrent / 86400),
-        longestDays: Math.floor(data.main.longestSeconds / 86400),
-      },
-      discipline: {
-        currentSeconds: disciplineCurrent,
-        longestSeconds: data.discipline.longestSeconds,
-        currentDays: Math.floor(disciplineCurrent / 86400),
-        longestDays: Math.floor(data.discipline.longestSeconds / 86400),
-      },
+      currentJourney,
+      longestStreak: data.main.longestSeconds,
     };
   } catch (error) {
     console.error('Error fetching streak info:', error);
     return {
-      main: {currentSeconds: 0, longestSeconds: 0, currentDays: 0, longestDays: 0},
-      discipline: {currentSeconds: 0, longestSeconds: 0, currentDays: 0, longestDays: 0},
+      currentJourney: null,
+      longestStreak: 0,
     };
   }
 }
@@ -252,10 +265,17 @@ async function getAIConfig(userId: string): Promise<{systemPrompt: string} | nul
 export function formatContextForAI(context: UserContext): string {
   const parts: string[] = [];
 
-  // Streak information
+  // Journey information (Phase 5.1)
   parts.push(`**User's Current Status:**`);
-  parts.push(`- Main Streak: ${context.mainStreak.currentDays} days (Longest: ${context.mainStreak.longestDays} days)`);
-  parts.push(`- Discipline Streak: ${context.disciplineStreak.currentDays} days (Longest: ${context.disciplineStreak.longestDays} days)`);
+  if (context.currentJourney) {
+    const days = Math.floor(context.currentJourney.durationSeconds / 86400);
+    const hours = Math.floor((context.currentJourney.durationSeconds % 86400) / 3600);
+    parts.push(`- Current Journey: ${days}d ${hours}h (${context.currentJourney.achievementsCount} achievements, ${context.currentJourney.violationsCount} violations)`);
+  } else {
+    parts.push(`- No active journey`);
+  }
+  const longestDays = Math.floor(context.longestStreak / 86400);
+  parts.push(`- Longest Streak: ${longestDays} days`);
 
   // Recent check-ins
   if (context.recentCheckIns.length > 0) {
