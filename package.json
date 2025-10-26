@@ -13,16 +13,20 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "prepare": "husky",
     "scan:paths": "node scripts/scan-hardcoded-paths.cjs",
     "scan:console": "node scripts/scan-console.cjs",
     "test:rules": "vitest run firestore.rules.test.ts",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "ci": "npm run typecheck && npm run test -- --run && npm run build"
+    "ci": "npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write",
       "tsc --noEmit"
     ]
   },
@@ -35,6 +39,7 @@
     "react-router-dom": "^7.9.4"
   },
   "devDependencies": {
+    "@eslint/js": "^9.38.0",
     "@firebase/rules-unit-testing": "^5.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -42,8 +47,15 @@
     "@types/canvas-confetti": "^1.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "eslint": "^9.38.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.4.0",
     "husky": "^9.1.7",
     "jsdom": "^27.0.0",
     "lint-staged": "^16.2.4",

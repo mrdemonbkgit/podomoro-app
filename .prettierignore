@@ -1,0 +1,19 @@
+# Build outputs
+dist
+build
+functions/lib
+
+# Dependencies
+node_modules
+
+# Cache
+.vite
+*.tsbuildinfo
+
+# Config files
+*.config.js
+*.config.ts
+
+# Logs
+*.log
+
