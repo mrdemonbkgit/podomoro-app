@@ -1,7 +1,6 @@
 /**
  * Primary hook for managing streak state and real-time display.
  * Loads journey data and calculates elapsed time every second from journey.startDate.
- * @see docs/API_REFERENCE.md for complete documentation
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';

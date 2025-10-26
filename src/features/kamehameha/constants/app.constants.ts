@@ -1,6 +1,5 @@
 /**
  * Application Constants - Named constants for timing, limits, and timeouts.
- * @see docs/API_REFERENCE.md for complete documentation
  */
 
 /** Time intervals for operations (milliseconds) */
@@ -10,9 +9,6 @@ export const INTERVALS = {
   
   /** Milestone check interval (1 second) */
   MILESTONE_CHECK_MS: 1000,
-  
-  /** @deprecated Legacy polling interval, use real-time listeners instead */
-  POLLING_MS: 5000,
 } as const;
 
 /** Feature limits */

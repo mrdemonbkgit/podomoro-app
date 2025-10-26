@@ -1,7 +1,6 @@
 /**
  * Client-side milestone detection for real-time badge creation.
  * Monitors journey elapsed time and creates badges when thresholds are crossed.
- * @see docs/API_REFERENCE.md for complete documentation
  */
 
 import { useEffect, useRef } from 'react';
