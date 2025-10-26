@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
+import ErrorBoundary from './components/ErrorBoundary'
 import { AuthProvider } from './features/auth/context/AuthContext'
 import { LoginPage } from './features/auth/components/LoginPage'
 import { ProtectedRoute } from './features/auth/components/ProtectedRoute'
@@ -14,11 +15,12 @@ import { JourneyHistoryPage } from './features/kamehameha/pages/JourneyHistoryPa
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      {/* Single StreaksProvider at top level - prevents race conditions */}
-      <StreaksProvider>
-        <BrowserRouter>
-          <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        {/* Single StreaksProvider at top level - prevents race conditions */}
+        <StreaksProvider>
+          <BrowserRouter>
+            <Routes>
             {/* Timer routes (public) */}
             <Route path="/" element={<App />} />
             <Route path="/timer" element={<App />} />
@@ -59,10 +61,11 @@ createRoot(document.getElementById('root')!).render(
                 </ProtectedRoute>
               }
             />
-          </Routes>
-        </BrowserRouter>
-      </StreaksProvider>
-    </AuthProvider>
+            </Routes>
+          </BrowserRouter>
+        </StreaksProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   </StrictMode>,
 )
 
