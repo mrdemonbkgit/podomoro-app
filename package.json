@@ -20,9 +20,9 @@
     "scan:console": "node scripts/scan-console.cjs",
     "test:rules": "vitest run firestore.rules.test.ts",
     "test:milestones": "vitest run milestoneConstants.test.ts",
-    "emulator": "node scripts/swap-rules.js dev && firebase emulators:start; node scripts/swap-rules.js prod",
-    "emulator:swap": "node scripts/swap-rules.js dev",
-    "emulator:restore": "node scripts/swap-rules.js prod",
+    "emulator": "node scripts/swap-rules.cjs dev && firebase emulators:start; node scripts/swap-rules.cjs prod",
+    "emulator:swap": "node scripts/swap-rules.cjs dev",
+    "emulator:restore": "node scripts/swap-rules.cjs prod",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "ci": "npm run typecheck && npm run lint && npm run test && npm run build"
