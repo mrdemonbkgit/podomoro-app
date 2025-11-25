@@ -31,8 +31,25 @@ vi.mock('firebase/firestore', async (importOriginal) => {
     getDocs: vi.fn(),
     deleteDoc: vi.fn(),
     runTransaction: vi.fn(),
+    getFirestore: vi.fn(() => ({})), // Mock getFirestore to prevent real Firebase init
   };
 });
+
+// Mock journeyService to prevent Firebase calls
+vi.mock('../journeyService', () => ({
+  createJourney: vi.fn().mockResolvedValue({
+    id: 'mock-journey-123',
+    startDate: Date.now(),
+    endDate: null,
+    endReason: 'active',
+    finalSeconds: 0,
+    achievementsCount: 0,
+    violationsCount: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  }),
+  incrementJourneyViolations: vi.fn().mockResolvedValue(undefined),
+}));
 
 // Import after mocking
 import * as firestore from 'firebase/firestore';
@@ -59,20 +76,21 @@ describe('firestoreService', () => {
 
   describe('initializeUserStreaks', () => {
     test('creates initial journey and streaks document', async () => {
-      const mockJourneyRef = { id: 'journey-init-123' };
-      vi.mocked(firestore.addDoc).mockResolvedValue(mockJourneyRef as any);
       vi.mocked(firestore.setDoc).mockResolvedValue(undefined as any);
 
       const streaks = await initializeUserStreaks(testUser.uid);
 
-      expect(streaks.currentJourneyId).toBe('journey-init-123');
+      // Journey ID comes from mocked journeyService.createJourney
+      expect(streaks.currentJourneyId).toBe('mock-journey-123');
       expect(streaks.main.longestSeconds).toBe(0);
       expect(streaks.lastUpdated).toBe(NOW);
       expect(firestore.setDoc).toHaveBeenCalled();
     });
 
     test('throws error on failure', async () => {
-      vi.mocked(firestore.addDoc).mockRejectedValue(
+      // Mock createJourney to reject for this test
+      const journeyService = await import('../journeyService');
+      vi.mocked(journeyService.createJourney).mockRejectedValueOnce(
         new Error('Firestore error')
       );
 
@@ -103,15 +121,14 @@ describe('firestoreService', () => {
 
     test('initializes streaks for first-time user', async () => {
       const mockStreaksDoc = { exists: () => false };
-      const mockJourneyRef = { id: 'new-journey-789' };
 
       vi.mocked(firestore.getDoc).mockResolvedValue(mockStreaksDoc as any);
-      vi.mocked(firestore.addDoc).mockResolvedValue(mockJourneyRef as any);
       vi.mocked(firestore.setDoc).mockResolvedValue(undefined as any);
 
       const streaks = await getStreaks(testUser.uid);
 
-      expect(streaks.currentJourneyId).toBe('new-journey-789');
+      // Journey ID comes from mocked journeyService.createJourney
+      expect(streaks.currentJourneyId).toBe('mock-journey-123');
       expect(streaks.main.longestSeconds).toBe(0);
       expect(firestore.setDoc).toHaveBeenCalled();
     });

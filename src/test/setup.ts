@@ -1,6 +1,24 @@
-import { expect, afterEach } from 'vitest';
+import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import * as matchers from '@testing-library/jest-dom/matchers';
+
+// Mock Firebase config before any other imports that might use it
+// This prevents Firebase initialization errors in tests (auth/invalid-api-key)
+vi.mock('../services/firebase/config', () => ({
+  auth: {
+    onAuthStateChanged: vi.fn((callback) => {
+      callback(null);
+      return vi.fn();
+    }),
+    signInWithPopup: vi.fn(),
+    signOut: vi.fn(),
+    currentUser: null,
+  },
+  db: {},
+  functions: {},
+  googleProvider: {},
+  default: {},
+}));
 
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers);
