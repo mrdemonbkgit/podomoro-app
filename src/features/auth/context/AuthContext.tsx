@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { 
-  signInWithRedirect, 
-  getRedirectResult,
+  signInWithPopup, 
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User as FirebaseUser 
@@ -22,18 +21,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Subscribe to auth state changes
   useEffect(() => {
-    // Check for redirect result first (after redirect from Google sign-in)
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          console.log('Successfully signed in via redirect:', result.user.email);
-        }
-      })
-      .catch((error) => {
-        console.error('Redirect sign-in error:', error);
-        setError(error as Error);
-      });
-
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser: FirebaseUser | null) => {
@@ -54,8 +41,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signInWithGoogle = async () => {
     try {
       setError(null);
-      // Use redirect instead of popup - more reliable and works in all contexts
-      await signInWithRedirect(auth, googleProvider);
+      // Use popup - more reliable than redirect for Vercel deployments
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log('Successfully signed in:', result.user.email);
     } catch (err) {
       const error = err as Error;
       console.error('Sign in error:', error);

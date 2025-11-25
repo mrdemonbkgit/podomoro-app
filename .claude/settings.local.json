@@ -28,7 +28,10 @@
       "Bash(cat .github/workflows/ci.yml)",
       "Bash(npx prettier --version)",
       "Bash(npx vitest run milestoneConstants.test.ts)",
-      "Bash(cat firestore.indexes.json)"
+      "Bash(cat firestore.indexes.json)",
+      "Bash(git show v3.5.0-phase5 --format=\"%B\" --no-patch)",
+      "Bash(git log v3.5.0-phase5 -1 --format=\"%an <%ae>\")",
+      "Bash(git log v3.5.0-phase5 -1 --format=\"Date: %ai\")"
     ],
     "deny": [],
     "ask": []
