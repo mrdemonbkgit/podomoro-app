@@ -1,5 +1,5 @@
 echo "🔍 Running TypeScript type check..."
-npm run typecheck
+cd "$(dirname "$0")/.." && ./node_modules/.bin/tsc --noEmit
 
 if [ $? -ne 0 ]; then
   echo "❌ TypeScript errors found! Commit aborted."
