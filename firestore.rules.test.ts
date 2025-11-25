@@ -21,6 +21,8 @@
  * 2. In another terminal: `npm test -- firestore.rules.test.ts --run`
  *
  * The emulator must be running on 127.0.0.1:8080 (default Firestore emulator port)
+ *
+ * In CI, these tests run in a separate job with `firebase emulators:exec`
  */
 
 import {
@@ -31,6 +33,12 @@ import {
   beforeEach,
   afterAll,
 } from 'vitest';
+
+// Skip these tests in normal test runs (requires Firebase emulator)
+// Only run when explicitly called via `npm run test:rules` (CI uses firebase emulators:exec)
+const isRunningWithEmulator =
+  process.env.FIREBASE_EMULATOR_HUB || process.env.FIRESTORE_EMULATOR_HOST;
+const describeOrSkip = isRunningWithEmulator ? describe : describe.skip;
 import {
   assertFails,
   assertSucceeds,
@@ -57,7 +65,7 @@ const DEV_TEST_USER = 'dev-test-user-12345';
 
 let testEnv: RulesTestEnvironment;
 
-describe('Firestore Security Rules', () => {
+describeOrSkip('Firestore Security Rules', () => {
   // ============================================================================
   // Setup & Teardown
   // ============================================================================

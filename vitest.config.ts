@@ -16,8 +16,6 @@ export default defineConfig({
       '**/integration/**',
       '**/badge-race-condition.test.ts',
       '**/useMilestones.test.ts',
-      // firestore.rules.test.ts runs separately with emulator in CI
-      'firestore.rules.test.ts',
     ],
     coverage: {
       provider: 'v8',
