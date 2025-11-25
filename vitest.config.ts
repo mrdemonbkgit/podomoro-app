@@ -16,6 +16,7 @@ export default defineConfig({
       '**/integration/**',
       '**/badge-race-condition.test.ts',
       '**/useMilestones.test.ts',
+      '**/e2e/**',
     ],
     coverage: {
       provider: 'v8',
