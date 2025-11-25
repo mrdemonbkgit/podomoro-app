@@ -8,6 +8,15 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    // Exclude integration tests that require Firebase emulator
+    // These tests can be run manually with: firebase emulators:exec "npm test"
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/integration/**',
+      '**/badge-race-condition.test.ts',
+      '**/useMilestones.test.ts',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

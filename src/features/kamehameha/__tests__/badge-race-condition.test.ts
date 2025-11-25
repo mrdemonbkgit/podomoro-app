@@ -4,6 +4,8 @@
  * Prerequisites:
  * - Firebase emulator must be running
  * - Run with: firebase emulators:exec "npm test badge-race-condition"
+ * 
+ * NOTE: This test is skipped in CI because it requires Firebase emulator
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -12,7 +14,14 @@ import { db } from '../../../services/firebase/config';
 import { createBadgeAtomic } from '../hooks/useMilestones';
 import { getMilestoneConfig } from '../constants/milestones';
 
-describe('Badge Race Condition Prevention', () => {
+// Skip when Firebase emulator is not available
+// These tests require: firebase emulators:start
+const skipEmulatorTests = 
+  process.env.CI === 'true' || 
+  process.env.GITHUB_ACTIONS === 'true' ||
+  process.env.VITE_USE_FIREBASE_EMULATOR !== 'true';
+
+describe.skipIf(skipEmulatorTests)('Badge Race Condition Prevention', () => {
   const userId = 'test-user-concurrent';
   const journeyId = 'test-journey-123';
   const milestoneSeconds = 60; // 1 minute (dev milestone)
