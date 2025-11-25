@@ -264,21 +264,14 @@ class AmbientAudioEngine {
           usingSynthesis: true,
         };
         this.activeSounds.set(sound.id, activeSound);
-        console.log(
-          `[AmbientAudio] ✅ Playing synthesized sound: ${sound.id}`
-        );
+        console.log(`[AmbientAudio] ✅ Playing synthesized sound: ${sound.id}`);
       } else {
         // Failed to create synth, remove placeholder
-        console.error(
-          `[AmbientAudio] Failed to create sound for ${sound.id}`
-        );
+        console.error(`[AmbientAudio] Failed to create sound for ${sound.id}`);
         this.activeSounds.delete(sound.id);
       }
     } catch (error) {
-      console.error(
-        `[AmbientAudio] Failed to start sound ${sound.id}:`,
-        error
-      );
+      console.error(`[AmbientAudio] Failed to start sound ${sound.id}:`, error);
       // Clean up placeholder on error
       this.activeSounds.delete(sound.id);
     }
