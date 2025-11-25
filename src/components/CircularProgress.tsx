@@ -8,7 +8,12 @@ interface CircularProgressProps {
   size?: number;
 }
 
-export const CircularProgress = ({ progress, sessionType, isDark, size = 400 }: CircularProgressProps) => {
+export const CircularProgress = ({
+  progress,
+  sessionType,
+  isDark,
+  size = 400,
+}: CircularProgressProps) => {
   const strokeWidth = 8;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -66,4 +71,3 @@ export const CircularProgress = ({ progress, sessionType, isDark, size = 400 }: 
     </svg>
   );
 };
-

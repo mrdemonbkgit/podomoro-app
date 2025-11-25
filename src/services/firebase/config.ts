@@ -1,5 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  connectAuthEmulator,
+} from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
@@ -28,7 +32,10 @@ googleProvider.setCustomParameters({
 });
 
 // Connect to emulators in development
-if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+if (
+  import.meta.env.DEV &&
+  import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true'
+) {
   connectAuthEmulator(auth, 'http://localhost:9099');
   connectFirestoreEmulator(db, 'localhost', 8080);
   connectFunctionsEmulator(functions, 'localhost', 5001);
@@ -36,4 +43,3 @@ if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true'
 }
 
 export default app;
-

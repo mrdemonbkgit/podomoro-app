@@ -16,7 +16,7 @@ export const Greeting = ({ isDark }: GreetingProps) => {
   // Get greeting based on time of day
   const getGreeting = (): string => {
     const hour = new Date().getHours();
-    
+
     if (hour >= 5 && hour < 12) {
       return 'Good morning';
     } else if (hour >= 12 && hour < 17) {
@@ -77,7 +77,9 @@ export const Greeting = ({ isDark }: GreetingProps) => {
             } focus:outline-none transition-colors`}
           />
         </div>
-        <p className={`text-xs mt-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+        <p
+          className={`text-xs mt-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+        >
           Press Enter to save, Esc to cancel
         </p>
       </motion.div>
@@ -91,22 +93,28 @@ export const Greeting = ({ isDark }: GreetingProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h1 className={`text-2xl md:text-3xl font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'} transition-colors duration-200`}>
+      <h1
+        className={`text-2xl md:text-3xl font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'} transition-colors duration-200`}
+      >
         {greeting}
         {userName && (
-          <span>, <button
-            onClick={() => {
-              setIsEditing(true);
-              setTempName(userName);
-            }}
-            className={`hover:underline ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
-          >
-            {userName}
-          </button></span>
+          <span>
+            ,{' '}
+            <button
+              onClick={() => {
+                setIsEditing(true);
+                setTempName(userName);
+              }}
+              className={`hover:underline ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
+            >
+              {userName}
+            </button>
+          </span>
         )}
         {!userName && (
           <span>
-            , <button
+            ,{' '}
+            <button
               onClick={() => setIsEditing(true)}
               className={`${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} transition-colors`}
             >
@@ -115,10 +123,11 @@ export const Greeting = ({ isDark }: GreetingProps) => {
           </span>
         )}
       </h1>
-      <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+      <p
+        className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
+      >
         {userName ? 'Make it count!' : 'Stay focused, stay productive'}
       </p>
     </motion.div>
   );
 };
-

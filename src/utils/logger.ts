@@ -1,9 +1,9 @@
 /**
  * Production-safe logging utility
- * 
+ *
  * - Development: All logs visible
  * - Production: Only errors visible (debug/info/warn removed at runtime)
- * 
+ *
  * Benefits:
  * - Runtime environment checks (no build-time stripping of console.error)
  * - Sensitive data sanitization
@@ -21,7 +21,10 @@ function sanitize(data: unknown): unknown {
   if (typeof data === 'string') {
     // Partially hide user IDs: "dEsc8qAJ...Z6fkzVX" -> "dEsc...kzVX"
     if (data.length > 20) {
-      return data.replace(/^([a-zA-Z0-9]{4})[a-zA-Z0-9]+([a-zA-Z0-9]{4})$/, '$1...$2');
+      return data.replace(
+        /^([a-zA-Z0-9]{4})[a-zA-Z0-9]+([a-zA-Z0-9]{4})$/,
+        '$1...$2'
+      );
     }
     return data;
   }
@@ -50,7 +53,7 @@ export const logger = {
       console.log(...args.map(sanitize));
     }
   },
-  
+
   /**
    * Info logs - for general information
    * Only visible in development
@@ -60,7 +63,7 @@ export const logger = {
       console.info(...args.map(sanitize));
     }
   },
-  
+
   /**
    * Warning logs - for potential issues
    * Only visible in development
@@ -70,11 +73,11 @@ export const logger = {
       console.warn(...args);
     }
   },
-  
+
   /**
    * Error logs - for actual errors
    * ALWAYS visible (production + development)
-   * 
+   *
    * NOTE: This is the only log level that appears in production.
    * Use for actual errors that need monitoring.
    */
@@ -82,7 +85,7 @@ export const logger = {
     // Always log errors, even in production
     console.error(...args);
   },
-  
+
   /**
    * Group logs - for organizing related logs
    * Only visible in development
@@ -92,7 +95,7 @@ export const logger = {
       console.group(label);
     }
   },
-  
+
   /**
    * End group - closes a log group
    * Only visible in development
@@ -103,4 +106,3 @@ export const logger = {
     }
   },
 };
-

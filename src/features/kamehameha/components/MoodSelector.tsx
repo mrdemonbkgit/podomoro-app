@@ -1,6 +1,6 @@
 /**
  * MoodSelector Component
- * 
+ *
  * Five emoji buttons for selecting mood (1-5 scale)
  * Used in CheckInModal for mood tracking
  */
@@ -14,13 +14,16 @@ interface MoodSelectorProps {
 
 const moods: Mood[] = ['veryBad', 'bad', 'neutral', 'good', 'veryGood'];
 
-export function MoodSelector({ selectedMood, onMoodSelect }: MoodSelectorProps) {
+export function MoodSelector({
+  selectedMood,
+  onMoodSelect,
+}: MoodSelectorProps) {
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium text-gray-300">
         How are you feeling? 💭
       </label>
-      
+
       <div className="flex justify-between gap-2">
         {moods.map((mood) => (
           <button
@@ -41,7 +44,7 @@ export function MoodSelector({ selectedMood, onMoodSelect }: MoodSelectorProps) 
           </button>
         ))}
       </div>
-      
+
       {/* Mood labels */}
       <div className="flex justify-between text-xs text-gray-400">
         <span>Very Bad</span>
@@ -67,4 +70,3 @@ function getMoodLabel(mood: Mood): string {
   };
   return labels[mood];
 }
-

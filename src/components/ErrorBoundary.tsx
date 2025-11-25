@@ -1,9 +1,9 @@
 /**
  * Error Boundary Component
- * 
+ *
  * Catches React errors anywhere in the component tree,
  * logs them, and displays a fallback UI instead of crashing the entire app.
- * 
+ *
  * Phase 2 Week 2: Issue #16 - Error Boundaries
  */
 
@@ -25,7 +25,13 @@ interface State {
  * Error Fallback UI
  * Displayed when an error is caught
  */
-function ErrorFallback({ error, resetError }: { error: Error | null; resetError: () => void }) {
+function ErrorFallback({
+  error,
+  resetError,
+}: {
+  error: Error | null;
+  resetError: () => void;
+}) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8">
@@ -77,7 +83,7 @@ function ErrorFallback({ error, resetError }: { error: Error | null; resetError:
               Reload Page
             </button>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = '/')}
               className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium py-2 transition-colors"
             >
               Go to Home
@@ -91,7 +97,7 @@ function ErrorFallback({ error, resetError }: { error: Error | null; resetError:
 
 /**
  * Error Boundary Class Component
- * 
+ *
  * Note: Error boundaries must be class components as of React 18
  * Functional components with hooks cannot catch errors yet
  */
@@ -158,10 +164,7 @@ class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <ErrorFallback 
-          error={this.state.error} 
-          resetError={this.resetError}
-        />
+        <ErrorFallback error={this.state.error} resetError={this.resetError} />
       );
     }
 
@@ -171,4 +174,3 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
-

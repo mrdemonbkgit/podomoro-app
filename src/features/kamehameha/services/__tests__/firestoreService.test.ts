@@ -1,16 +1,22 @@
 /**
  * Tests for Firestore service
- * 
+ *
  * Note: These tests use Vitest mocks for Firestore operations.
  * Critical functions like resetMainStreak use transactions - verify atomic behavior.
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { testUser, testJourney, testCheckIn, testRelapsePMO, NOW } from '../../../../test/fixtures/kamehameha';
+import {
+  testUser,
+  testJourney,
+  testCheckIn,
+  testRelapsePMO,
+  NOW,
+} from '../../../../test/fixtures/kamehameha';
 
 // Mock Firestore with partial mocking (keep real exports, mock specific functions)
 vi.mock('firebase/firestore', async (importOriginal) => {
-  const actual = await importOriginal() as any;
+  const actual = (await importOriginal()) as any;
   return {
     ...actual,
     doc: vi.fn(),
@@ -66,9 +72,13 @@ describe('firestoreService', () => {
     });
 
     test('throws error on failure', async () => {
-      vi.mocked(firestore.addDoc).mockRejectedValue(new Error('Firestore error'));
+      vi.mocked(firestore.addDoc).mockRejectedValue(
+        new Error('Firestore error')
+      );
 
-      await expect(initializeUserStreaks(testUser.uid)).rejects.toThrow('Failed to initialize streaks');
+      await expect(initializeUserStreaks(testUser.uid)).rejects.toThrow(
+        'Failed to initialize streaks'
+      );
     });
   });
 
@@ -109,7 +119,9 @@ describe('firestoreService', () => {
     test('throws error on failure', async () => {
       vi.mocked(firestore.getDoc).mockRejectedValue(new Error('Network error'));
 
-      await expect(getStreaks(testUser.uid)).rejects.toThrow('Failed to load streaks');
+      await expect(getStreaks(testUser.uid)).rejects.toThrow(
+        'Failed to load streaks'
+      );
     });
   });
 
@@ -148,21 +160,31 @@ describe('firestoreService', () => {
   describe('resetMainStreak (CRITICAL - Transaction)', () => {
     test('uses transaction to ensure atomic operations', async () => {
       // Mock doc() and collection() to return proper references with IDs
-      vi.mocked(firestore.collection).mockReturnValue({ path: 'journeys' } as any);
-      vi.mocked(firestore.doc).mockReturnValue({ id: 'new-journey-tx', path: 'journey-path' } as any);
-      
-      vi.mocked(firestore.runTransaction).mockImplementation(async (db: any, callback: any) => {
-        // Simulate transaction environment
-        const mockTransaction = {
-          get: vi.fn().mockResolvedValue({
-            exists: () => true,
-            data: () => ({ currentJourneyId: 'old-journey', main: { longestSeconds: 50000 } }),
-          }),
-          update: vi.fn(),
-          set: vi.fn(), // Add set method
-        };
-        return await callback(mockTransaction);
-      });
+      vi.mocked(firestore.collection).mockReturnValue({
+        path: 'journeys',
+      } as any);
+      vi.mocked(firestore.doc).mockReturnValue({
+        id: 'new-journey-tx',
+        path: 'journey-path',
+      } as any);
+
+      vi.mocked(firestore.runTransaction).mockImplementation(
+        async (db: any, callback: any) => {
+          // Simulate transaction environment
+          const mockTransaction = {
+            get: vi.fn().mockResolvedValue({
+              exists: () => true,
+              data: () => ({
+                currentJourneyId: 'old-journey',
+                main: { longestSeconds: 50000 },
+              }),
+            }),
+            update: vi.fn(),
+            set: vi.fn(), // Add set method
+          };
+          return await callback(mockTransaction);
+        }
+      );
 
       vi.mocked(firestore.updateDoc).mockResolvedValue(undefined as any);
 
@@ -173,20 +195,30 @@ describe('firestoreService', () => {
     });
 
     test('updates longest streak if current is longer', async () => {
-      vi.mocked(firestore.collection).mockReturnValue({ path: 'journeys' } as any);
-      vi.mocked(firestore.doc).mockReturnValue({ id: 'new-journey-long', path: 'journey-path' } as any);
-      
-      vi.mocked(firestore.runTransaction).mockImplementation(async (db: any, callback: any) => {
-        const mockTransaction = {
-          get: vi.fn().mockResolvedValue({
-            exists: () => true,
-            data: () => ({ currentJourneyId: 'old-journey', main: { longestSeconds: 50000 } }),
-          }),
-          update: vi.fn(),
-          set: vi.fn(), // Add set method
-        };
-        return await callback(mockTransaction);
-      });
+      vi.mocked(firestore.collection).mockReturnValue({
+        path: 'journeys',
+      } as any);
+      vi.mocked(firestore.doc).mockReturnValue({
+        id: 'new-journey-long',
+        path: 'journey-path',
+      } as any);
+
+      vi.mocked(firestore.runTransaction).mockImplementation(
+        async (db: any, callback: any) => {
+          const mockTransaction = {
+            get: vi.fn().mockResolvedValue({
+              exists: () => true,
+              data: () => ({
+                currentJourneyId: 'old-journey',
+                main: { longestSeconds: 50000 },
+              }),
+            }),
+            update: vi.fn(),
+            set: vi.fn(), // Add set method
+          };
+          return await callback(mockTransaction);
+        }
+      );
 
       vi.mocked(firestore.updateDoc).mockResolvedValue(undefined as any);
 
@@ -197,22 +229,32 @@ describe('firestoreService', () => {
     });
 
     test('does not update longest streak if current is shorter', async () => {
-      vi.mocked(firestore.collection).mockReturnValue({ path: 'journeys' } as any);
-      vi.mocked(firestore.doc).mockReturnValue({ id: 'new-journey-short', path: 'journey-path' } as any);
-      
-      vi.mocked(firestore.runTransaction).mockImplementation(async (db: any, callback: any) => {
-        const mockTransaction = {
-          get: vi.fn().mockResolvedValue({
-            exists: () => true,
-            data: () => ({ currentJourneyId: 'old-journey', main: { longestSeconds: 100000 } }),
-          }),
-          update: vi.fn(),
-          set: vi.fn(), // Add set method
-        };
-        const result = await callback(mockTransaction);
-        // Check that update was called with longest unchanged
-        return result;
-      });
+      vi.mocked(firestore.collection).mockReturnValue({
+        path: 'journeys',
+      } as any);
+      vi.mocked(firestore.doc).mockReturnValue({
+        id: 'new-journey-short',
+        path: 'journey-path',
+      } as any);
+
+      vi.mocked(firestore.runTransaction).mockImplementation(
+        async (db: any, callback: any) => {
+          const mockTransaction = {
+            get: vi.fn().mockResolvedValue({
+              exists: () => true,
+              data: () => ({
+                currentJourneyId: 'old-journey',
+                main: { longestSeconds: 100000 },
+              }),
+            }),
+            update: vi.fn(),
+            set: vi.fn(), // Add set method
+          };
+          const result = await callback(mockTransaction);
+          // Check that update was called with longest unchanged
+          return result;
+        }
+      );
 
       vi.mocked(firestore.updateDoc).mockResolvedValue(undefined as any);
 
@@ -245,9 +287,7 @@ describe('firestoreService', () => {
 
   describe('getRecentCheckIns', () => {
     test('returns recent check-ins ordered by timestamp', async () => {
-      const mockDocs = [
-        { id: testCheckIn.id, data: () => testCheckIn },
-      ];
+      const mockDocs = [{ id: testCheckIn.id, data: () => testCheckIn }];
       const mockSnapshot = {
         docs: mockDocs,
         forEach: (callback: (doc: any) => void) => mockDocs.forEach(callback),
@@ -272,21 +312,29 @@ describe('firestoreService', () => {
       // Verify correct path (was bug in Phase 0 - extra /kamehameha/ segment)
       const docCalls = vi.mocked(firestore.doc).mock.calls;
       const path = docCalls[0][1];
-      expect(path).toBe(`users/${testUser.uid}/kamehameha_checkIns/${testCheckIn.id}`);
+      expect(path).toBe(
+        `users/${testUser.uid}/kamehameha_checkIns/${testCheckIn.id}`
+      );
       expect(path).not.toContain('/kamehameha/kamehameha_');
     });
 
     test('deletes check-in successfully', async () => {
       vi.mocked(firestore.deleteDoc).mockResolvedValue(undefined as any);
 
-      await expect(deleteCheckIn(testUser.uid, testCheckIn.id)).resolves.not.toThrow();
+      await expect(
+        deleteCheckIn(testUser.uid, testCheckIn.id)
+      ).resolves.not.toThrow();
       expect(firestore.deleteDoc).toHaveBeenCalled();
     });
 
     test('throws error on failure', async () => {
-      vi.mocked(firestore.deleteDoc).mockRejectedValue(new Error('Delete failed'));
+      vi.mocked(firestore.deleteDoc).mockRejectedValue(
+        new Error('Delete failed')
+      );
 
-      await expect(deleteCheckIn(testUser.uid, testCheckIn.id)).rejects.toThrow('Failed to delete check-in');
+      await expect(deleteCheckIn(testUser.uid, testCheckIn.id)).rejects.toThrow(
+        'Failed to delete check-in'
+      );
     });
   });
 
@@ -295,19 +343,24 @@ describe('firestoreService', () => {
       const mockRelapseRef = { id: 'relapse-new-789' };
       const mockStreaksDoc = {
         exists: () => true,
-        data: () => ({ currentJourneyId: 'active-journey', main: { longestSeconds: 50000 } }),
+        data: () => ({
+          currentJourneyId: 'active-journey',
+          main: { longestSeconds: 50000 },
+        }),
       };
 
       vi.mocked(firestore.addDoc).mockResolvedValue(mockRelapseRef as any);
       vi.mocked(firestore.getDoc).mockResolvedValue(mockStreaksDoc as any);
-      vi.mocked(firestore.runTransaction).mockImplementation(async (db: any, callback: any) => {
-        const mockTransaction = {
-          get: vi.fn().mockResolvedValue(mockStreaksDoc),
-          update: vi.fn(),
-          set: vi.fn(), // Add set method
-        };
-        return await callback(mockTransaction);
-      });
+      vi.mocked(firestore.runTransaction).mockImplementation(
+        async (db: any, callback: any) => {
+          const mockTransaction = {
+            get: vi.fn().mockResolvedValue(mockStreaksDoc),
+            update: vi.fn(),
+            set: vi.fn(), // Add set method
+          };
+          return await callback(mockTransaction);
+        }
+      );
       vi.mocked(firestore.updateDoc).mockResolvedValue(undefined as any);
 
       const relapseData = {
@@ -334,11 +387,14 @@ describe('firestoreService', () => {
       // for any relapse type. This is a known behavior - rule violations reset the streak.
       // Skipping this test as the current implementation doesn't distinguish.
       // TODO: If rule violations should NOT reset streak, update firestoreService.ts logic
-      
+
       const mockRelapseRef = { id: 'violation-123' };
       const mockStreaksDoc = {
         exists: () => true,
-        data: () => ({ currentJourneyId: 'active-journey', main: { longestSeconds: 50000 } }),
+        data: () => ({
+          currentJourneyId: 'active-journey',
+          main: { longestSeconds: 50000 },
+        }),
       };
 
       vi.mocked(firestore.addDoc).mockResolvedValue(mockRelapseRef as any);
@@ -363,9 +419,7 @@ describe('firestoreService', () => {
 
   describe('getRecentRelapses', () => {
     test('returns recent relapses ordered by timestamp', async () => {
-      const mockDocs = [
-        { id: testRelapsePMO.id, data: () => testRelapsePMO },
-      ];
+      const mockDocs = [{ id: testRelapsePMO.id, data: () => testRelapsePMO }];
       const mockSnapshot = {
         docs: mockDocs,
         forEach: (callback: (doc: any) => void) => mockDocs.forEach(callback),
@@ -390,22 +444,29 @@ describe('firestoreService', () => {
       // Verify correct path (was bug in Phase 0 - extra /kamehameha/ segment)
       const docCalls = vi.mocked(firestore.doc).mock.calls;
       const path = docCalls[0][1];
-      expect(path).toBe(`users/${testUser.uid}/kamehameha_relapses/${testRelapsePMO.id}`);
+      expect(path).toBe(
+        `users/${testUser.uid}/kamehameha_relapses/${testRelapsePMO.id}`
+      );
       expect(path).not.toContain('/kamehameha/kamehameha_');
     });
 
     test('deletes relapse successfully', async () => {
       vi.mocked(firestore.deleteDoc).mockResolvedValue(undefined as any);
 
-      await expect(deleteRelapse(testUser.uid, testRelapsePMO.id)).resolves.not.toThrow();
+      await expect(
+        deleteRelapse(testUser.uid, testRelapsePMO.id)
+      ).resolves.not.toThrow();
       expect(firestore.deleteDoc).toHaveBeenCalled();
     });
 
     test('throws error on failure', async () => {
-      vi.mocked(firestore.deleteDoc).mockRejectedValue(new Error('Delete failed'));
+      vi.mocked(firestore.deleteDoc).mockRejectedValue(
+        new Error('Delete failed')
+      );
 
-      await expect(deleteRelapse(testUser.uid, testRelapsePMO.id)).rejects.toThrow('Failed to delete relapse');
+      await expect(
+        deleteRelapse(testUser.uid, testRelapsePMO.id)
+      ).rejects.toThrow('Failed to delete relapse');
     });
   });
 });
-

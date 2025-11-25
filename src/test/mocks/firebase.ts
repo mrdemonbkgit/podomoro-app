@@ -88,7 +88,7 @@ export const createMockQuerySnapshot = (docs: any[]) => ({
   size: docs.length,
   docs: docs.map((data, index) => createMockDocSnapshot(data, `doc-${index}`)),
   forEach: (callback: (doc: any) => void) => {
-    docs.forEach((data, index) => 
+    docs.forEach((data, index) =>
       callback(createMockDocSnapshot(data, `doc-${index}`))
     );
   },
@@ -103,11 +103,10 @@ export const resetFirebaseMocks = () => {
       mockFn.mockClear();
     }
   });
-  
+
   Object.values(mockAuth).forEach((mockFn) => {
     if (typeof mockFn === 'function' && 'mockClear' in mockFn) {
       mockFn.mockClear();
     }
   });
 };
-

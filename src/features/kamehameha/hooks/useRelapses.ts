@@ -1,6 +1,6 @@
 /**
  * useRelapses Hook
- * 
+ *
  * Manages relapse operations and streak resets
  * Handles creating relapses and automatically resetting appropriate streaks
  */
@@ -18,7 +18,9 @@ export interface UseRelapsesReturn {
   /** Error state */
   error: Error | null;
   /** Create a new relapse (automatically resets appropriate streak) */
-  createRelapse: (relapseData: Omit<Relapse, 'id' | 'createdAt' | 'timestamp'>) => Promise<void>;
+  createRelapse: (
+    relapseData: Omit<Relapse, 'id' | 'createdAt' | 'timestamp'>
+  ) => Promise<void>;
   /** Refresh relapses from Firestore */
   refreshRelapses: () => Promise<void>;
 }
@@ -67,7 +69,7 @@ export function useRelapses(): UseRelapsesReturn {
 
       try {
         const now = Date.now();
-        
+
         // Create relapse with timestamp
         // saveRelapse will automatically reset the appropriate streak
         const newRelapse = await saveRelapse(user.uid, {
@@ -97,4 +99,3 @@ export function useRelapses(): UseRelapsesReturn {
     refreshRelapses,
   };
 }
-

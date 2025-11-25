@@ -1,6 +1,6 @@
 /**
  * StreakTimer - Live updating countdown timer display
- * 
+ *
  * Shows days, hours, minutes, seconds in a large, readable format.
  * Updates every second via the parent component.
  */
@@ -19,7 +19,12 @@ interface StreakTimerProps {
   variant: StreakVariant;
 }
 
-export function StreakTimer({ display, label, icon, variant }: StreakTimerProps) {
+export function StreakTimer({
+  display,
+  label,
+  icon,
+  variant,
+}: StreakTimerProps) {
   if (!display) {
     return (
       <div className="text-center py-8">
@@ -62,7 +67,9 @@ export function StreakTimer({ display, label, icon, variant }: StreakTimerProps)
       </motion.div>
 
       {/* Label */}
-      <h3 className={`text-sm md:text-base font-semibold uppercase tracking-wider mb-4 ${color.text}`}>
+      <h3
+        className={`text-sm md:text-base font-semibold uppercase tracking-wider mb-4 ${color.text}`}
+      >
         {label}
       </h3>
 
@@ -129,10 +136,11 @@ function TimeUnit({ value, label, color, isAnimated = false }: TimeUnitProps) {
       </motion.div>
 
       {/* Label */}
-      <span className={`text-xs md:text-sm uppercase tracking-wide mt-1 ${color.text}`}>
+      <span
+        className={`text-xs md:text-sm uppercase tracking-wide mt-1 ${color.text}`}
+      >
         {label}
       </span>
     </div>
   );
 }
-

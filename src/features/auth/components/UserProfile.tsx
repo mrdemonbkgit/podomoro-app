@@ -26,7 +26,7 @@ export function UserProfile() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-2 rounded-full transition-all duration-200 border border-white/10"
       >
-{user.photoURL ? (
+        {user.photoURL ? (
           <img
             src={user.photoURL}
             alt={user.displayName || 'User'}
@@ -130,4 +130,3 @@ export function UserProfile() {
     </div>
   );
 }
-

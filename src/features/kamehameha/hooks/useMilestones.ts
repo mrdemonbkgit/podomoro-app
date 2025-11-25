@@ -21,13 +21,13 @@ interface UseMilestonesProps {
 /**
  * Create badge atomically with journey achievement count increment.
  * Uses Firestore transaction to prevent race conditions between client and server.
- * 
+ *
  * @param userId - User ID
  * @param journeyId - Current journey ID
  * @param milestoneSeconds - Milestone threshold in seconds
  * @param badgeConfig - Badge configuration (emoji, name, message)
  * @returns Promise that resolves when badge is created
- * 
+ *
  * @remarks
  * - Uses deterministic badge ID: {journeyId}_{milestoneSeconds}
  * - Idempotent: Won't create duplicate badges
@@ -83,7 +83,10 @@ export async function createBadgeAtomic(
 /**
  * Hook to detect milestones in real-time (client-side)
  */
-export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilestonesProps) {
+export function useMilestones({
+  currentJourneyId,
+  journeyStartDate,
+}: UseMilestonesProps) {
   const { user } = useAuth();
   const lastCheckedSecond = useRef<number>(0);
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -98,15 +101,23 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
 
       // Find milestones that were just crossed
       for (const milestone of MILESTONE_SECONDS) {
-        if (lastCheckedSecond.current < milestone && currentSeconds >= milestone) {
+        if (
+          lastCheckedSecond.current < milestone &&
+          currentSeconds >= milestone
+        ) {
           logger.debug(`🎯 Client detected milestone: ${milestone}s`);
 
           try {
             const badgeConfig = getMilestoneConfig(milestone);
-            
+
             // Create badge atomically (prevents race conditions)
-            await createBadgeAtomic(user.uid, currentJourneyId, milestone, badgeConfig);
-            
+            await createBadgeAtomic(
+              user.uid,
+              currentJourneyId,
+              milestone,
+              badgeConfig
+            );
+
             logger.debug(`✅ Badge created atomically: ${badgeConfig.name}`);
           } catch (error) {
             logger.error(`Failed to create badge for ${milestone}s:`, error);
@@ -122,7 +133,10 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
     checkMilestones();
 
     // Then check every second
-    checkIntervalRef.current = setInterval(checkMilestones, INTERVALS.MILESTONE_CHECK_MS);
+    checkIntervalRef.current = setInterval(
+      checkMilestones,
+      INTERVALS.MILESTONE_CHECK_MS
+    );
 
     return () => {
       if (checkIntervalRef.current) {
@@ -136,4 +150,3 @@ export function useMilestones({ currentJourneyId, journeyStartDate }: UseMilesto
     lastCheckedSecond.current = 0;
   }, [currentJourneyId]);
 }
-

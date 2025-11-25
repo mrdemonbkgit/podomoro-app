@@ -16,7 +16,7 @@ export const Timer = ({ time }: TimerProps) => {
   useEffect(() => {
     // Update document title with countdown
     document.title = `${formattedTime} - ZenFocus`;
-    
+
     return () => {
       document.title = 'ZenFocus - Find Your Flow';
     };
@@ -31,4 +31,3 @@ export const Timer = ({ time }: TimerProps) => {
     </div>
   );
 };
-

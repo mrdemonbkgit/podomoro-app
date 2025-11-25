@@ -1,13 +1,19 @@
 /**
  * Tests for useBadges hook
- * 
+ *
  * Tests badge listening, celebration logic, and smart milestone handling
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useBadges } from '../useBadges';
-import { testUser, testJourney, testBadge1Min, testBadge5Min, createTestBadge } from '../../../../test/fixtures/kamehameha';
+import {
+  testUser,
+  testJourney,
+  testBadge1Min,
+  testBadge5Min,
+  createTestBadge,
+} from '../../../../test/fixtures/kamehameha';
 import type { Badge } from '../../types/kamehameha.types';
 
 // Mock Firebase
@@ -65,7 +71,12 @@ describe('useBadges', () => {
     test('sets up Firestore listener', () => {
       renderHook(() => useBadges(testJourney.id));
 
-      expect(mockCollection).toHaveBeenCalledWith({}, 'users', testUser.uid, 'kamehameha_badges');
+      expect(mockCollection).toHaveBeenCalledWith(
+        {},
+        'users',
+        testUser.uid,
+        'kamehameha_badges'
+      );
       expect(mockOrderBy).toHaveBeenCalledWith('earnedAt', 'desc');
       expect(mockOnSnapshot).toHaveBeenCalled();
     });
@@ -125,7 +136,7 @@ describe('useBadges', () => {
       const error = new Error('Firestore connection failed');
       const callback = (mockOnSnapshot as any).lastCallback;
       const errorCallback = mockOnSnapshot.mock.calls[0][1]; // Second argument is error callback
-      
+
       // Simulate error
       mockOnSnapshot.mockImplementation((query, successCb, errorCb) => {
         errorCb(error);
@@ -299,7 +310,10 @@ describe('useBadges', () => {
       const initialSnapshot = {
         docs: [{ id: testBadge1Min.id, data: () => testBadge1Min }],
         docChanges: () => [
-          { type: 'added', doc: { id: testBadge1Min.id, data: () => testBadge1Min } },
+          {
+            type: 'added',
+            doc: { id: testBadge1Min.id, data: () => testBadge1Min },
+          },
         ],
       };
       const callback = (mockOnSnapshot as any).lastCallback;
@@ -367,4 +381,3 @@ describe('useBadges', () => {
     });
   });
 });
-

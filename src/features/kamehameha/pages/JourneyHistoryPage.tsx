@@ -1,6 +1,6 @@
 /**
  * JourneyHistoryPage Component
- * 
+ *
  * Displays complete journey history with violations details
  * Phase 5.1 - Journey System
  */
@@ -20,10 +20,16 @@ export function JourneyHistoryPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [journeys, setJourneys] = useState<Journey[]>([]);
-  const [expandedJourneyId, setExpandedJourneyId] = useState<string | null>(null);
-  const [journeyViolations, setJourneyViolations] = useState<Record<string, Relapse[]>>({});
+  const [expandedJourneyId, setExpandedJourneyId] = useState<string | null>(
+    null
+  );
+  const [journeyViolations, setJourneyViolations] = useState<
+    Record<string, Relapse[]>
+  >({});
   const [loading, setLoading] = useState(true);
-  const [loadingViolations, setLoadingViolations] = useState<Record<string, boolean>>({});
+  const [loadingViolations, setLoadingViolations] = useState<
+    Record<string, boolean>
+  >({});
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -45,7 +51,11 @@ export function JourneyHistoryPage() {
         setJourneys(journeysList);
         setLoading(false);
 
-        logger.debug('✅ Journey history updated:', journeysList.length, 'journeys');
+        logger.debug(
+          '✅ Journey history updated:',
+          journeysList.length,
+          'journeys'
+        );
         if (journeysList.length > 0) {
           const latest = journeysList[0];
           const duration = latest.endDate
@@ -78,17 +88,20 @@ export function JourneyHistoryPage() {
       setExpandedJourneyId(null);
     } else {
       setExpandedJourneyId(journeyId);
-      
+
       // Load violations if not already loaded
       if (!journeyViolations[journeyId] && user) {
-        setLoadingViolations(prev => ({ ...prev, [journeyId]: true }));
+        setLoadingViolations((prev) => ({ ...prev, [journeyId]: true }));
         try {
           const violations = await getJourneyViolations(user.uid, journeyId);
-          setJourneyViolations(prev => ({ ...prev, [journeyId]: violations }));
+          setJourneyViolations((prev) => ({
+            ...prev,
+            [journeyId]: violations,
+          }));
         } catch (error) {
           logger.error('Failed to load violations:', error);
         } finally {
-          setLoadingViolations(prev => ({ ...prev, [journeyId]: false }));
+          setLoadingViolations((prev) => ({ ...prev, [journeyId]: false }));
         }
       }
     }
@@ -98,7 +111,7 @@ export function JourneyHistoryPage() {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (days > 0) {
       return `${days}d ${hours}h`;
     } else if (hours > 0) {
@@ -112,7 +125,7 @@ export function JourneyHistoryPage() {
     return new Date(timestamp).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
@@ -134,11 +147,15 @@ export function JourneyHistoryPage() {
         <div className="text-white flex items-center gap-3 pointer-events-auto">
           <span className="text-4xl">📖</span>
           <div>
-            <h1 className="text-3xl font-bold tracking-wide">Journey History</h1>
-            <p className="text-xs opacity-70 tracking-wide">Your Recovery Path</p>
+            <h1 className="text-3xl font-bold tracking-wide">
+              Journey History
+            </h1>
+            <p className="text-xs opacity-70 tracking-wide">
+              Your Recovery Path
+            </p>
           </div>
         </div>
-        
+
         <div className="pointer-events-auto">
           <UserProfile />
         </div>
@@ -147,7 +164,6 @@ export function JourneyHistoryPage() {
       {/* Main Content */}
       <div className="pt-32 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
-          
           {/* Back Button */}
           <button
             onClick={() => navigate('/kamehameha')}
@@ -161,7 +177,9 @@ export function JourneyHistoryPage() {
           <div className="space-y-4">
             {journeys.length === 0 ? (
               <div className="glass-morphism p-8 rounded-xl text-center">
-                <p className="text-white/70">No journey history yet. Start your first journey!</p>
+                <p className="text-white/70">
+                  No journey history yet. Start your first journey!
+                </p>
               </div>
             ) : (
               journeys.map((journey, index) => {
@@ -187,10 +205,14 @@ export function JourneyHistoryPage() {
                           )}
                         </h2>
                         <p className="text-white/70 text-sm">
-                          {formatDate(journey.startDate)} - 
-                          {isActive ? ' Present' : ` ${formatDate(journey.endDate!)}`}
+                          {formatDate(journey.startDate)} -
+                          {isActive
+                            ? ' Present'
+                            : ` ${formatDate(journey.endDate!)}`}
                           {' | '}
-                          <span className="font-semibold">{formatDuration(journey.finalSeconds)}</span>
+                          <span className="font-semibold">
+                            {formatDuration(journey.finalSeconds)}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -201,7 +223,9 @@ export function JourneyHistoryPage() {
                         <div className="text-2xl font-bold text-purple-300">
                           {journey.achievementsCount}
                         </div>
-                        <div className="text-white/70 text-sm">Achievements</div>
+                        <div className="text-white/70 text-sm">
+                          Achievements
+                        </div>
                       </div>
                       <div className="text-center p-3 bg-white/5 rounded-lg">
                         <div className="text-2xl font-bold text-blue-300">
@@ -217,7 +241,9 @@ export function JourneyHistoryPage() {
                         onClick={() => toggleJourneyExpansion(journey.id)}
                         className="mt-4 w-full py-2 text-white/70 hover:text-white text-sm transition-colors"
                       >
-                        {isExpanded ? '▼ Hide Violations' : '▶ View Violations'}
+                        {isExpanded
+                          ? '▼ Hide Violations'
+                          : '▶ View Violations'}
                       </button>
                     )}
 
@@ -230,29 +256,48 @@ export function JourneyHistoryPage() {
                           </div>
                         ) : violations.length > 0 ? (
                           violations.map((violation) => {
-                            const dayNumber = Math.floor((violation.timestamp - journey.startDate) / (1000 * 60 * 60 * 24)) + 1;
-                            
+                            const dayNumber =
+                              Math.floor(
+                                (violation.timestamp - journey.startDate) /
+                                  (1000 * 60 * 60 * 24)
+                              ) + 1;
+
                             return (
-                              <div key={violation.id} className="bg-white/5 p-4 rounded-lg">
+                              <div
+                                key={violation.id}
+                                className="bg-white/5 p-4 rounded-lg"
+                              >
                                 <div className="text-white font-medium mb-2 flex items-center gap-2">
                                   <span className="text-red-400">●</span>
-                                  {formatDate(violation.timestamp)} 
-                                  <span className="text-white/50 text-sm">(Day {dayNumber})</span>
+                                  {formatDate(violation.timestamp)}
+                                  <span className="text-white/50 text-sm">
+                                    (Day {dayNumber})
+                                  </span>
                                 </div>
                                 <div className="text-white/70 text-sm space-y-2 ml-4">
-                                  {violation.reasons && violation.reasons.length > 0 && (
-                                    <div>
-                                      <strong className="text-white/90">Triggers:</strong> {violation.reasons.join(', ')}
-                                    </div>
-                                  )}
+                                  {violation.reasons &&
+                                    violation.reasons.length > 0 && (
+                                      <div>
+                                        <strong className="text-white/90">
+                                          Triggers:
+                                        </strong>{' '}
+                                        {violation.reasons.join(', ')}
+                                      </div>
+                                    )}
                                   {violation.reflection?.whatLed && (
                                     <div>
-                                      <strong className="text-white/90">What led to this:</strong> {violation.reflection.whatLed}
+                                      <strong className="text-white/90">
+                                        What led to this:
+                                      </strong>{' '}
+                                      {violation.reflection.whatLed}
                                     </div>
                                   )}
                                   {violation.reflection?.whatNext && (
                                     <div>
-                                      <strong className="text-white/90">Next time:</strong> {violation.reflection.whatNext}
+                                      <strong className="text-white/90">
+                                        Next time:
+                                      </strong>{' '}
+                                      {violation.reflection.whatNext}
                                     </div>
                                   )}
                                 </div>
@@ -276,4 +321,3 @@ export function JourneyHistoryPage() {
     </div>
   );
 }
-

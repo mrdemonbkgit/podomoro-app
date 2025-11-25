@@ -17,22 +17,31 @@ import { TIMEOUTS } from '../constants/app.constants';
 
 /**
  * Kamehameha Recovery Tool - Main Page
- * 
+ *
  * Phase 3: Check-in and relapse tracking enabled.
  * Phase 5: Milestone progress and badge celebrations.
  * Phase 5.1: Journey-based system with single timer display.
  */
 
 export function KamehamehaPage() {
-  const { streaks, mainDisplay, currentJourneyId, journeyStartDate, loading, error, refreshStreaks } = useStreaksContext();
+  const {
+    streaks,
+    mainDisplay,
+    currentJourneyId,
+    journeyStartDate,
+    loading,
+    error,
+    refreshStreaks,
+  } = useStreaksContext();
   const { createCheckIn } = useCheckIns();
   const { createRelapse } = useRelapses();
   const { celebrationBadge, dismissCelebration } = useBadges(currentJourneyId); // Celebrates only current journey badges
-  const { journeyNumber, loading: journeyLoading } = useJourneyInfo(currentJourneyId); // ← Phase 5.1
-  
+  const { journeyNumber, loading: journeyLoading } =
+    useJourneyInfo(currentJourneyId); // ← Phase 5.1
+
   // Client-side milestone detection (real-time when app is open)
   useMilestones({ currentJourneyId, journeyStartDate });
-  
+
   // Modal state
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isRelapseOpen, setIsRelapseOpen] = useState(false);
@@ -89,7 +98,7 @@ export function KamehamehaPage() {
             <p className="text-xs opacity-70 tracking-wide">Recovery Journey</p>
           </div>
         </div>
-        
+
         <div className="pointer-events-auto">
           <UserProfile />
         </div>
@@ -97,17 +106,23 @@ export function KamehamehaPage() {
 
       {/* Main Content - Centered */}
       <div className="min-h-screen flex flex-col items-center justify-center px-4 py-6">
-        <main className="w-full max-w-4xl flex flex-col items-center justify-center" style={{ minHeight: 'calc(100vh - 3rem)' }}>
-          
+        <main
+          className="w-full max-w-4xl flex flex-col items-center justify-center"
+          style={{ minHeight: 'calc(100vh - 3rem)' }}
+        >
           {/* Success/Error Messages */}
           {successMessage && (
             <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-xl max-w-2xl">
-              <p className="text-green-200 text-sm text-center">{successMessage}</p>
+              <p className="text-green-200 text-sm text-center">
+                {successMessage}
+              </p>
             </div>
           )}
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl max-w-2xl">
-              <p className="text-red-200 text-sm text-center">⚠️ {error.message}</p>
+              <p className="text-red-200 text-sm text-center">
+                ⚠️ {error.message}
+              </p>
             </div>
           )}
 
@@ -139,18 +154,22 @@ export function KamehamehaPage() {
               <div className="flex items-center justify-center gap-8 text-white/70 text-sm md:text-base mb-8">
                 <div>
                   <span className="opacity-60">Current: </span>
-                  <span className="font-semibold">{mainDisplay?.days || 0} days</span>
+                  <span className="font-semibold">
+                    {mainDisplay?.days || 0} days
+                  </span>
                 </div>
                 <div>
                   <span className="opacity-60">Longest: </span>
-                  <span className="font-semibold">{Math.floor(longestSeconds / 86400)} days</span>
+                  <span className="font-semibold">
+                    {Math.floor(longestSeconds / 86400)} days
+                  </span>
                 </div>
               </div>
 
               {/* Milestone Progress */}
               {mainDisplay && (
                 <div className="w-full max-w-2xl mb-8">
-                  <MilestoneProgress 
+                  <MilestoneProgress
                     currentSeconds={mainDisplay.totalSeconds}
                   />
                 </div>
@@ -196,8 +215,18 @@ export function KamehamehaPage() {
                   to="/timer"
                   className="inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors text-sm"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
                   </svg>
                   <span>Back to Timer</span>
                 </Link>
@@ -222,11 +251,7 @@ export function KamehamehaPage() {
       />
 
       {/* Celebration Modal for Badge Milestones */}
-      <CelebrationModal
-        badge={celebrationBadge}
-        onClose={dismissCelebration}
-      />
+      <CelebrationModal badge={celebrationBadge} onClose={dismissCelebration} />
     </div>
   );
 }
-

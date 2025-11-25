@@ -1,6 +1,6 @@
 /**
  * TriggerSelector Component
- * 
+ *
  * Multi-select checkboxes for common triggers
  * Used in CheckInModal and RelapseFlow
  */
@@ -38,7 +38,7 @@ export function TriggerSelector({
     if (selectedTriggers.includes(trigger)) {
       // Remove trigger
       onTriggersChange(selectedTriggers.filter((t) => t !== trigger));
-      
+
       // Hide other input if unchecking 'other'
       if (trigger === 'other') {
         setShowOtherInput(false);
@@ -49,7 +49,7 @@ export function TriggerSelector({
     } else {
       // Add trigger
       onTriggersChange([...selectedTriggers, trigger]);
-      
+
       // Show other input if checking 'other'
       if (trigger === 'other') {
         setShowOtherInput(true);
@@ -62,7 +62,7 @@ export function TriggerSelector({
       <label className="block text-sm font-medium text-gray-300">
         Triggers experienced? (optional)
       </label>
-      
+
       <div className="grid grid-cols-2 gap-3">
         {triggers.map(({ value, label }) => (
           <button
@@ -125,4 +125,3 @@ export function TriggerSelector({
     </div>
   );
 }
-

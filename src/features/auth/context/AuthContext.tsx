@@ -1,9 +1,15 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  signInWithPopup, 
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
+import {
+  signInWithPopup,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  User as FirebaseUser 
+  User as FirebaseUser,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../../../services/firebase/config';
 import { AuthContextType, toUser } from '../types/auth.types';
@@ -69,17 +75,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!import.meta.env.DEV) {
       throw new Error('Dev sign-in only available in development mode');
     }
-    
+
     try {
       // Import signInAnonymously dynamically to use it here
       const { signInAnonymously } = await import('firebase/auth');
-      
+
       // Sign in anonymously to the Firebase Auth Emulator
       // This creates a real auth token that Cloud Functions can verify
       const userCredential = await signInAnonymously(auth);
-      
-      console.log('🧪 DEV MODE: Signed in to emulator as anonymous user:', userCredential.user.uid);
-      
+
+      console.log(
+        '🧪 DEV MODE: Signed in to emulator as anonymous user:',
+        userCredential.user.uid
+      );
+
       // The onAuthStateChanged listener will automatically update the user state
     } catch (err) {
       const error = err as Error;
@@ -108,4 +117,3 @@ export function useAuth(): AuthContextType {
   }
   return context;
 }
-

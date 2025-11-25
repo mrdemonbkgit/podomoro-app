@@ -22,15 +22,17 @@ export const useTasks = () => {
   }, [tasks]);
 
   const updateTask = (id: string, text: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id ? { ...task, text } : task
-    ));
+    setTasks((prev) =>
+      prev.map((task) => (task.id === id ? { ...task, text } : task))
+    );
   };
 
   const toggleTask = (id: string) => {
-    setTasks(prev => prev.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
   };
 
   const resetTasks = () => {
@@ -44,4 +46,3 @@ export const useTasks = () => {
     resetTasks,
   };
 };
-

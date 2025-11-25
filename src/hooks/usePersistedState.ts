@@ -26,12 +26,14 @@ export function usePersistedState<T>(
       }
 
       const parsed = JSON.parse(item);
-      
+
       // Check if data has timestamp and if it's stale
       if (parsed.timestamp && typeof parsed.timestamp === 'number') {
         const age = Date.now() - parsed.timestamp;
         if (age > maxAge) {
-          console.log(`Persisted state for "${key}" is stale (${Math.round(age / 1000 / 60)} minutes old), using default`);
+          console.log(
+            `Persisted state for "${key}" is stale (${Math.round(age / 1000 / 60)} minutes old), using default`
+          );
           localStorage.removeItem(key);
           return defaultValue;
         }
@@ -39,7 +41,9 @@ export function usePersistedState<T>(
 
       // Run custom validator if provided
       if (options?.validator && !options.validator(parsed)) {
-        console.warn(`Persisted state for "${key}" failed validation, using default`);
+        console.warn(
+          `Persisted state for "${key}" failed validation, using default`
+        );
         localStorage.removeItem(key);
         return defaultValue;
       }
@@ -98,4 +102,3 @@ export function hasPersistedState(key: string, maxAge?: number): boolean {
     return false;
   }
 }
-

@@ -1,6 +1,6 @@
 /**
  * Kamehameha - TypeScript Type Definitions
- * 
+ *
  * This file contains all type definitions for the Kamehameha recovery tool.
  */
 
@@ -10,7 +10,7 @@
 
 /**
  * Core streak data stored in Firestore (Simplified in Phase 5.1 Refactor)
- * 
+ *
  * No longer stores current timing data - timing calculated from journey.startDate
  */
 export interface StreakData {
@@ -20,7 +20,7 @@ export interface StreakData {
 
 /**
  * Complete streaks document structure (Simplified in Phase 5.1 Refactor)
- * 
+ *
  * Acts as a pointer to the current journey + historical records
  * All timing data calculated from journey.startDate
  */
@@ -65,11 +65,11 @@ export type Mood = 'veryBad' | 'bad' | 'neutral' | 'good' | 'veryGood';
 /**
  * Common triggers for urges
  */
-export type Trigger = 
-  | 'stress' 
-  | 'boredom' 
-  | 'loneliness' 
-  | 'anger' 
+export type Trigger =
+  | 'stress'
+  | 'boredom'
+  | 'loneliness'
+  | 'anger'
   | 'tired'
   | 'other';
 
@@ -327,4 +327,3 @@ export type StreakVariant = StreakType;
  * Theme mode
  */
 export type ThemeMode = 'light' | 'dark';
-

@@ -29,4 +29,3 @@ export const MIN_SESSIONS = 2;
 export const MAX_SESSIONS = 8;
 export const MIN_VOLUME = 0;
 export const MAX_VOLUME = 100;
-

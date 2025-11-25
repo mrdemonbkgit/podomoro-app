@@ -19,7 +19,13 @@ export const celebrateCompletion = (sessionType: SessionType): void => {
     // Long break completed - bigger celebration!
     const duration = 3000;
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0, colors };
+    const defaults = {
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      zIndex: 0,
+      colors,
+    };
 
     const randomInRange = (min: number, max: number) => {
       return Math.random() * (max - min) + min;
@@ -108,4 +114,3 @@ export const celebrateMilestone = (): void => {
     });
   }, 50);
 };
-

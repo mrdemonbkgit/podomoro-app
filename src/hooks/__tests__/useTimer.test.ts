@@ -12,7 +12,9 @@ describe('useTimer Hook', () => {
 
   describe('Initial State', () => {
     it('should initialize with work session at full duration', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       expect(result.current.time).toBe(25 * 60); // 25 minutes in seconds
       expect(result.current.isActive).toBe(false);
@@ -26,7 +28,9 @@ describe('useTimer Hook', () => {
         workDuration: 10,
       };
 
-      const { result } = renderHook(() => useTimer({ settings: customSettings }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: customSettings })
+      );
 
       expect(result.current.time).toBe(10 * 60); // 10 minutes in seconds
     });
@@ -34,7 +38,9 @@ describe('useTimer Hook', () => {
 
   describe('Timer Controls', () => {
     it('should start the timer', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       act(() => {
         result.current.start();
@@ -44,7 +50,9 @@ describe('useTimer Hook', () => {
     });
 
     it('should pause the timer', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       act(() => {
         result.current.start();
@@ -60,7 +68,9 @@ describe('useTimer Hook', () => {
     });
 
     it('should reset timer to initial state', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       // Start and modify state
       act(() => {
@@ -138,13 +148,17 @@ describe('useTimer Hook', () => {
 
   describe('State Persistence', () => {
     it('should start with no resumable state when localStorage is empty', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       expect(result.current.hasResumableState).toBe(false);
     });
 
     it('should dismiss resume prompt when starting fresh', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       if (result.current.hasResumableState) {
         act(() => {
@@ -158,13 +172,17 @@ describe('useTimer Hook', () => {
 
   describe('Session Counter', () => {
     it('should initialize with zero completed sessions', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       expect(result.current.completedSessions).toBe(0);
     });
 
     it('should maintain session type during pause', () => {
-      const { result } = renderHook(() => useTimer({ settings: DEFAULT_SETTINGS }));
+      const { result } = renderHook(() =>
+        useTimer({ settings: DEFAULT_SETTINGS })
+      );
 
       const initialSessionType = result.current.sessionType;
 
@@ -177,4 +195,3 @@ describe('useTimer Hook', () => {
     });
   });
 });
-

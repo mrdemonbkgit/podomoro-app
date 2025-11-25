@@ -9,7 +9,9 @@ const THEME_KEY = 'pomodoro-theme';
  */
 const getEffectiveTheme = (theme: Theme): 'light' | 'dark' => {
   if (theme === 'system') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
   }
   return theme;
 };
@@ -80,7 +82,7 @@ export const useTheme = (): UseThemeReturn => {
     if (theme !== 'system') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
       const effectiveTheme = e.matches ? 'dark' : 'light';
       setIsDark(effectiveTheme === 'dark');
@@ -113,14 +115,21 @@ export const useTheme = (): UseThemeReturn => {
   const toggleTheme = useCallback(() => {
     // Use functional update to ensure we get the latest state value
     // Also apply immediately to avoid any visual lag or effect ordering issues
-    setTheme(prevTheme => {
+    setTheme((prevTheme) => {
       const currentIsDark = getEffectiveTheme(prevTheme) === 'dark';
       const newTheme = currentIsDark ? 'light' : 'dark';
       // Apply immediately for snappy toggle regardless of effect timing
       const newIsDark = getEffectiveTheme(newTheme) === 'dark';
       applyTheme(newIsDark);
       saveTheme(newTheme);
-      console.log('[useTheme] Toggling from', prevTheme, '(isDark:', currentIsDark, ') to', newTheme);
+      console.log(
+        '[useTheme] Toggling from',
+        prevTheme,
+        '(isDark:',
+        currentIsDark,
+        ') to',
+        newTheme
+      );
       return newTheme;
     });
   }, []); // Empty deps - functional update doesn't need external dependencies
@@ -131,4 +140,3 @@ export const useTheme = (): UseThemeReturn => {
     toggleTheme,
   };
 };
-

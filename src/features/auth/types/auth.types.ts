@@ -33,7 +33,7 @@ export interface AuthContextType extends AuthState {
  */
 export function toUser(firebaseUser: FirebaseUser | null): User | null {
   if (!firebaseUser) return null;
-  
+
   return {
     uid: firebaseUser.uid,
     email: firebaseUser.email,
@@ -41,4 +41,3 @@ export function toUser(firebaseUser: FirebaseUser | null): User | null {
     photoURL: firebaseUser.photoURL,
   };
 }
-

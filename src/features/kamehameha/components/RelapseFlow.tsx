@@ -1,13 +1,17 @@
 /**
  * RelapseFlow Component
- * 
+ *
  * 4-step wizard for marking relapses with compassionate UI
  * Steps: 1) Type Selection, 2) Reasons, 3) Reflection, 4) Confirmation
  */
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { type RelapseType, type StreakDisplay, DEFAULT_RULE_VIOLATIONS } from '../types/kamehameha.types';
+import {
+  type RelapseType,
+  type StreakDisplay,
+  DEFAULT_RULE_VIOLATIONS,
+} from '../types/kamehameha.types';
 
 interface RelapseFlowProps {
   isOpen: boolean;
@@ -156,16 +160,30 @@ export function RelapseFlow({
               <div className="sticky top-0 bg-gradient-to-b from-slate-900/95 to-slate-900/80 backdrop-blur-lg px-6 py-5 border-b border-white/10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Mark Relapse</h2>
-                    <p className="text-sm text-gray-400 mt-1">Step {step} of 4</p>
+                    <h2 className="text-2xl font-bold text-white">
+                      Mark Relapse
+                    </h2>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Step {step} of 4
+                    </p>
                   </div>
                   <button
                     onClick={handleClose}
                     disabled={isSubmitting}
                     className="text-gray-400 hover:text-white transition-colors disabled:opacity-50"
                   >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -183,7 +201,9 @@ export function RelapseFlow({
                       exit={{ opacity: 0, x: -20 }}
                       className="space-y-6"
                     >
-                      <h3 className="text-xl font-semibold text-white mb-4">What happened?</h3>
+                      <h3 className="text-xl font-semibold text-white mb-4">
+                        What happened?
+                      </h3>
 
                       {/* Full PMO */}
                       <button
@@ -208,8 +228,12 @@ export function RelapseFlow({
                             )}
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-lg font-semibold text-white mb-2">Full PMO</h4>
-                            <p className="text-sm text-gray-300 mb-2">Resets: Main Streak</p>
+                            <h4 className="text-lg font-semibold text-white mb-2">
+                              Full PMO
+                            </h4>
+                            <p className="text-sm text-gray-300 mb-2">
+                              Resets: Main Streak
+                            </p>
                             <p className="text-sm text-gray-400">
                               Current: {mainStreak?.formatted || '0s'}
                             </p>
@@ -240,8 +264,12 @@ export function RelapseFlow({
                             )}
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-lg font-semibold text-white mb-2">Rule Violation</h4>
-                            <p className="text-sm text-gray-300 mb-2">Effect: Logs violation (journey continues)</p>
+                            <h4 className="text-lg font-semibold text-white mb-2">
+                              Rule Violation
+                            </h4>
+                            <p className="text-sm text-gray-300 mb-2">
+                              Effect: Logs violation (journey continues)
+                            </p>
                             <p className="text-sm text-gray-400">
                               Journey: {mainStreak?.formatted || '0s'}
                             </p>
@@ -275,7 +303,9 @@ export function RelapseFlow({
                       <h3 className="text-xl font-semibold text-white mb-2">
                         Which rules did you violate?
                       </h3>
-                      <p className="text-sm text-gray-400">Select all that apply</p>
+                      <p className="text-sm text-gray-400">
+                        Select all that apply
+                      </p>
 
                       <div className="grid grid-cols-1 gap-3">
                         {DEFAULT_RULE_VIOLATIONS.map((reason) => (
@@ -297,8 +327,18 @@ export function RelapseFlow({
                               }`}
                             >
                               {selectedReasons.includes(reason) && (
-                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                <svg
+                                  className="w-3 h-3 text-white"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={3}
+                                    d="M5 13l4 4L19 7"
+                                  />
                                 </svg>
                               )}
                             </div>
@@ -348,8 +388,12 @@ export function RelapseFlow({
                       className="space-y-6"
                     >
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">Reflection</h3>
-                        <p className="text-sm text-gray-400">Optional but helpful for growth</p>
+                        <h3 className="text-xl font-semibold text-white mb-2">
+                          Reflection
+                        </h3>
+                        <p className="text-sm text-gray-400">
+                          Optional but helpful for growth
+                        </p>
                       </div>
 
                       <div className="space-y-4">
@@ -409,13 +453,17 @@ export function RelapseFlow({
                       exit={{ opacity: 0, x: -20 }}
                       className="space-y-6"
                     >
-                      <h3 className="text-xl font-semibold text-white mb-4">Please confirm</h3>
+                      <h3 className="text-xl font-semibold text-white mb-4">
+                        Please confirm
+                      </h3>
 
                       <div className="bg-white/5 rounded-xl p-6 space-y-3 border border-white/10">
                         <div className="flex justify-between">
                           <span className="text-gray-400">Type:</span>
                           <span className="text-white font-medium">
-                            {relapseType === 'fullPMO' ? 'Full PMO' : 'Rule Violation'}
+                            {relapseType === 'fullPMO'
+                              ? 'Full PMO'
+                              : 'Rule Violation'}
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -423,7 +471,9 @@ export function RelapseFlow({
                             {relapseType === 'fullPMO' ? 'Resets:' : 'Effect:'}
                           </span>
                           <span className="text-white font-medium">
-                            {relapseType === 'fullPMO' ? 'Main Streak (Journey Ends)' : 'Logs Violation (Journey Continues)'}
+                            {relapseType === 'fullPMO'
+                              ? 'Main Streak (Journey Ends)'
+                              : 'Logs Violation (Journey Continues)'}
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -434,14 +484,17 @@ export function RelapseFlow({
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-400">Longest:</span>
-                          <span className="text-green-400 font-medium">(preserved)</span>
+                          <span className="text-green-400 font-medium">
+                            (preserved)
+                          </span>
                         </div>
                       </div>
 
                       {/* Motivational message */}
                       <div className="bg-purple-500/10 border-2 border-purple-500/30 rounded-xl p-6">
                         <p className="text-purple-200 text-center italic">
-                          "Every setback is a setup for a comeback. Your honesty is strength."
+                          "Every setback is a setup for a comeback. Your honesty
+                          is strength."
                         </p>
                       </div>
 
@@ -465,10 +518,10 @@ export function RelapseFlow({
                           disabled={isSubmitting}
                           className="flex-1 py-3 px-8 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 rounded-xl text-white font-medium shadow-lg shadow-red-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isSubmitting 
-                            ? 'Saving...' 
-                            : relapseType === 'fullPMO' 
-                              ? 'Confirm Reset' 
+                          {isSubmitting
+                            ? 'Saving...'
+                            : relapseType === 'fullPMO'
+                              ? 'Confirm Reset'
                               : 'Log Violation'}
                         </button>
                       </div>
@@ -483,4 +536,3 @@ export function RelapseFlow({
     </AnimatePresence>
   );
 }
-

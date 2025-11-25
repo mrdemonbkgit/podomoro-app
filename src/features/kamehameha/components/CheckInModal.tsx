@@ -1,6 +1,6 @@
 /**
  * CheckInModal Component
- * 
+ *
  * Daily check-in form with mood, urges, triggers, and journal
  * All fields optional except timestamp (auto-filled)
  */
@@ -96,7 +96,9 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
               <div className="sticky top-0 bg-gradient-to-b from-slate-900/95 to-slate-900/80 backdrop-blur-lg px-6 py-5 border-b border-white/10 rounded-t-3xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Daily Check-In 💭</h2>
+                    <h2 className="text-2xl font-bold text-white">
+                      Daily Check-In 💭
+                    </h2>
                     <p className="text-sm text-gray-400 mt-1">
                       {new Date().toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -136,7 +138,10 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
                 {/* Urge Intensity Slider */}
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-gray-300">
-                    Urge intensity: <span className="text-purple-400 font-bold">{urgeIntensity}</span>
+                    Urge intensity:{' '}
+                    <span className="text-purple-400 font-bold">
+                      {urgeIntensity}
+                    </span>
                   </label>
                   <input
                     type="range"
@@ -203,4 +208,3 @@ export function CheckInModal({ isOpen, onClose, onSubmit }: CheckInModalProps) {
     </AnimatePresence>
   );
 }
-

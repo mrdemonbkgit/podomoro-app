@@ -1,16 +1,16 @@
 /**
  * Frontend Milestone Constants
- * 
+ *
  * Defines milestone thresholds and configurations for the UI
- * 
+ *
  * ⚠️ SYNC WARNING: This file must be kept in sync with:
  * Backend: functions/src/milestoneConstants.ts
- * 
+ *
  * When updating milestones:
  * 1. Update BOTH files (frontend + backend)
  * 2. Run: npm run test:milestones
  * 3. Ensure test passes before committing
- * 
+ *
  * DO NOT modify one without the other!
  */
 
@@ -27,13 +27,13 @@ const isDevelopment = import.meta.env.DEV;
 export const MILESTONE_SECONDS = isDevelopment
   ? [60, 300] // Dev: 1 min, 5 min
   : [
-      86400,    // 1 day
-      259200,   // 3 days
-      604800,   // 7 days
-      1209600,  // 14 days
-      2592000,  // 30 days
-      5184000,  // 60 days
-      7776000,  // 90 days
+      86400, // 1 day
+      259200, // 3 days
+      604800, // 7 days
+      1209600, // 14 days
+      2592000, // 30 days
+      5184000, // 60 days
+      7776000, // 90 days
       15552000, // 180 days
       31536000, // 365 days
     ];
@@ -60,7 +60,8 @@ export const MILESTONE_CONFIGS: Record<number, MilestoneConfig> = {
     seconds: 86400,
     emoji: '🌱',
     name: 'First Step',
-    message: "You've completed your first day! This is the beginning of something great.",
+    message:
+      "You've completed your first day! This is the beginning of something great.",
   },
   259200: {
     seconds: 259200,
@@ -96,7 +97,7 @@ export const MILESTONE_CONFIGS: Record<number, MilestoneConfig> = {
     seconds: 7776000,
     emoji: '💎',
     name: 'Three Month Diamond',
-    message: "90 days! Your dedication shines like a diamond.",
+    message: '90 days! Your dedication shines like a diamond.',
   },
   15552000: {
     seconds: 15552000,
@@ -116,18 +117,22 @@ export const MILESTONE_CONFIGS: Record<number, MilestoneConfig> = {
  * Get milestone configuration by seconds
  */
 export function getMilestoneConfig(milestoneSeconds: number): MilestoneConfig {
-  return MILESTONE_CONFIGS[milestoneSeconds] || {
-    seconds: milestoneSeconds,
-    emoji: '🎯',
-    name: 'Achievement Unlocked',
-    message: 'Congratulations on reaching this milestone!',
-  };
+  return (
+    MILESTONE_CONFIGS[milestoneSeconds] || {
+      seconds: milestoneSeconds,
+      emoji: '🎯',
+      name: 'Achievement Unlocked',
+      message: 'Congratulations on reaching this milestone!',
+    }
+  );
 }
 
 /**
  * Get next milestone for a given streak duration
  */
-export function getNextMilestone(currentSeconds: number): MilestoneConfig | null {
+export function getNextMilestone(
+  currentSeconds: number
+): MilestoneConfig | null {
   const nextThreshold = MILESTONE_SECONDS.find((m) => m > currentSeconds);
   return nextThreshold ? getMilestoneConfig(nextThreshold) : null;
 }
@@ -142,7 +147,7 @@ export function getMilestoneProgress(currentSeconds: number): {
   previousMilestone: number;
 } {
   const nextMilestone = getNextMilestone(currentSeconds);
-  
+
   if (!nextMilestone) {
     // Already at max milestone
     return {
@@ -154,9 +159,8 @@ export function getMilestoneProgress(currentSeconds: number): {
   }
 
   // Find the previous milestone threshold
-  const previousThreshold = MILESTONE_SECONDS
-    .filter((m) => m <= currentSeconds)
-    .pop() || 0;
+  const previousThreshold =
+    MILESTONE_SECONDS.filter((m) => m <= currentSeconds).pop() || 0;
 
   const progressRange = nextMilestone.seconds - previousThreshold;
   const progressMade = currentSeconds - previousThreshold;
@@ -227,7 +231,7 @@ export function getTimeToNextMilestone(currentSeconds: number): {
   formatted: string;
 } | null {
   const nextMilestone = getNextMilestone(currentSeconds);
-  
+
   if (!nextMilestone) {
     return null;
   }
@@ -239,4 +243,3 @@ export function getTimeToNextMilestone(currentSeconds: number): {
     formatted: formatRemainingTime(remainingSeconds),
   };
 }
-

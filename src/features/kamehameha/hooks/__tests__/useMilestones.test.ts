@@ -1,15 +1,19 @@
 /**
  * Tests for useMilestones hook
- * 
+ *
  * Tests client-side milestone detection with intervals and Firestore writes
- * 
+ *
  * NOTE: Skipped in CI due to complex Firebase mocking requirements
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useMilestones } from '../useMilestones';
-import { testUser, testJourney, NOW } from '../../../../test/fixtures/kamehameha';
+import {
+  testUser,
+  testJourney,
+  NOW,
+} from '../../../../test/fixtures/kamehameha';
 
 // Skip in CI - complex Firebase mocking issues
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
@@ -36,8 +40,10 @@ vi.mock('../../../auth/context/AuthContext', () => ({
 // Mock paths
 vi.mock('../../services/paths', () => ({
   getDocPath: {
-    badge: (userId: string, badgeId: string) => `users/${userId}/kamehameha_badges/${badgeId}`,
-    journey: (userId: string, journeyId: string) => `users/${userId}/kamehameha_journeys/${journeyId}`,
+    badge: (userId: string, badgeId: string) =>
+      `users/${userId}/kamehameha_badges/${badgeId}`,
+    journey: (userId: string, journeyId: string) =>
+      `users/${userId}/kamehameha_journeys/${journeyId}`,
   },
 }));
 
@@ -136,10 +142,10 @@ describe.skipIf(isCI)('useMilestones', () => {
         { timeout: 1000 }
       );
 
-      const badgeCall = mockSetDoc.mock.calls.find((call: any) => 
-        call[1]?.milestoneSeconds === 300
+      const badgeCall = mockSetDoc.mock.calls.find(
+        (call: any) => call[1]?.milestoneSeconds === 300
       );
-      
+
       expect(badgeCall).toBeDefined();
       expect(badgeCall[1]).toMatchObject({
         milestoneSeconds: 300,
@@ -168,7 +174,7 @@ describe.skipIf(isCI)('useMilestones', () => {
       // Badge ID should be deterministic: {journeyId}_{milestoneSeconds}
       const setDocCalls = mockSetDoc.mock.calls;
       const badgeData = setDocCalls[0][1];
-      
+
       expect(badgeData.journeyId).toBe(testJourney.id);
       expect(badgeData.milestoneSeconds).toBe(60);
     });
@@ -226,7 +232,7 @@ describe.skipIf(isCI)('useMilestones', () => {
       });
 
       // Wait a bit for hook to process the change
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // The hook tracks milestones per journey, so changing journeys
       // allows detection to start fresh
@@ -295,16 +301,16 @@ describe.skipIf(isCI)('useMilestones', () => {
 
       await waitFor(
         () => {
-          const call5Min = mockSetDoc.mock.calls.find((call: any) =>
-            call[1]?.milestoneSeconds === 300
+          const call5Min = mockSetDoc.mock.calls.find(
+            (call: any) => call[1]?.milestoneSeconds === 300
           );
           expect(call5Min).toBeDefined();
         },
         { timeout: 1000 }
       );
 
-      const badgeCall = mockSetDoc.mock.calls.find((call: any) =>
-        call[1]?.milestoneSeconds === 300
+      const badgeCall = mockSetDoc.mock.calls.find(
+        (call: any) => call[1]?.milestoneSeconds === 300
       );
 
       expect(badgeCall![1].badgeEmoji).toBe('💪');
@@ -342,4 +348,3 @@ describe.skipIf(isCI)('useMilestones', () => {
     });
   });
 });
-

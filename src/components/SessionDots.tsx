@@ -8,7 +8,11 @@ interface SessionDotsProps {
   isDark: boolean;
 }
 
-export const SessionDots = ({ completedSessions, totalSessions, sessionType }: SessionDotsProps) => {
+export const SessionDots = ({
+  completedSessions,
+  totalSessions,
+  sessionType,
+}: SessionDotsProps) => {
   const dots = Array.from({ length: totalSessions }, (_, index) => index);
   const currentSession = completedSessions % totalSessions;
 
@@ -27,19 +31,19 @@ export const SessionDots = ({ completedSessions, totalSessions, sessionType }: S
       {dots.map((index) => {
         const isCompleted = index < currentSession;
         const isCurrent = index === currentSession;
-        
+
         return (
           <motion.div
             key={index}
             className="relative"
             initial={{ scale: 0 }}
-            animate={{ 
+            animate={{
               scale: isCurrent ? 1.2 : 1,
             }}
-            transition={{ 
-              type: "spring",
+            transition={{
+              type: 'spring',
               stiffness: 300,
-              damping: 20
+              damping: 20,
             }}
           >
             {/* Dot */}
@@ -61,4 +65,3 @@ export const SessionDots = ({ completedSessions, totalSessions, sessionType }: S
     </div>
   );
 };
-

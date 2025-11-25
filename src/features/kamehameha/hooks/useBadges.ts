@@ -1,6 +1,6 @@
 /**
  * useBadges Hook
- * 
+ *
  * Listens to user's badge collection and detects new badges for celebration
  * Badges are permanent historical records, stored with their journeyId
  * Only celebrates badges from the CURRENT journey
@@ -23,7 +23,7 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [celebrationBadge, setCelebrationBadge] = useState<Badge | null>(null);
-  
+
   // Track badge IDs we've already seen to prevent duplicate celebrations
   const seenBadgeIds = useRef<Set<string>>(new Set());
   const isInitialLoad = useRef(true);
@@ -37,21 +37,18 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
     logger.debug('useBadges: Listening for ALL badges (permanent records)');
 
     const badgesRef = collection(db, 'users', user.uid, 'kamehameha_badges');
-    
+
     // Load ALL badges (permanent historical records)
-    const q = query(
-      badgesRef,
-      orderBy('earnedAt', 'desc')
-    );
+    const q = query(badgesRef, orderBy('earnedAt', 'desc'));
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
         const badgesList: Badge[] = [];
-        
+
         // Collect new badges from current journey
         const newBadgesFromCurrentJourney: Badge[] = [];
-        
+
         snapshot.docChanges().forEach((change) => {
           if (change.type === 'added') {
             const badge: Badge = {
@@ -64,7 +61,7 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
             // Check if this is a NEW badge from CURRENT journey
             const isCurrentJourney = badge.journeyId === currentJourneyId;
             const isNew = !seenBadgeIds.current.has(badge.id);
-            
+
             if (isNew && isCurrentJourney) {
               newBadgesFromCurrentJourney.push(badge);
             }
@@ -73,19 +70,26 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
             seenBadgeIds.current.add(badge.id);
           }
         });
-        
+
         // Celebrate only the HIGHEST milestone if we have new badges
         if (!isInitialLoad.current && newBadgesFromCurrentJourney.length > 0) {
           // Find the badge with highest milestoneSeconds
-          const highestMilestone = newBadgesFromCurrentJourney.reduce((highest, badge) =>
-            badge.milestoneSeconds > highest.milestoneSeconds ? badge : highest
+          const highestMilestone = newBadgesFromCurrentJourney.reduce(
+            (highest, badge) =>
+              badge.milestoneSeconds > highest.milestoneSeconds
+                ? badge
+                : highest
           );
-          
-          logger.debug(`🎉 Celebrating highest milestone: ${highestMilestone.badgeName} (${highestMilestone.milestoneSeconds}s)`);
+
+          logger.debug(
+            `🎉 Celebrating highest milestone: ${highestMilestone.badgeName} (${highestMilestone.milestoneSeconds}s)`
+          );
           if (newBadgesFromCurrentJourney.length > 1) {
-            logger.debug(`   ⏭️ Skipping ${newBadgesFromCurrentJourney.length - 1} lower milestone(s)`);
+            logger.debug(
+              `   ⏭️ Skipping ${newBadgesFromCurrentJourney.length - 1} lower milestone(s)`
+            );
           }
-          
+
           setCelebrationBadge(highestMilestone);
         }
 
@@ -108,11 +112,14 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
 
     return () => unsubscribe();
   }, [user?.uid]);
-  
+
   // Reset seen badges when journey changes to prevent memory leaks
   useEffect(() => {
     if (currentJourneyId) {
-      logger.debug('useBadges: Journey changed, clearing seen badges set for new journey:', currentJourneyId);
+      logger.debug(
+        'useBadges: Journey changed, clearing seen badges set for new journey:',
+        currentJourneyId
+      );
       seenBadgeIds.current.clear();
       isInitialLoad.current = true;
     }
@@ -130,4 +137,3 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
     dismissCelebration,
   };
 }
-

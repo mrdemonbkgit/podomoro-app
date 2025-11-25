@@ -20,4 +20,3 @@ export const TIMER_STATE_KEY = 'pomodoro-timer-state';
 
 // Helper to convert minutes to seconds
 export const minutesToSeconds = (minutes: number): number => minutes * 60;
-

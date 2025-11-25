@@ -39,12 +39,12 @@ const validateCoreSettings = (value: unknown): boolean => {
 const validateSettings = (value: unknown): value is Settings => {
   if (!validateCoreSettings(value)) return false;
   const settings = value as Record<string, unknown>;
-  
+
   // Validate optional fields if present
   if ('notificationsEnabled' in settings) {
     return typeof settings.notificationsEnabled === 'boolean';
   }
-  
+
   return true;
 };
 
@@ -58,7 +58,7 @@ const loadSettings = (): Settings => {
     if (!stored) return DEFAULT_SETTINGS;
 
     const parsed = JSON.parse(stored);
-    
+
     // Validate core fields (durations and sessions)
     if (!validateCoreSettings(parsed)) {
       console.warn('Invalid core settings in localStorage, using defaults');
@@ -68,15 +68,15 @@ const loadSettings = (): Settings => {
     // Merge with defaults to handle missing optional fields (backward compatibility)
     // This preserves user's custom durations while adding new fields with defaults
     const merged: Settings = {
-      ...DEFAULT_SETTINGS,  // Start with defaults
-      ...parsed,            // Override with user's saved values
+      ...DEFAULT_SETTINGS, // Start with defaults
+      ...parsed, // Override with user's saved values
     };
 
     // Validate merged result
     if (validateSettings(merged)) {
       return merged;
     }
-    
+
     console.warn('Settings failed validation after merge, using defaults');
     return DEFAULT_SETTINGS;
   } catch (error) {
@@ -125,4 +125,3 @@ export const useSettings = (): UseSettingsReturn => {
     resetSettings,
   };
 };
-

@@ -10,7 +10,14 @@ interface ControlsProps {
   isDark: boolean;
 }
 
-export const Controls = ({ isActive, onStart, onPause, onReset, onSkip, sessionType }: ControlsProps) => {
+export const Controls = ({
+  isActive,
+  onStart,
+  onPause,
+  onReset,
+  onSkip,
+  sessionType,
+}: ControlsProps) => {
   const isBreak = sessionType !== 'work';
   return (
     <div className="flex gap-4 justify-center mt-4 items-center">
@@ -30,7 +37,7 @@ export const Controls = ({ isActive, onStart, onPause, onReset, onSkip, sessionT
           Start
         </button>
       )}
-      
+
       {/* Reset Button - Icon only */}
       <button
         onClick={onReset}
@@ -38,11 +45,21 @@ export const Controls = ({ isActive, onStart, onPause, onReset, onSkip, sessionT
         aria-label="Reset timer"
         title="Reset"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
         </svg>
       </button>
-      
+
       {/* Skip button - icon only, visible during breaks */}
       {isBreak && (
         <button
@@ -51,12 +68,21 @@ export const Controls = ({ isActive, onStart, onPause, onReset, onSkip, sessionT
           aria-label="Skip break"
           title="Skip Break"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       )}
     </div>
   );
 };
-

@@ -73,7 +73,10 @@ describe('useSettings Hook', () => {
         extraField: 'should be ignored', // Future-proofing
       };
 
-      localStorage.setItem('pomodoro-settings', JSON.stringify(settingsWithExtra));
+      localStorage.setItem(
+        'pomodoro-settings',
+        JSON.stringify(settingsWithExtra)
+      );
 
       const { result } = renderHook(() => useSettings());
 
@@ -93,7 +96,10 @@ describe('useSettings Hook', () => {
         notificationsEnabled: true,
       };
 
-      localStorage.setItem('pomodoro-settings', JSON.stringify(invalidSettings));
+      localStorage.setItem(
+        'pomodoro-settings',
+        JSON.stringify(invalidSettings)
+      );
 
       const { result } = renderHook(() => useSettings());
 
@@ -107,7 +113,10 @@ describe('useSettings Hook', () => {
         // Missing shortBreakDuration, longBreakDuration, sessionsUntilLongBreak
       };
 
-      localStorage.setItem('pomodoro-settings', JSON.stringify(incompleteSettings));
+      localStorage.setItem(
+        'pomodoro-settings',
+        JSON.stringify(incompleteSettings)
+      );
 
       const { result } = renderHook(() => useSettings());
 
@@ -133,7 +142,10 @@ describe('useSettings Hook', () => {
         notificationsEnabled: 'true', // String instead of boolean
       };
 
-      localStorage.setItem('pomodoro-settings', JSON.stringify(invalidSettings));
+      localStorage.setItem(
+        'pomodoro-settings',
+        JSON.stringify(invalidSettings)
+      );
 
       const { result } = renderHook(() => useSettings());
 
@@ -177,7 +189,9 @@ describe('useSettings Hook', () => {
       };
 
       // Mock console.error to suppress output
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       act(() => {
         result.current.updateSettings(invalidSettings as any);
@@ -242,4 +256,3 @@ describe('useSettings Hook', () => {
     });
   });
 });
-

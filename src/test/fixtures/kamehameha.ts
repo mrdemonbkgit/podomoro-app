@@ -3,7 +3,13 @@
  * Standard test data for consistent testing
  */
 
-import type { Journey, Badge, Relapse, CheckIn, Streaks } from '../../features/kamehameha/types/kamehameha.types';
+import type {
+  Journey,
+  Badge,
+  Relapse,
+  CheckIn,
+  Streaks,
+} from '../../features/kamehameha/types/kamehameha.types';
 
 /**
  * Test user data
@@ -144,7 +150,9 @@ export const createTestJourney = (options: {
   startDate: options.startDate || NOW,
   endDate: options.endDate === undefined ? null : options.endDate,
   endReason: options.endDate ? 'relapse' : 'active',
-  finalSeconds: options.endDate ? ((options.endDate - (options.startDate || NOW)) / 1000) : 0,
+  finalSeconds: options.endDate
+    ? (options.endDate - (options.startDate || NOW)) / 1000
+    : 0,
   achievementsCount: options.achievementsCount || 0,
   violationsCount: options.violationsCount || 0,
   createdAt: options.startDate || NOW,
@@ -168,4 +176,3 @@ export const createTestBadge = (options: {
   badgeName: `${options.milestoneSeconds}s Milestone`,
   congratsMessage: 'Congratulations!',
 });
-

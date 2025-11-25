@@ -1,4 +1,4 @@
-export type SoundCategory = 
+export type SoundCategory =
   | 'nature'
   | 'weather'
   | 'urban'
@@ -27,7 +27,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Gentle rain falling',
     frequency: 200,
     type: 'continuous',
-    complexity: 'complex'
+    complexity: 'complex',
   },
   {
     id: 'ocean',
@@ -37,7 +37,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Calming ocean waves',
     frequency: 150,
     type: 'rhythmic',
-    complexity: 'complex'
+    complexity: 'complex',
   },
   {
     id: 'forest',
@@ -47,7 +47,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Birds and rustling leaves',
     frequency: 300,
     type: 'ambient',
-    complexity: 'complex'
+    complexity: 'complex',
   },
   {
     id: 'river',
@@ -57,7 +57,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Flowing water',
     frequency: 180,
     type: 'continuous',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     id: 'birds',
@@ -67,7 +67,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Morning birds',
     frequency: 400,
     type: 'rhythmic',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     id: 'crickets',
@@ -77,7 +77,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Night crickets',
     frequency: 500,
     type: 'rhythmic',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     id: 'wind',
@@ -87,7 +87,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Gentle breeze',
     frequency: 120,
     type: 'continuous',
-    complexity: 'simple'
+    complexity: 'simple',
   },
 
   // Weather Sounds
@@ -99,7 +99,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Rain with distant thunder',
     frequency: 100,
     type: 'rhythmic',
-    complexity: 'complex'
+    complexity: 'complex',
   },
   {
     id: 'heavyrain',
@@ -109,7 +109,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Intense rainfall',
     frequency: 220,
     type: 'continuous',
-    complexity: 'complex'
+    complexity: 'complex',
   },
   {
     id: 'snow',
@@ -119,7 +119,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Soft falling snow',
     frequency: 140,
     type: 'ambient',
-    complexity: 'simple'
+    complexity: 'simple',
   },
 
   // Urban Sounds
@@ -131,7 +131,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Distant city sounds',
     frequency: 250,
     type: 'ambient',
-    complexity: 'complex'
+    complexity: 'complex',
   },
   {
     id: 'traffic',
@@ -141,7 +141,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Distant traffic hum',
     frequency: 160,
     type: 'continuous',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     id: 'subway',
@@ -151,7 +151,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Underground train ambience',
     frequency: 130,
     type: 'rhythmic',
-    complexity: 'medium'
+    complexity: 'medium',
   },
 
   // Workspace Sounds
@@ -163,7 +163,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Café ambience',
     frequency: 280,
     type: 'ambient',
-    complexity: 'complex'
+    complexity: 'complex',
   },
   {
     id: 'keyboard',
@@ -173,7 +173,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Mechanical keyboard',
     frequency: 350,
     type: 'rhythmic',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     id: 'library',
@@ -183,7 +183,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Quiet study space',
     frequency: 90,
     type: 'ambient',
-    complexity: 'simple'
+    complexity: 'simple',
   },
   {
     id: 'office',
@@ -193,7 +193,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Productive office buzz',
     frequency: 200,
     type: 'ambient',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     id: 'fan',
@@ -203,7 +203,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'White noise fan',
     frequency: 110,
     type: 'continuous',
-    complexity: 'simple'
+    complexity: 'simple',
   },
 
   // Travel Sounds
@@ -215,7 +215,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Airplane white noise',
     frequency: 140,
     type: 'continuous',
-    complexity: 'simple'
+    complexity: 'simple',
   },
   {
     id: 'train',
@@ -225,7 +225,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Train journey',
     frequency: 150,
     type: 'rhythmic',
-    complexity: 'medium'
+    complexity: 'medium',
   },
   {
     id: 'boat',
@@ -235,7 +235,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Sailing ambience',
     frequency: 120,
     type: 'continuous',
-    complexity: 'medium'
+    complexity: 'medium',
   },
 
   // Meditation Sounds
@@ -247,7 +247,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Pure white noise',
     frequency: 100,
     type: 'continuous',
-    complexity: 'simple'
+    complexity: 'simple',
   },
   {
     id: 'pinknoise',
@@ -257,7 +257,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Calming pink noise',
     frequency: 90,
     type: 'continuous',
-    complexity: 'simple'
+    complexity: 'simple',
   },
   {
     id: 'brownnoise',
@@ -267,7 +267,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Deep brown noise',
     frequency: 70,
     type: 'continuous',
-    complexity: 'simple'
+    complexity: 'simple',
   },
   {
     id: 'tibetan',
@@ -277,7 +277,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Singing bowl resonance',
     frequency: 220,
     type: 'ambient',
-    complexity: 'simple'
+    complexity: 'simple',
   },
   {
     id: 'om',
@@ -287,7 +287,7 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Sacred om sound',
     frequency: 136,
     type: 'continuous',
-    complexity: 'simple'
+    complexity: 'simple',
   },
   {
     id: 'binaural',
@@ -297,8 +297,8 @@ export const AMBIENT_SOUNDS: AmbientSound[] = [
     description: 'Focus-enhancing beats',
     frequency: 40,
     type: 'rhythmic',
-    complexity: 'medium'
-  }
+    complexity: 'medium',
+  },
 ];
 
 export interface SoundPreset {
@@ -318,8 +318,8 @@ export const SOUND_PRESETS: SoundPreset[] = [
     sounds: [
       { soundId: 'rain', volume: 40 },
       { soundId: 'coffeeshop', volume: 30 },
-      { soundId: 'pinknoise', volume: 20 }
-    ]
+      { soundId: 'pinknoise', volume: 20 },
+    ],
   },
   {
     id: 'relax',
@@ -329,8 +329,8 @@ export const SOUND_PRESETS: SoundPreset[] = [
     sounds: [
       { soundId: 'ocean', volume: 50 },
       { soundId: 'forest', volume: 30 },
-      { soundId: 'wind', volume: 20 }
-    ]
+      { soundId: 'wind', volume: 20 },
+    ],
   },
   {
     id: 'nature',
@@ -340,8 +340,8 @@ export const SOUND_PRESETS: SoundPreset[] = [
     sounds: [
       { soundId: 'forest', volume: 40 },
       { soundId: 'birds', volume: 30 },
-      { soundId: 'river', volume: 30 }
-    ]
+      { soundId: 'river', volume: 30 },
+    ],
   },
   {
     id: 'productive',
@@ -351,8 +351,8 @@ export const SOUND_PRESETS: SoundPreset[] = [
     sounds: [
       { soundId: 'office', volume: 35 },
       { soundId: 'keyboard', volume: 25 },
-      { soundId: 'coffeeshop', volume: 30 }
-    ]
+      { soundId: 'coffeeshop', volume: 30 },
+    ],
   },
   {
     id: 'sleep',
@@ -361,8 +361,8 @@ export const SOUND_PRESETS: SoundPreset[] = [
     description: 'Drift off easily',
     sounds: [
       { soundId: 'rain', volume: 50 },
-      { soundId: 'whitenoise', volume: 30 }
-    ]
+      { soundId: 'whitenoise', volume: 30 },
+    ],
   },
   {
     id: 'storm',
@@ -372,16 +372,18 @@ export const SOUND_PRESETS: SoundPreset[] = [
     sounds: [
       { soundId: 'thunderstorm', volume: 50 },
       { soundId: 'heavyrain', volume: 40 },
-      { soundId: 'wind', volume: 20 }
-    ]
-  }
+      { soundId: 'wind', volume: 20 },
+    ],
+  },
 ];
 
 /**
  * Get sounds by category
  */
-export const getSoundsByCategory = (category: SoundCategory): AmbientSound[] => {
-  return AMBIENT_SOUNDS.filter(sound => sound.category === category);
+export const getSoundsByCategory = (
+  category: SoundCategory
+): AmbientSound[] => {
+  return AMBIENT_SOUNDS.filter((sound) => sound.category === category);
 };
 
 /**
@@ -401,7 +403,7 @@ export const getCategoryName = (category: SoundCategory): string => {
     urban: 'Urban',
     workspace: 'Workspace',
     travel: 'Travel',
-    meditation: 'Meditation'
+    meditation: 'Meditation',
   };
   return names[category];
 };
@@ -416,8 +418,7 @@ export const getCategoryEmoji = (category: SoundCategory): string => {
     urban: '🏙️',
     workspace: '💼',
     travel: '✈️',
-    meditation: '🧘'
+    meditation: '🧘',
   };
   return emojis[category];
 };
-

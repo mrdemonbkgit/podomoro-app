@@ -5,7 +5,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
-import type { Streaks, StreakDisplay, UseStreaksReturn } from '../types/kamehameha.types';
+import type {
+  Streaks,
+  StreakDisplay,
+  UseStreaksReturn,
+} from '../types/kamehameha.types';
 import { logger } from '../../../utils/logger';
 import { INTERVALS } from '../constants/app.constants';
 import {
@@ -13,9 +17,7 @@ import {
   resetMainStreak as resetMainStreakService,
 } from '../services/firestoreService';
 import { getCurrentJourney } from '../services/journeyService';
-import {
-  calculateStreakFromStart,
-} from '../services/streakCalculations';
+import { calculateStreakFromStart } from '../services/streakCalculations';
 
 // ============================================================================
 // useStreaks Hook
@@ -29,34 +31,34 @@ export function useStreaks(): UseStreaksReturn {
   const [journeyStartDate, setJourneyStartDate] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  
+
   // Ref for update interval
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // ============================================================================
   // Load Streaks and Journey from Firestore
   // ============================================================================
-  
+
   const loadStreaks = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
-    
+
     try {
       setError(null);
-      
+
       // Load streaks document (contains journey reference)
       const loadedStreaks = await getStreaks(user.uid);
       setStreaks(loadedStreaks);
       setCurrentJourneyId(loadedStreaks.currentJourneyId || null);
-      
+
       // Load current journey to get startDate
       if (loadedStreaks.currentJourneyId) {
         const journey = await getCurrentJourney(user.uid);
         if (journey) {
           setJourneyStartDate(journey.startDate);
-          
+
           // Calculate initial display from journey startDate
           const mainDisp = calculateStreakFromStart(journey.startDate);
           setMainDisplay(mainDisp);
@@ -67,7 +69,7 @@ export function useStreaks(): UseStreaksReturn {
       } else {
         setMainDisplay(null);
       }
-      
+
       setLoading(false);
     } catch (err) {
       logger.error('Failed to load streaks:', err);
@@ -75,38 +77,41 @@ export function useStreaks(): UseStreaksReturn {
       setLoading(false);
     }
   }, [user]);
-  
+
   // ============================================================================
   // Update Display (Every Second)
   // ============================================================================
-  
+
   const updateDisplay = useCallback(() => {
     if (!journeyStartDate) return;
-    
+
     // Calculate display from journey startDate (source of truth)
     const mainDisp = calculateStreakFromStart(journeyStartDate);
     setMainDisplay(mainDisp);
   }, [journeyStartDate]);
-  
+
   // ============================================================================
   // Reset Streak Function
   // ============================================================================
-  
+
   const resetMainStreak = useCallback(async () => {
     if (!user || !streaks || !mainDisplay) return;
-    
+
     try {
       setError(null);
-      
+
       logger.debug('[useStreaks] Resetting main streak...');
-      
+
       // Reset journey (transaction-based, atomic)
-      const updatedStreaks = await resetMainStreakService(user.uid, mainDisplay.totalSeconds);
-      
+      const updatedStreaks = await resetMainStreakService(
+        user.uid,
+        mainDisplay.totalSeconds
+      );
+
       // Reload everything to get fresh journey
       setStreaks(updatedStreaks);
       setCurrentJourneyId(updatedStreaks.currentJourneyId || null);
-      
+
       // Load new journey
       if (updatedStreaks.currentJourneyId) {
         const journey = await getCurrentJourney(user.uid);
@@ -116,7 +121,7 @@ export function useStreaks(): UseStreaksReturn {
           setMainDisplay(mainDisp);
         }
       }
-      
+
       logger.debug('[useStreaks] Reset complete');
     } catch (err) {
       logger.error('Failed to reset main streak:', err);
@@ -124,43 +129,43 @@ export function useStreaks(): UseStreaksReturn {
       throw err;
     }
   }, [user, streaks, mainDisplay]);
-  
+
   const refreshStreaks = useCallback(async () => {
     await loadStreaks();
   }, [loadStreaks]);
-  
+
   // ============================================================================
   // Effects
   // ============================================================================
-  
+
   // Load streaks on mount or when user changes
   useEffect(() => {
     loadStreaks();
   }, [loadStreaks]);
-  
+
   // Set up real-time display update interval (every second)
   useEffect(() => {
     if (!journeyStartDate) return;
-    
+
     // Update immediately
     updateDisplay();
-    
+
     // Then update every second
     updateIntervalRef.current = setInterval(() => {
       updateDisplay();
     }, INTERVALS.UPDATE_DISPLAY_MS);
-    
+
     return () => {
       if (updateIntervalRef.current) {
         clearInterval(updateIntervalRef.current);
       }
     };
   }, [journeyStartDate, updateDisplay]);
-  
+
   // ============================================================================
   // Return Hook Interface
   // ============================================================================
-  
+
   return {
     streaks,
     mainDisplay,

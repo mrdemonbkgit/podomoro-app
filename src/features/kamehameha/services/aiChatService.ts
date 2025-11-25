@@ -3,7 +3,7 @@
  * Frontend service for interacting with AI therapist Cloud Functions
  */
 
-import {httpsCallable} from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
 import {
   collection,
   query,
@@ -15,9 +15,9 @@ import {
   doc,
   Unsubscribe,
 } from 'firebase/firestore';
-import {db, functions} from '../../../services/firebase/config';
-import type {ChatMessage} from '../types/kamehameha.types';
-import {logger} from '../../../utils/logger';
+import { db, functions } from '../../../services/firebase/config';
+import type { ChatMessage } from '../types/kamehameha.types';
+import { logger } from '../../../utils/logger';
 
 // ============================================================================
 // Cloud Function Interfaces
@@ -30,7 +30,7 @@ interface ChatRequest {
 
 interface ChatResponse {
   success: boolean;
-  message?: ChatMessage & {userId: string; createdAt: number};
+  message?: ChatMessage & { userId: string; createdAt: number };
   error?: string;
   rateLimitExceeded?: boolean;
 }
@@ -44,8 +44,14 @@ interface ClearHistoryResponse {
 // Cloud Function References
 // ============================================================================
 
-const chatWithAIFunction = httpsCallable<ChatRequest, ChatResponse>(functions, 'chatWithAI');
-const clearChatHistoryFunction = httpsCallable<void, ClearHistoryResponse>(functions, 'clearChatHistory');
+const chatWithAIFunction = httpsCallable<ChatRequest, ChatResponse>(
+  functions,
+  'chatWithAI'
+);
+const clearChatHistoryFunction = httpsCallable<void, ClearHistoryResponse>(
+  functions,
+  'clearChatHistory'
+);
 
 // ============================================================================
 // Chat Operations
@@ -66,7 +72,9 @@ export async function sendMessage(
 
     if (!result.data.success) {
       if (result.data.rateLimitExceeded) {
-        throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        throw new Error(
+          'Rate limit exceeded. Please wait a moment and try again.'
+        );
       }
       throw new Error(result.data.error || 'Failed to send message');
     }
@@ -85,16 +93,16 @@ export async function sendMessage(
     };
   } catch (error: any) {
     console.error('Error sending message:', error);
-    
+
     // Handle specific error types
     if (error.code === 'unauthenticated') {
       throw new Error('You must be logged in to chat');
     }
-    
+
     if (error.code === 'resource-exhausted') {
       throw new Error('AI service is busy. Please try again in a moment.');
     }
-    
+
     throw new Error(error.message || 'Failed to send message');
   }
 }
@@ -107,11 +115,20 @@ export async function getChatHistory(
   limitCount: number = 50
 ): Promise<ChatMessage[]> {
   try {
-    const messagesRef = collection(db, 'users', userId, 'kamehameha_chatHistory');
-    const q = query(messagesRef, orderBy('createdAt', 'desc'), firestoreLimit(limitCount));
-    
+    const messagesRef = collection(
+      db,
+      'users',
+      userId,
+      'kamehameha_chatHistory'
+    );
+    const q = query(
+      messagesRef,
+      orderBy('createdAt', 'desc'),
+      firestoreLimit(limitCount)
+    );
+
     const snapshot = await getDocs(q);
-    
+
     const messages = snapshot.docs.map((doc) => {
       const data = doc.data();
       return {
@@ -122,7 +139,7 @@ export async function getChatHistory(
         isEmergency: data.isEmergency || false,
       };
     });
-    
+
     // Return in chronological order (oldest first)
     return messages.reverse();
   } catch (error) {
@@ -140,8 +157,12 @@ export function subscribeToChatMessages(
   limitCount: number = 50
 ): Unsubscribe {
   const messagesRef = collection(db, 'users', userId, 'kamehameha_chatHistory');
-  const q = query(messagesRef, orderBy('createdAt', 'desc'), firestoreLimit(limitCount));
-  
+  const q = query(
+    messagesRef,
+    orderBy('createdAt', 'desc'),
+    firestoreLimit(limitCount)
+  );
+
   return onSnapshot(
     q,
     (snapshot) => {
@@ -155,7 +176,7 @@ export function subscribeToChatMessages(
           isEmergency: data.isEmergency || false,
         };
       });
-      
+
       // Call callback with messages in chronological order
       callback(messages.reverse());
     },
@@ -171,19 +192,19 @@ export function subscribeToChatMessages(
 export async function clearChatHistory(): Promise<void> {
   try {
     const result = await clearChatHistoryFunction();
-    
+
     if (!result.data.success) {
       throw new Error('Failed to clear chat history');
     }
-    
+
     logger.debug('Chat history cleared:', result.data.message);
   } catch (error: any) {
     console.error('Error clearing chat history:', error);
-    
+
     if (error.code === 'unauthenticated') {
       throw new Error('You must be logged in to clear chat history');
     }
-    
+
     throw new Error(error.message || 'Failed to clear chat history');
   }
 }
@@ -191,9 +212,18 @@ export async function clearChatHistory(): Promise<void> {
 /**
  * Delete a specific message
  */
-export async function deleteMessage(userId: string, messageId: string): Promise<void> {
+export async function deleteMessage(
+  userId: string,
+  messageId: string
+): Promise<void> {
   try {
-    const messageRef = doc(db, 'users', userId, 'kamehameha_chatHistory', messageId);
+    const messageRef = doc(
+      db,
+      'users',
+      userId,
+      'kamehameha_chatHistory',
+      messageId
+    );
     await deleteDoc(messageRef);
   } catch (error) {
     console.error('Error deleting message:', error);
@@ -217,4 +247,3 @@ export async function getRateLimitStatus(): Promise<{
     resetAt: Date.now() + 60000, // 1 minute from now
   };
 }
-

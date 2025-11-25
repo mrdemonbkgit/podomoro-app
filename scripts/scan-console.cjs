@@ -34,6 +34,12 @@ for (const filePath of files) {
   const lines = content.split('\n');
   
   lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    // Skip comments (JSDoc, inline comments)
+    if (trimmed.startsWith('*') || trimmed.startsWith('//')) {
+      return;
+    }
+    
     for (const { regex, type } of consolePatterns) {
       if (line.match(regex)) {
         if (!violations[filePath]) {

@@ -1,6 +1,6 @@
 /**
  * Tests for useJourneyInfo hook
- * 
+ *
  * Tests loading journey number and violations count
  */
 
@@ -8,7 +8,11 @@ import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useJourneyInfo } from '../useJourneyInfo';
 import * as journeyService from '../../services/journeyService';
-import { testUser, testJourney, testRelapseViolation } from '../../../../test/fixtures/kamehameha';
+import {
+  testUser,
+  testJourney,
+  testRelapseViolation,
+} from '../../../../test/fixtures/kamehameha';
 
 // Mock journeyService
 vi.mock('../../services/journeyService');
@@ -29,8 +33,12 @@ describe('useJourneyInfo', () => {
 
   describe('Initial State', () => {
     test('starts with loading true', () => {
-      vi.mocked(journeyService.getJourneyNumber).mockImplementation(() => new Promise(() => {}));
-      vi.mocked(journeyService.getJourneyViolations).mockImplementation(() => new Promise(() => {}));
+      vi.mocked(journeyService.getJourneyNumber).mockImplementation(
+        () => new Promise(() => {})
+      );
+      vi.mocked(journeyService.getJourneyViolations).mockImplementation(
+        () => new Promise(() => {})
+      );
 
       const { result } = renderHook(() => useJourneyInfo(testJourney.id));
 
@@ -73,15 +81,25 @@ describe('useJourneyInfo', () => {
       renderHook(() => useJourneyInfo(testJourney.id));
 
       await waitFor(() => {
-        expect(journeyService.getJourneyNumber).toHaveBeenCalledWith(testUser.uid, testJourney.id);
+        expect(journeyService.getJourneyNumber).toHaveBeenCalledWith(
+          testUser.uid,
+          testJourney.id
+        );
       });
 
-      expect(journeyService.getJourneyViolations).toHaveBeenCalledWith(testUser.uid, testJourney.id);
+      expect(journeyService.getJourneyViolations).toHaveBeenCalledWith(
+        testUser.uid,
+        testJourney.id
+      );
     });
 
     test('loads data in parallel (Promise.all)', async () => {
-      const getNumberSpy = vi.mocked(journeyService.getJourneyNumber).mockResolvedValue(1);
-      const getViolationsSpy = vi.mocked(journeyService.getJourneyViolations).mockResolvedValue([]);
+      const getNumberSpy = vi
+        .mocked(journeyService.getJourneyNumber)
+        .mockResolvedValue(1);
+      const getViolationsSpy = vi
+        .mocked(journeyService.getJourneyViolations)
+        .mockResolvedValue([]);
 
       renderHook(() => useJourneyInfo(testJourney.id));
 
@@ -97,7 +115,9 @@ describe('useJourneyInfo', () => {
 
   describe('Error Handling', () => {
     test('sets error state on failure', async () => {
-      vi.mocked(journeyService.getJourneyNumber).mockRejectedValue(new Error('Network error'));
+      vi.mocked(journeyService.getJourneyNumber).mockRejectedValue(
+        new Error('Network error')
+      );
       vi.mocked(journeyService.getJourneyViolations).mockResolvedValue([]);
 
       const { result } = renderHook(() => useJourneyInfo(testJourney.id));
@@ -113,7 +133,9 @@ describe('useJourneyInfo', () => {
 
     test('sets default values on error', async () => {
       vi.mocked(journeyService.getJourneyNumber).mockResolvedValue(5);
-      vi.mocked(journeyService.getJourneyViolations).mockRejectedValue(new Error('Firestore error'));
+      vi.mocked(journeyService.getJourneyViolations).mockRejectedValue(
+        new Error('Firestore error')
+      );
 
       const { result } = renderHook(() => useJourneyInfo(testJourney.id));
 
@@ -137,19 +159,27 @@ describe('useJourneyInfo', () => {
       );
 
       await waitFor(() => {
-        expect(journeyService.getJourneyNumber).toHaveBeenCalledWith(testUser.uid, 'journey-1');
+        expect(journeyService.getJourneyNumber).toHaveBeenCalledWith(
+          testUser.uid,
+          'journey-1'
+        );
       });
 
       // Clear mocks
       vi.clearAllMocks();
       vi.mocked(journeyService.getJourneyNumber).mockResolvedValue(2);
-      vi.mocked(journeyService.getJourneyViolations).mockResolvedValue([testRelapseViolation]);
+      vi.mocked(journeyService.getJourneyViolations).mockResolvedValue([
+        testRelapseViolation,
+      ]);
 
       // Change journeyId
       rerender({ journeyId: 'journey-2' });
 
       await waitFor(() => {
-        expect(journeyService.getJourneyNumber).toHaveBeenCalledWith(testUser.uid, 'journey-2');
+        expect(journeyService.getJourneyNumber).toHaveBeenCalledWith(
+          testUser.uid,
+          'journey-2'
+        );
       });
     });
 
@@ -211,7 +241,9 @@ describe('useJourneyInfo', () => {
       }));
 
       vi.mocked(journeyService.getJourneyNumber).mockResolvedValue(1);
-      vi.mocked(journeyService.getJourneyViolations).mockResolvedValue(manyViolations);
+      vi.mocked(journeyService.getJourneyViolations).mockResolvedValue(
+        manyViolations
+      );
 
       const { result } = renderHook(() => useJourneyInfo(testJourney.id));
 
@@ -223,4 +255,3 @@ describe('useJourneyInfo', () => {
     });
   });
 });
-

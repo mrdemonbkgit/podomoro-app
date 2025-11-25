@@ -8,7 +8,7 @@ export interface AmbientSoundSettings {
 
 const DEFAULT_SETTINGS: AmbientSoundSettings = {
   activeSounds: [],
-  masterVolume: 100
+  masterVolume: 100,
 };
 
 const AMBIENT_SOUND_SETTINGS_KEY = 'pomodoro_ambient_sound_settings';
@@ -27,66 +27,78 @@ export const useAmbientSounds = () => {
   /**
    * Add or update an active sound
    */
-  const setSound = useCallback((id: string, volume: number) => {
-    setSettings(prev => {
-      const existing = prev.activeSounds.find(s => s.id === id);
-      if (existing) {
-        // Update volume
-        return {
-          ...prev,
-          activeSounds: prev.activeSounds.map(s =>
-            s.id === id ? { ...s, volume } : s
-          )
-        };
-      } else {
-        // Add new sound
-        return {
-          ...prev,
-          activeSounds: [...prev.activeSounds, { id, volume }]
-        };
-      }
-    });
-  }, [setSettings]);
+  const setSound = useCallback(
+    (id: string, volume: number) => {
+      setSettings((prev) => {
+        const existing = prev.activeSounds.find((s) => s.id === id);
+        if (existing) {
+          // Update volume
+          return {
+            ...prev,
+            activeSounds: prev.activeSounds.map((s) =>
+              s.id === id ? { ...s, volume } : s
+            ),
+          };
+        } else {
+          // Add new sound
+          return {
+            ...prev,
+            activeSounds: [...prev.activeSounds, { id, volume }],
+          };
+        }
+      });
+    },
+    [setSettings]
+  );
 
   /**
    * Remove a sound
    */
-  const removeSound = useCallback((id: string) => {
-    setSettings(prev => ({
-      ...prev,
-      activeSounds: prev.activeSounds.filter(s => s.id !== id)
-    }));
-  }, [setSettings]);
+  const removeSound = useCallback(
+    (id: string) => {
+      setSettings((prev) => ({
+        ...prev,
+        activeSounds: prev.activeSounds.filter((s) => s.id !== id),
+      }));
+    },
+    [setSettings]
+  );
 
   /**
    * Clear all sounds
    */
   const clearAll = useCallback(() => {
-    setSettings(prev => ({
+    setSettings((prev) => ({
       ...prev,
-      activeSounds: []
+      activeSounds: [],
     }));
   }, [setSettings]);
 
   /**
    * Set master volume
    */
-  const setMasterVolume = useCallback((volume: number) => {
-    setSettings(prev => ({
-      ...prev,
-      masterVolume: volume
-    }));
-  }, [setSettings]);
+  const setMasterVolume = useCallback(
+    (volume: number) => {
+      setSettings((prev) => ({
+        ...prev,
+        masterVolume: volume,
+      }));
+    },
+    [setSettings]
+  );
 
   /**
    * Load a preset
    */
-  const loadPreset = useCallback((sounds: { id: string; volume: number }[]) => {
-    setSettings(prev => ({
-      ...prev,
-      activeSounds: sounds
-    }));
-  }, [setSettings]);
+  const loadPreset = useCallback(
+    (sounds: { id: string; volume: number }[]) => {
+      setSettings((prev) => ({
+        ...prev,
+        activeSounds: sounds,
+      }));
+    },
+    [setSettings]
+  );
 
   /**
    * Reset to defaults
@@ -113,7 +125,6 @@ export const useAmbientSounds = () => {
     setMasterVolume,
     loadPreset,
     resetSettings,
-    isInitialized
+    isInitialized,
   };
 };
-

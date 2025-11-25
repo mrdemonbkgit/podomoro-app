@@ -1,6 +1,6 @@
 /**
  * QuickActions - Quick access buttons for common actions
- * 
+ *
  * Phase 3: Check-in and Relapse tracking enabled
  */
 
@@ -9,7 +9,10 @@ interface QuickActionsProps {
   onRelapseClick: () => void;
 }
 
-export function QuickActions({ onCheckInClick, onRelapseClick }: QuickActionsProps) {
+export function QuickActions({
+  onCheckInClick,
+  onRelapseClick,
+}: QuickActionsProps) {
   return (
     <div className="glass-panel bg-white/5 rounded-2xl p-6 md:p-8 border border-white/10 backdrop-blur-xl">
       <h3 className="text-xl font-bold text-white mb-4 text-center">
@@ -55,4 +58,3 @@ export function QuickActions({ onCheckInClick, onRelapseClick }: QuickActionsPro
     </div>
   );
 }
-

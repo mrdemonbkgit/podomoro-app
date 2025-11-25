@@ -44,9 +44,7 @@ describe('usePersistedState Hook', () => {
     it('should handle number values', () => {
       localStorage.setItem('test-number', JSON.stringify(123));
 
-      const { result } = renderHook(() =>
-        usePersistedState('test-number', 0)
-      );
+      const { result } = renderHook(() => usePersistedState('test-number', 0));
 
       expect(result.current[0]).toBe(123);
     });
@@ -112,18 +110,16 @@ describe('usePersistedState Hook', () => {
     });
 
     it('should support functional updates', () => {
-      const { result } = renderHook(() =>
-        usePersistedState('test-count', 0)
-      );
+      const { result } = renderHook(() => usePersistedState('test-count', 0));
 
       act(() => {
-        result.current[1](prev => prev + 1);
+        result.current[1]((prev) => prev + 1);
       });
 
       expect(result.current[0]).toBe(1);
 
       act(() => {
-        result.current[1](prev => prev + 1);
+        result.current[1]((prev) => prev + 1);
       });
 
       expect(result.current[0]).toBe(2);
@@ -160,9 +156,7 @@ describe('usePersistedState Hook', () => {
     });
 
     it('should handle rapid successive updates', () => {
-      const { result } = renderHook(() =>
-        usePersistedState('test-rapid', 0)
-      );
+      const { result } = renderHook(() => usePersistedState('test-rapid', 0));
 
       act(() => {
         result.current[1](1);
@@ -258,9 +252,7 @@ describe('usePersistedState Hook', () => {
     });
 
     it('should handle zero as value', () => {
-      const { result } = renderHook(() =>
-        usePersistedState('test-zero', 100)
-      );
+      const { result } = renderHook(() => usePersistedState('test-zero', 100));
 
       act(() => {
         result.current[1](0);
@@ -350,4 +342,3 @@ describe('usePersistedState Hook', () => {
     });
   });
 });
-

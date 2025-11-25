@@ -1,12 +1,16 @@
 /**
  * StreakCard - Rich streak display card for dashboard
- * 
+ *
  * Displays current streak, longest streak, next milestone, and progress bar.
  */
 
 import { motion } from 'framer-motion';
 import type { StreakDisplay, StreakVariant } from '../types/kamehameha.types';
-import { formatDays, getNextMilestone, getMilestoneProgress } from '../services/streakCalculations';
+import {
+  formatDays,
+  getNextMilestone,
+  getMilestoneProgress,
+} from '../services/streakCalculations';
 
 interface StreakCardProps {
   /** Current streak display */
@@ -53,7 +57,9 @@ export function StreakCard({
 
   if (loading || !display) {
     return (
-      <div className={`glass-panel rounded-2xl p-6 md:p-8 border-2 ${color.border} animate-pulse`}>
+      <div
+        className={`glass-panel rounded-2xl p-6 md:p-8 border-2 ${color.border} animate-pulse`}
+      >
         <div className="h-64 flex items-center justify-center">
           <div className="text-4xl">{icon}</div>
         </div>
@@ -75,7 +81,9 @@ export function StreakCard({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <span className="text-4xl md:text-5xl">{icon}</span>
-          <h2 className={`text-xl md:text-2xl font-bold uppercase tracking-wide ${color.text}`}>
+          <h2
+            className={`text-xl md:text-2xl font-bold uppercase tracking-wide ${color.text}`}
+          >
             {label}
           </h2>
         </div>
@@ -88,17 +96,17 @@ export function StreakCard({
             {display.days}
           </span>
           <span className={`text-lg md:text-xl ${color.text}`}>days</span>
-          
+
           <span className="text-4xl md:text-6xl font-bold text-white tabular-nums">
             {String(display.hours).padStart(2, '0')}
           </span>
           <span className={`text-lg md:text-xl ${color.text}`}>hours</span>
-          
+
           <span className="text-4xl md:text-6xl font-bold text-white tabular-nums">
             {String(display.minutes).padStart(2, '0')}
           </span>
           <span className={`text-lg md:text-xl ${color.text}`}>min</span>
-          
+
           <span className="text-4xl md:text-6xl font-bold text-white tabular-nums">
             {String(display.seconds).padStart(2, '0')}
           </span>
@@ -110,14 +118,22 @@ export function StreakCard({
       <div className="grid grid-cols-2 gap-4 mb-6">
         {/* Current Streak */}
         <div className="bg-white/5 rounded-lg p-4 text-center">
-          <p className="text-xs text-white/50 uppercase tracking-wide mb-1">Current</p>
-          <p className="text-lg font-bold text-white">{formatDays(display.totalSeconds)}</p>
+          <p className="text-xs text-white/50 uppercase tracking-wide mb-1">
+            Current
+          </p>
+          <p className="text-lg font-bold text-white">
+            {formatDays(display.totalSeconds)}
+          </p>
         </div>
 
         {/* Longest Streak */}
         <div className="bg-white/5 rounded-lg p-4 text-center">
-          <p className="text-xs text-white/50 uppercase tracking-wide mb-1">Longest</p>
-          <p className="text-lg font-bold text-white">{formatDays(longestSeconds)}</p>
+          <p className="text-xs text-white/50 uppercase tracking-wide mb-1">
+            Longest
+          </p>
+          <p className="text-lg font-bold text-white">
+            {formatDays(longestSeconds)}
+          </p>
         </div>
       </div>
 
@@ -142,7 +158,9 @@ export function StreakCard({
           </div>
 
           <div className="text-right mt-1">
-            <span className="text-xs text-white/40">{Math.round(progress)}%</span>
+            <span className="text-xs text-white/40">
+              {Math.round(progress)}%
+            </span>
           </div>
         </div>
       )}
@@ -157,4 +175,3 @@ export function StreakCard({
     </motion.div>
   );
 }
-

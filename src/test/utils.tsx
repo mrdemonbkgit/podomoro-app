@@ -3,7 +3,12 @@
  */
 
 import React, { ReactElement } from 'react';
-import { render, RenderOptions, renderHook, RenderHookOptions } from '@testing-library/react';
+import {
+  render,
+  RenderOptions,
+  renderHook,
+  RenderHookOptions,
+} from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../features/auth/context/AuthContext';
 import { StreaksProvider } from '../features/kamehameha/context/StreaksContext';
@@ -15,9 +20,7 @@ export function AllProviders({ children }: { children: React.ReactNode }) {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <StreaksProvider>
-          {children}
-        </StreaksProvider>
+        <StreaksProvider>{children}</StreaksProvider>
       </AuthProvider>
     </BrowserRouter>
   );
@@ -25,7 +28,7 @@ export function AllProviders({ children }: { children: React.ReactNode }) {
 
 /**
  * Render a component with all providers
- * 
+ *
  * @example
  * const { getByText } = renderWithProviders(<MyComponent />);
  */
@@ -38,7 +41,7 @@ export function renderWithProviders(
 
 /**
  * Render a hook with all providers
- * 
+ *
  * @example
  * const { result } = renderHookWithProviders(() => useMyHook());
  */
@@ -55,9 +58,7 @@ export function renderHookWithProviders<TResult>(
 export function AuthOnlyProvider({ children }: { children: React.ReactNode }) {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        {children}
-      </AuthProvider>
+      <AuthProvider>{children}</AuthProvider>
     </BrowserRouter>
   );
 }
@@ -85,7 +86,7 @@ export function renderHookWithAuth<TResult>(
 /**
  * Wait for a condition to be true
  * Useful for async assertions
- * 
+ *
  * @example
  * await waitFor(() => expect(result.current.loading).toBe(false));
  */
@@ -93,9 +94,8 @@ export { waitFor } from '@testing-library/react';
 
 /**
  * User event helper for simulating user interactions
- * 
+ *
  * @example
  * await userEvent.click(button);
  */
 export { default as userEvent } from '@testing-library/user-event';
-

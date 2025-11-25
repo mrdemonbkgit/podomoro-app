@@ -214,4 +214,3 @@ describe('useTheme Hook', () => {
     });
   });
 });
-

@@ -24,12 +24,13 @@ class AmbientAudioEngineV2 {
    */
   private initContext() {
     if (!this.context) {
-      this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
+      this.context = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       this.masterGainNode = this.context.createGain();
       this.masterGainNode.connect(this.context.destination);
       this.masterGainNode.gain.value = 1.0;
     }
-    
+
     // Resume context if suspended (browser autoplay policy)
     if (this.context.state === 'suspended') {
       this.context.resume();
@@ -53,7 +54,7 @@ class AmbientAudioEngineV2 {
       audio.src = audioFile.url;
       audio.loop = true;
       audio.preload = 'auto';
-      
+
       // Wait for audio to load
       await new Promise((resolve, reject) => {
         audio.addEventListener('canplaythrough', resolve, { once: true });
@@ -82,7 +83,10 @@ class AmbientAudioEngineV2 {
           console.log(`[AmbientAudioV2] Preloaded fallback: ${soundId}`);
           return audio;
         } catch (fallbackError) {
-          console.error(`[AmbientAudioV2] Fallback also failed for ${soundId}:`, fallbackError);
+          console.error(
+            `[AmbientAudioV2] Fallback also failed for ${soundId}:`,
+            fallbackError
+          );
         }
       }
       return null;
@@ -92,7 +96,15 @@ class AmbientAudioEngineV2 {
   /**
    * Create synthesized sound (fallback)
    */
-  private createSynthesizedSound(sound: AmbientSound, volume: number): { oscillator?: OscillatorNode; noiseNode?: AudioBufferSourceNode; filterNode?: BiquadFilterNode; gainNode: GainNode } | null {
+  private createSynthesizedSound(
+    sound: AmbientSound,
+    volume: number
+  ): {
+    oscillator?: OscillatorNode;
+    noiseNode?: AudioBufferSourceNode;
+    filterNode?: BiquadFilterNode;
+    gainNode: GainNode;
+  } | null {
     if (!this.context || !this.masterGainNode) return null;
 
     const gainNode = this.context.createGain();
@@ -110,9 +122,13 @@ class AmbientAudioEngineV2 {
     } else {
       // For complex sounds, use filtered noise
       const bufferSize = this.context.sampleRate * 2;
-      const buffer = this.context.createBuffer(1, bufferSize, this.context.sampleRate);
+      const buffer = this.context.createBuffer(
+        1,
+        bufferSize,
+        this.context.sampleRate
+      );
       const output = buffer.getChannelData(0);
-      
+
       // Generate white noise
       for (let i = 0; i < bufferSize; i++) {
         output[i] = Math.random() * 2 - 1;
@@ -121,16 +137,16 @@ class AmbientAudioEngineV2 {
       const noiseNode = this.context.createBufferSource();
       noiseNode.buffer = buffer;
       noiseNode.loop = true;
-      
+
       const filterNode = this.context.createBiquadFilter();
       filterNode.type = 'lowpass';
       filterNode.frequency.value = sound.frequency * 2;
       filterNode.Q.value = 0.5;
-      
+
       noiseNode.connect(filterNode);
       filterNode.connect(gainNode);
       noiseNode.start();
-      
+
       return { noiseNode, filterNode, gainNode };
     }
   }
@@ -145,7 +161,9 @@ class AmbientAudioEngineV2 {
 
       // CRITICAL: Prevent duplicate starts - add placeholder IMMEDIATELY
       if (this.activeSounds.has(sound.id)) {
-        console.warn(`[AmbientAudioV2] ⚠️ Sound ${sound.id} is ALREADY PLAYING or LOADING - ignoring duplicate start!`);
+        console.warn(
+          `[AmbientAudioV2] ⚠️ Sound ${sound.id} is ALREADY PLAYING or LOADING - ignoring duplicate start!`
+        );
         return; // Don't start again!
       }
 
@@ -159,7 +177,7 @@ class AmbientAudioEngineV2 {
         id: sound.id,
         gainNode: placeholderGain,
         volume: 0,
-        usingSynthesis: false
+        usingSynthesis: false,
       });
 
       // Try to use audio file first
@@ -175,7 +193,7 @@ class AmbientAudioEngineV2 {
           const audio = new Audio(audioFile.url);
           audio.loop = true;
           audio.preload = 'auto';
-          
+
           // Load the audio
           await new Promise((resolve, reject) => {
             audio.addEventListener('canplaythrough', resolve, { once: true });
@@ -189,7 +207,7 @@ class AmbientAudioEngineV2 {
           const mediaSource = this.context.createMediaElementSource(audio);
           const gainNode = this.context.createGain();
           gainNode.gain.value = volume / 100;
-          
+
           // Connect: audio -> mediaSource -> gainNode -> master -> destination
           mediaSource.connect(gainNode);
           gainNode.connect(this.masterGainNode);
@@ -208,14 +226,17 @@ class AmbientAudioEngineV2 {
             mediaSource,
             gainNode,
             volume,
-            usingSynthesis: false
+            usingSynthesis: false,
           };
 
           this.activeSounds.set(sound.id, activeSound);
           console.log(`[AmbientAudioV2] ✅ Playing audio file: ${sound.id}`);
           return;
         } catch (error) {
-          console.warn(`[AmbientAudioV2] Failed to play audio file for ${sound.id}, falling back to synthesis:`, error);
+          console.warn(
+            `[AmbientAudioV2] Failed to play audio file for ${sound.id}, falling back to synthesis:`,
+            error
+          );
           // Remove placeholder, will be replaced by synth
           placeholderGain.disconnect();
           this.activeSounds.delete(sound.id);
@@ -240,17 +261,24 @@ class AmbientAudioEngineV2 {
           noiseSource: synth.noiseNode,
           filterNode: synth.filterNode,
           volume,
-          usingSynthesis: true
+          usingSynthesis: true,
         };
         this.activeSounds.set(sound.id, activeSound);
-        console.log(`[AmbientAudioV2] ✅ Playing synthesized sound: ${sound.id}`);
+        console.log(
+          `[AmbientAudioV2] ✅ Playing synthesized sound: ${sound.id}`
+        );
       } else {
         // Failed to create synth, remove placeholder
-        console.error(`[AmbientAudioV2] Failed to create sound for ${sound.id}`);
+        console.error(
+          `[AmbientAudioV2] Failed to create sound for ${sound.id}`
+        );
         this.activeSounds.delete(sound.id);
       }
     } catch (error) {
-      console.error(`[AmbientAudioV2] Failed to start sound ${sound.id}:`, error);
+      console.error(
+        `[AmbientAudioV2] Failed to start sound ${sound.id}:`,
+        error
+      );
       // Clean up placeholder on error
       this.activeSounds.delete(sound.id);
     }
@@ -328,9 +356,11 @@ class AmbientAudioEngineV2 {
       // Step 5: Remove from active sounds immediately
       this.activeSounds.delete(soundId);
       console.log(`[AmbientAudioV2] ✅ Sound stopped and removed: ${soundId}`);
-      
     } catch (error) {
-      console.error(`[AmbientAudioV2] ❌ Error stopping sound ${soundId}:`, error);
+      console.error(
+        `[AmbientAudioV2] ❌ Error stopping sound ${soundId}:`,
+        error
+      );
       // Force remove even if error
       this.activeSounds.delete(soundId);
     }
@@ -363,7 +393,10 @@ class AmbientAudioEngineV2 {
         );
       }
     } catch (error) {
-      console.error(`[AmbientAudioV2] Failed to set volume for ${soundId}:`, error);
+      console.error(
+        `[AmbientAudioV2] Failed to set volume for ${soundId}:`,
+        error
+      );
     }
   }
 
@@ -387,7 +420,7 @@ class AmbientAudioEngineV2 {
    */
   stopAll(): void {
     const soundIds = Array.from(this.activeSounds.keys());
-    soundIds.forEach(id => this.stopSound(id));
+    soundIds.forEach((id) => this.stopSound(id));
   }
 
   /**
@@ -402,7 +435,7 @@ class AmbientAudioEngineV2 {
    */
   setMasterVolume(volume: number): void {
     if (!this.masterGainNode || !this.context) return;
-    
+
     try {
       this.masterGainNode.gain.setValueAtTime(
         this.masterGainNode.gain.value,
@@ -422,12 +455,16 @@ class AmbientAudioEngineV2 {
    */
   async preloadSounds(soundIds: string[]): Promise<void> {
     console.log(`[AmbientAudioV2] Preloading ${soundIds.length} sounds...`);
-    const promises = soundIds.map(id => this.preloadAudio(id).catch(err => {
-      console.warn(`[AmbientAudioV2] Failed to preload ${id}:`, err);
-      return null;
-    }));
+    const promises = soundIds.map((id) =>
+      this.preloadAudio(id).catch((err) => {
+        console.warn(`[AmbientAudioV2] Failed to preload ${id}:`, err);
+        return null;
+      })
+    );
     await Promise.all(promises);
-    console.log(`[AmbientAudioV2] Preloading complete. ${this.preloadedAudio.size} sounds ready.`);
+    console.log(
+      `[AmbientAudioV2] Preloading complete. ${this.preloadedAudio.size} sounds ready.`
+    );
   }
 
   /**
@@ -446,4 +483,3 @@ class AmbientAudioEngineV2 {
 
 // Singleton instance
 export const ambientAudioEngineV2 = new AmbientAudioEngineV2();
-

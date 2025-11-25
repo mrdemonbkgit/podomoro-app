@@ -1,9 +1,9 @@
 /**
  * Integration Tests: Complete Journey Lifecycle
- * 
+ *
  * TRUE INTEGRATION TESTS - Uses real service implementations.
  * Only the Firestore SDK is mocked (not the service layer).
- * 
+ *
  * Tests the entire journey flow end-to-end:
  * 1. User initialization
  * 2. Journey creation
@@ -12,12 +12,12 @@
  * 5. Relapse (PMO) → journey end
  * 6. New journey creation
  * 7. Badge preservation
- * 
+ *
  * Phase 2 Fix (v2): Addressed gpt-5-codex follow-up review
  * - Fixed addDoc to return { id: 'docId' } instead of undefined
  * - Fixed getDoc to be properly stubbed for ALL service paths
  * - Services now execute without crashing on undefined mocks
- * 
+ *
  * NOTE: These tests are skipped in CI due to complex Firebase mocking requirements
  */
 
@@ -25,8 +25,26 @@
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { testUser, NOW, createTestJourney } from '../../../../test/fixtures/kamehameha';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, runTransaction, collection, query, getDocs, addDoc, where, orderBy, Timestamp } from 'firebase/firestore';
+import {
+  testUser,
+  NOW,
+  createTestJourney,
+} from '../../../../test/fixtures/kamehameha';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  runTransaction,
+  collection,
+  query,
+  getDocs,
+  addDoc,
+  where,
+  orderBy,
+  Timestamp,
+} from 'firebase/firestore';
 import type { Journey, Streaks } from '../../types/kamehameha.types';
 
 // Import real services (not mocked!)
@@ -48,7 +66,7 @@ vi.mock('firebase/firestore', async () => {
     getDocs: vi.fn(),
     setDoc: vi.fn(),
     updateDoc: vi.fn(),
-    addDoc: vi.fn(),  // NOTE: Must return { id: 'string' } for services to work
+    addDoc: vi.fn(), // NOTE: Must return { id: 'string' } for services to work
     runTransaction: vi.fn(),
     Timestamp: {
       now: vi.fn(() => ({ toMillis: () => NOW })),
@@ -62,16 +80,16 @@ describe.skipIf(isCI)('Journey Lifecycle Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Reset Firestore mocks to default behavior
     vi.mocked(getFirestore).mockReturnValue(mockDb as any);
-    
+
     // Default: addDoc returns valid doc reference with ID
     vi.mocked(addDoc).mockResolvedValue({ id: 'generated-doc-id' } as any);
-    
+
     // Default: setDoc succeeds
     vi.mocked(setDoc).mockResolvedValue(undefined);
-    
+
     // Default: updateDoc succeeds
     vi.mocked(updateDoc).mockResolvedValue(undefined);
   });
@@ -89,7 +107,7 @@ describe.skipIf(isCI)('Journey Lifecycle Integration', () => {
       // Mock Firestore: addDoc returns journey ID
       const journeyId = 'journey-init-123';
       vi.mocked(addDoc).mockResolvedValueOnce({ id: journeyId } as any);
-      
+
       // Execute: Real service calls
       const hasExisting = await firestoreService.hasExistingStreaks(userId);
       expect(hasExisting).toBe(false);
@@ -122,29 +140,34 @@ describe.skipIf(isCI)('Journey Lifecycle Integration', () => {
       } as any);
 
       // Mock Firestore: Transaction for reset
-      vi.mocked(runTransaction).mockImplementation(async (db: any, callback: any) => {
-        const mockTransaction = {
-          get: vi.fn().mockResolvedValue({
-            exists: () => true,
-            data: () => ({
-              id: oldJourneyId,
-              startDate: NOW - 86400000,
-              achievementsCount: 2,
+      vi.mocked(runTransaction).mockImplementation(
+        async (db: any, callback: any) => {
+          const mockTransaction = {
+            get: vi.fn().mockResolvedValue({
+              exists: () => true,
+              data: () => ({
+                id: oldJourneyId,
+                startDate: NOW - 86400000,
+                achievementsCount: 2,
+              }),
             }),
-          }),
-          update: vi.fn(),
-          set: vi.fn(),
-        };
+            update: vi.fn(),
+            set: vi.fn(),
+          };
 
-        await callback(mockTransaction);
-        return undefined;
-      });
+          await callback(mockTransaction);
+          return undefined;
+        }
+      );
 
       // Mock Firestore: addDoc for new journey creation
       vi.mocked(addDoc).mockResolvedValueOnce({ id: newJourneyId } as any);
 
       // Execute: Real resetMainStreak service call
-      const updatedStreaks = await firestoreService.resetMainStreak(userId, currentSeconds);
+      const updatedStreaks = await firestoreService.resetMainStreak(
+        userId,
+        currentSeconds
+      );
 
       // Verify: Transaction and addDoc executed
       expect(runTransaction).toHaveBeenCalled();
@@ -247,7 +270,10 @@ describe.skipIf(isCI)('Journey Lifecycle Integration', () => {
       } as any);
 
       // Execute: Real service call
-      const journeyNumber = await journeyService.getJourneyNumber(userId, journeyId);
+      const journeyNumber = await journeyService.getJourneyNumber(
+        userId,
+        journeyId
+      );
 
       // Verify: Correct number calculated (5 total journeys, this is #5)
       expect(journeyNumber).toBe(5);
@@ -342,7 +368,7 @@ describe.skipIf(isCI)('Journey Lifecycle Integration', () => {
 
       // Verify: Both operations completed successfully
       // saveRelapse returns full Relapse objects, not just IDs
-      expect(results.map(r => r.id)).toEqual(['relapse-1', 'relapse-2']);
+      expect(results.map((r) => r.id)).toEqual(['relapse-1', 'relapse-2']);
       expect(results[0]).toHaveProperty('journeyId', 'journey-1');
       expect(results[1]).toHaveProperty('journeyId', 'journey-1');
       expect(addDoc).toHaveBeenCalledTimes(2);

@@ -1,6 +1,6 @@
 /**
  * useCheckIns Hook
- * 
+ *
  * Manages check-in operations and state
  * Handles creating and fetching check-ins from Firestore
  */
@@ -18,7 +18,9 @@ export interface UseCheckInsReturn {
   /** Error state */
   error: Error | null;
   /** Create a new check-in */
-  createCheckIn: (checkInData: Omit<CheckIn, 'id' | 'createdAt' | 'timestamp'>) => Promise<void>;
+  createCheckIn: (
+    checkInData: Omit<CheckIn, 'id' | 'createdAt' | 'timestamp'>
+  ) => Promise<void>;
   /** Refresh check-ins from Firestore */
   refreshCheckIns: () => Promise<void>;
 }
@@ -67,7 +69,7 @@ export function useCheckIns(): UseCheckInsReturn {
 
       try {
         const now = Date.now();
-        
+
         // Create check-in with timestamp
         const newCheckIn = await saveCheckIn(user.uid, {
           ...checkInData,
@@ -96,4 +98,3 @@ export function useCheckIns(): UseCheckInsReturn {
     refreshCheckIns,
   };
 }
-

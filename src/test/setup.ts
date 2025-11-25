@@ -42,4 +42,3 @@ const localStorageMock = {
   pause = () => {};
   load = () => {};
 } as any;
-

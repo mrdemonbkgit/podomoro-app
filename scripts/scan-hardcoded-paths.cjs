@@ -32,6 +32,9 @@ for (const filePath of files) {
   // Skip the source file itself
   if (filePath.includes('services/paths.ts') || filePath.includes('services\\paths.ts')) continue;
   
+  // Skip test files - they use hardcoded paths for mocking
+  if (filePath.includes('.test.') || filePath.includes('__tests__')) continue;
+  
   const content = readFileSync(filePath, 'utf-8');
   for (const pattern of pathPatterns) {
     if (content.match(pattern)) {

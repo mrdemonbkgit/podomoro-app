@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Settings as SettingsType, MIN_DURATION, MAX_DURATION, MIN_SESSIONS, MAX_SESSIONS, MIN_VOLUME, MAX_VOLUME } from '../types/settings';
+import {
+  Settings as SettingsType,
+  MIN_DURATION,
+  MAX_DURATION,
+  MIN_SESSIONS,
+  MAX_SESSIONS,
+  MIN_VOLUME,
+  MAX_VOLUME,
+} from '../types/settings';
 import { SOUND_OPTIONS, SoundType } from '../utils/sounds';
 import { playSound } from '../utils/sounds';
 
@@ -12,7 +20,14 @@ interface SettingsPanelProps {
   onReset: () => void;
 }
 
-export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onReset }: SettingsPanelProps) => {
+export const SettingsPanel = ({
+  isOpen,
+  onClose,
+  isDark,
+  settings,
+  onSave,
+  onReset,
+}: SettingsPanelProps) => {
   const [localSettings, setLocalSettings] = useState<SettingsType>(settings);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -24,7 +39,10 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
     }
   });
 
-  const validateField = (name: keyof SettingsType, value: number): string | null => {
+  const validateField = (
+    name: keyof SettingsType,
+    value: number
+  ): string | null => {
     if (name === 'sessionsUntilLongBreak') {
       if (value < MIN_SESSIONS) return `Minimum ${MIN_SESSIONS} sessions`;
       if (value > MAX_SESSIONS) return `Maximum ${MAX_SESSIONS} sessions`;
@@ -43,26 +61,26 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
     if (isNaN(numValue)) return;
 
     const error = validateField(field, numValue);
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
       [field]: error || '',
     }));
 
-    setLocalSettings(prev => ({
+    setLocalSettings((prev) => ({
       ...prev,
       [field]: numValue,
     }));
   };
 
   const handleToggleNotifications = () => {
-    setLocalSettings(prev => ({
+    setLocalSettings((prev) => ({
       ...prev,
       notificationsEnabled: !prev.notificationsEnabled,
     }));
   };
 
   const handleSoundChange = (soundType: SoundType) => {
-    setLocalSettings(prev => ({
+    setLocalSettings((prev) => ({
       ...prev,
       soundType,
     }));
@@ -71,9 +89,9 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
   const handleVolumeChange = (value: string) => {
     const numValue = parseInt(value, 10);
     if (isNaN(numValue)) return;
-    
+
     const clampedValue = Math.max(MIN_VOLUME, Math.min(MAX_VOLUME, numValue));
-    setLocalSettings(prev => ({
+    setLocalSettings((prev) => ({
       ...prev,
       volume: clampedValue,
     }));
@@ -89,9 +107,13 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
     const newErrors: Record<string, string> = {};
     let hasErrors = false;
 
-    (Object.keys(localSettings) as Array<keyof SettingsType>).forEach(key => {
-      if (typeof localSettings[key] === 'boolean' || typeof localSettings[key] === 'string') return;
-      
+    (Object.keys(localSettings) as Array<keyof SettingsType>).forEach((key) => {
+      if (
+        typeof localSettings[key] === 'boolean' ||
+        typeof localSettings[key] === 'string'
+      )
+        return;
+
       const error = validateField(key, localSettings[key] as number);
       if (error) {
         newErrors[key] = error;
@@ -138,13 +160,25 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
   return (
     <>
       {/* Backdrop */}
-      <div className={overlayClasses} onClick={onClose} aria-hidden="true"></div>
+      <div
+        className={overlayClasses}
+        onClick={onClose}
+        aria-hidden="true"
+      ></div>
 
       {/* Settings Panel */}
-      <div className={panelClasses} role="dialog" aria-modal="true" aria-labelledby="settings-panel-title">
+      <div
+        className={panelClasses}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-panel-title"
+      >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-700/30">
-          <h2 id="settings-panel-title" className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
+          <h2
+            id="settings-panel-title"
+            className={`text-2xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'}`}
+          >
             ⚙️ Settings
           </h2>
           <button
@@ -160,7 +194,12 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -169,7 +208,10 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
         <div className="flex-grow overflow-y-auto p-6 space-y-6">
           {/* Work Duration */}
           <div>
-            <label htmlFor="workDuration" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
+            <label
+              htmlFor="workDuration"
+              className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}
+            >
               Work Duration
             </label>
             <div className="flex items-center gap-3">
@@ -181,19 +223,34 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
                 value={localSettings.workDuration}
                 onChange={(e) => handleChange('workDuration', e.target.value)}
                 className={`flex-1 px-4 py-2 border ${
-                  errors.workDuration ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+                  errors.workDuration
+                    ? 'border-red-500'
+                    : isDark
+                      ? 'border-gray-600'
+                      : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
               />
-              <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>minutes</span>
+              <span
+                className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}
+              >
+                minutes
+              </span>
             </div>
             {errors.workDuration && (
-              <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.workDuration}</p>
+              <p
+                className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}
+              >
+                {errors.workDuration}
+              </p>
             )}
           </div>
 
           {/* Short Break Duration */}
           <div>
-            <label htmlFor="shortBreakDuration" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
+            <label
+              htmlFor="shortBreakDuration"
+              className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}
+            >
               Short Break Duration
             </label>
             <div className="flex items-center gap-3">
@@ -203,21 +260,38 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
                 min={MIN_DURATION}
                 max={MAX_DURATION}
                 value={localSettings.shortBreakDuration}
-                onChange={(e) => handleChange('shortBreakDuration', e.target.value)}
+                onChange={(e) =>
+                  handleChange('shortBreakDuration', e.target.value)
+                }
                 className={`flex-1 px-4 py-2 border ${
-                  errors.shortBreakDuration ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+                  errors.shortBreakDuration
+                    ? 'border-red-500'
+                    : isDark
+                      ? 'border-gray-600'
+                      : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
               />
-              <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>minutes</span>
+              <span
+                className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}
+              >
+                minutes
+              </span>
             </div>
             {errors.shortBreakDuration && (
-              <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.shortBreakDuration}</p>
+              <p
+                className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}
+              >
+                {errors.shortBreakDuration}
+              </p>
             )}
           </div>
 
           {/* Long Break Duration */}
           <div>
-            <label htmlFor="longBreakDuration" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
+            <label
+              htmlFor="longBreakDuration"
+              className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}
+            >
               Long Break Duration
             </label>
             <div className="flex items-center gap-3">
@@ -227,21 +301,38 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
                 min={MIN_DURATION}
                 max={MAX_DURATION}
                 value={localSettings.longBreakDuration}
-                onChange={(e) => handleChange('longBreakDuration', e.target.value)}
+                onChange={(e) =>
+                  handleChange('longBreakDuration', e.target.value)
+                }
                 className={`flex-1 px-4 py-2 border ${
-                  errors.longBreakDuration ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+                  errors.longBreakDuration
+                    ? 'border-red-500'
+                    : isDark
+                      ? 'border-gray-600'
+                      : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
               />
-              <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>minutes</span>
+              <span
+                className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}
+              >
+                minutes
+              </span>
             </div>
             {errors.longBreakDuration && (
-              <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.longBreakDuration}</p>
+              <p
+                className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}
+              >
+                {errors.longBreakDuration}
+              </p>
             )}
           </div>
 
           {/* Sessions Until Long Break */}
           <div>
-            <label htmlFor="sessionsUntilLongBreak" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}>
+            <label
+              htmlFor="sessionsUntilLongBreak"
+              className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 transition-colors duration-200`}
+            >
               Sessions Until Long Break
             </label>
             <div className="flex items-center gap-3">
@@ -251,29 +342,50 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
                 min={MIN_SESSIONS}
                 max={MAX_SESSIONS}
                 value={localSettings.sessionsUntilLongBreak}
-                onChange={(e) => handleChange('sessionsUntilLongBreak', e.target.value)}
+                onChange={(e) =>
+                  handleChange('sessionsUntilLongBreak', e.target.value)
+                }
                 className={`flex-1 px-4 py-2 border ${
-                  errors.sessionsUntilLongBreak ? 'border-red-500' : isDark ? 'border-gray-600' : 'border-gray-300'
+                  errors.sessionsUntilLongBreak
+                    ? 'border-red-500'
+                    : isDark
+                      ? 'border-gray-600'
+                      : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-white text-gray-900'} transition-colors duration-200`}
               />
-              <span className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}>sessions</span>
+              <span
+                className={`${isDark ? 'text-gray-400' : 'text-gray-600'} min-w-[60px] transition-colors duration-200`}
+              >
+                sessions
+              </span>
             </div>
             {errors.sessionsUntilLongBreak && (
-              <p className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}>{errors.sessionsUntilLongBreak}</p>
+              <p
+                className={`mt-1 text-sm ${isDark ? 'text-red-400' : 'text-red-600'}`}
+              >
+                {errors.sessionsUntilLongBreak}
+              </p>
             )}
           </div>
 
           {/* Divider */}
-          <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}></div>
+          <div
+            className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
+          ></div>
 
           {/* Desktop Notifications Toggle */}
           <div>
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <label htmlFor="notificationsEnabled" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1 transition-colors duration-200`}>
+                <label
+                  htmlFor="notificationsEnabled"
+                  className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-1 transition-colors duration-200`}
+                >
                   Desktop Notifications 🔔
                 </label>
-                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'} transition-colors duration-200`}>
+                <p
+                  className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'} transition-colors duration-200`}
+                >
                   Get notified when timer completes
                 </p>
               </div>
@@ -281,13 +393,19 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
                 type="button"
                 onClick={handleToggleNotifications}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 ${isDark ? 'focus:ring-offset-gray-800' : ''} ${
-                  localSettings.notificationsEnabled ? 'bg-green-500' : isDark ? 'bg-gray-600' : 'bg-gray-300'
+                  localSettings.notificationsEnabled
+                    ? 'bg-green-500'
+                    : isDark
+                      ? 'bg-gray-600'
+                      : 'bg-gray-300'
                 }`}
                 aria-label="Toggle notifications"
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    localSettings.notificationsEnabled ? 'translate-x-6' : 'translate-x-1'
+                    localSettings.notificationsEnabled
+                      ? 'translate-x-6'
+                      : 'translate-x-1'
                   }`}
                 />
               </button>
@@ -295,11 +413,15 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
           </div>
 
           {/* Divider */}
-          <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}></div>
+          <div
+            className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
+          ></div>
 
           {/* Sound Selection */}
           <div>
-            <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-3 transition-colors duration-200`}>
+            <label
+              className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-3 transition-colors duration-200`}
+            >
               Notification Sound 🔊
             </label>
             <div className="grid grid-cols-1 gap-2">
@@ -317,24 +439,36 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
                         ? 'border-blue-500 bg-blue-900/30'
                         : 'border-blue-500 bg-blue-50'
                       : isDark
-                      ? 'border-gray-600 hover:border-gray-500 bg-gray-700/50'
-                      : 'border-gray-300 hover:border-gray-400 bg-white'
+                        ? 'border-gray-600 hover:border-gray-500 bg-gray-700/50'
+                        : 'border-gray-300 hover:border-gray-400 bg-white'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{sound.icon}</span>
                     <div className="text-left">
-                      <div className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+                      <div
+                        className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}
+                      >
                         {sound.name}
                       </div>
-                      <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <div
+                        className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                      >
                         {sound.description}
                       </div>
                     </div>
                   </div>
                   {localSettings.soundType === sound.id && (
-                    <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5 text-blue-500"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   )}
                 </button>
@@ -345,10 +479,15 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
           {/* Volume Control */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="volume" className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} transition-colors duration-200`}>
+              <label
+                htmlFor="volume"
+                className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} transition-colors duration-200`}
+              >
                 Volume
               </label>
-              <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <span
+                className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}
+              >
                 {localSettings.volume}%
               </span>
             </div>
@@ -381,16 +520,23 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
               </button>
             </div>
             {localSettings.volume === 0 && (
-              <p className={`mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <p
+                className={`mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+              >
                 🔇 Sound is muted (volume at 0%)
               </p>
             )}
           </div>
 
           {/* Info Box */}
-          <div className={`${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4 transition-colors duration-200`}>
-            <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'} transition-colors duration-200`}>
-              <strong>Note:</strong> Settings apply to the next session without interrupting the current one.
+          <div
+            className={`${isDark ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-50 border-blue-200'} border rounded-lg p-4 transition-colors duration-200`}
+          >
+            <p
+              className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'} transition-colors duration-200`}
+            >
+              <strong>Note:</strong> Settings apply to the next session without
+              interrupting the current one.
             </p>
           </div>
         </div>
@@ -417,16 +563,20 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
       {/* Reset Confirmation Dialog */}
       {showResetConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" onClick={cancelReset} />
           <div
-            className="absolute inset-0 bg-black/70"
-            onClick={cancelReset}
-          />
-          <div className={`relative ${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 max-w-sm mx-4 transition-colors duration-200`}>
-            <h3 className={`text-lg font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'} mb-2 transition-colors duration-200`}>
+            className={`relative ${isDark ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 max-w-sm mx-4 transition-colors duration-200`}
+          >
+            <h3
+              className={`text-lg font-bold ${isDark ? 'text-gray-100' : 'text-gray-800'} mb-2 transition-colors duration-200`}
+            >
               Reset to Defaults?
             </h3>
-            <p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mb-6 transition-colors duration-200`}>
-              This will reset all timer durations and session settings to their default values (25/5/15/4).
+            <p
+              className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mb-6 transition-colors duration-200`}
+            >
+              This will reset all timer durations and session settings to their
+              default values (25/5/15/4).
             </p>
             <div className="flex gap-3">
               <button
@@ -448,4 +598,3 @@ export const SettingsPanel = ({ isOpen, onClose, isDark, settings, onSave, onRes
     </>
   );
 };
-

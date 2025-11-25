@@ -26,28 +26,29 @@ export const getNotificationPermission = (): NotificationPermissionState => {
  * Request notification permission from the user
  * Returns the permission state after user response
  */
-export const requestNotificationPermission = async (): Promise<NotificationPermissionState> => {
-  if (!isNotificationSupported()) {
-    console.warn('Notifications are not supported in this browser');
-    return 'denied';
-  }
+export const requestNotificationPermission =
+  async (): Promise<NotificationPermissionState> => {
+    if (!isNotificationSupported()) {
+      console.warn('Notifications are not supported in this browser');
+      return 'denied';
+    }
 
-  if (Notification.permission === 'granted') {
-    return 'granted';
-  }
+    if (Notification.permission === 'granted') {
+      return 'granted';
+    }
 
-  if (Notification.permission === 'denied') {
-    return 'denied';
-  }
+    if (Notification.permission === 'denied') {
+      return 'denied';
+    }
 
-  try {
-    const permission = await Notification.requestPermission();
-    return permission;
-  } catch (error) {
-    console.error('Error requesting notification permission:', error);
-    return 'denied';
-  }
-};
+    try {
+      const permission = await Notification.requestPermission();
+      return permission;
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return 'denied';
+    }
+  };
 
 interface NotificationOptions {
   title: string;
@@ -75,7 +76,7 @@ export const showNotification = async ({
 
   // Request permission if needed
   const permission = await requestNotificationPermission();
-  
+
   if (permission !== 'granted') {
     console.warn('Notification permission not granted');
     return false;
@@ -124,7 +125,7 @@ export const NotificationMessages = {
   },
   longBreakComplete: {
     title: 'Long Break Complete! 🌟',
-    body: 'Ready for the next round? Let\'s keep the momentum going!',
+    body: "Ready for the next round? Let's keep the momentum going!",
   },
 } as const;
 
@@ -135,7 +136,7 @@ export const notifySessionComplete = async (
   sessionType: 'work' | 'shortBreak' | 'longBreak'
 ): Promise<boolean> => {
   let message;
-  
+
   switch (sessionType) {
     case 'work':
       message = NotificationMessages.workComplete;
@@ -156,4 +157,3 @@ export const notifySessionComplete = async (
     requireInteraction: false,
   });
 };
-

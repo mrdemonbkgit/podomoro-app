@@ -7,17 +7,25 @@ interface FloatingNavProps {
   isDark: boolean;
 }
 
-export const FloatingNav = ({ onSettingsClick, onSoundsClick, onThemeToggle, isDark }: FloatingNavProps) => {
+export const FloatingNav = ({
+  onSettingsClick,
+  onSoundsClick,
+  onThemeToggle,
+  isDark,
+}: FloatingNavProps) => {
   const location = useLocation();
-  const isTimerPage = location.pathname === '/' || location.pathname === '/timer';
+  const isTimerPage =
+    location.pathname === '/' || location.pathname === '/timer';
   const isKamehamehaPage = location.pathname === '/kamehameha';
 
   return (
-    <nav 
+    <nav
       className="fixed bottom-8 right-8 z-50 animate-slide-up"
       aria-label="Main navigation"
     >
-      <div className={`flex items-center gap-2 px-4 py-3 ${isDark ? 'glass-panel' : 'glass-panel-light'} rounded-full shadow-2xl glass-transition`}>
+      <div
+        className={`flex items-center gap-2 px-4 py-3 ${isDark ? 'glass-panel' : 'glass-panel-light'} rounded-full shadow-2xl glass-transition`}
+      >
         {/* Timer Icon */}
         <Link
           to="/timer"
@@ -45,7 +53,9 @@ export const FloatingNav = ({ onSettingsClick, onSoundsClick, onThemeToggle, isD
         </Link>
 
         {/* Divider */}
-        <div className={`w-px h-8 ${isDark ? 'bg-white/10' : 'bg-gray-900/10'}`} />
+        <div
+          className={`w-px h-8 ${isDark ? 'bg-white/10' : 'bg-gray-900/10'}`}
+        />
 
         {/* Settings Icon */}
         <button
@@ -135,4 +145,3 @@ export const FloatingNav = ({ onSettingsClick, onSoundsClick, onThemeToggle, isD
     </nav>
   );
 };
-

@@ -3,23 +3,23 @@ import { MILESTONE_SECONDS as FRONTEND_MILESTONES } from '../constants/milestone
 
 /**
  * Milestone Constants Synchronization Test
- * 
+ *
  * This test ensures that frontend and backend milestone constants stay in sync.
- * 
+ *
  * Both files define the same milestones:
  * - Frontend: src/features/kamehameha/constants/milestones.ts
  * - Backend: functions/src/milestoneConstants.ts
- * 
+ *
  * Production milestone values (must match both files):
  */
 const EXPECTED_PRODUCTION_MILESTONES = [
-  86400,    // 1 day
-  259200,   // 3 days
-  604800,   // 7 days (1 week)
-  1209600,  // 14 days (2 weeks)
-  2592000,  // 30 days (1 month)
-  5184000,  // 60 days (2 months)
-  7776000,  // 90 days (3 months)
+  86400, // 1 day
+  259200, // 3 days
+  604800, // 7 days (1 week)
+  1209600, // 14 days (2 weeks)
+  2592000, // 30 days (1 month)
+  5184000, // 60 days (2 months)
+  7776000, // 90 days (3 months)
   15552000, // 180 days (6 months)
   31536000, // 365 days (1 year)
 ];
@@ -28,8 +28,8 @@ const EXPECTED_PRODUCTION_MILESTONES = [
  * Development milestone values (for easy testing):
  */
 const EXPECTED_DEV_MILESTONES = [
-  60,   // 1 minute
-  300,  // 5 minutes
+  60, // 1 minute
+  300, // 5 minutes
 ];
 
 describe('Milestone Constants Sync', () => {
@@ -38,13 +38,13 @@ describe('Milestone Constants Sync', () => {
       // In production, frontend should use production milestones
       // This test verifies the EXPECTED values are correct
       expect(EXPECTED_PRODUCTION_MILESTONES).toEqual([
-        86400,    // 1 day
-        259200,   // 3 days
-        604800,   // 1 week
-        1209600,  // 2 weeks
-        2592000,  // 1 month
-        5184000,  // 2 months
-        7776000,  // 3 months
+        86400, // 1 day
+        259200, // 3 days
+        604800, // 1 week
+        1209600, // 2 weeks
+        2592000, // 1 month
+        5184000, // 2 months
+        7776000, // 3 months
         15552000, // 6 months
         31536000, // 1 year
       ]);
@@ -90,9 +90,13 @@ describe('Milestone Constants Sync', () => {
 
     it('should match either dev or production milestones', () => {
       // Frontend should be using ONE of the two sets
-      const matchesDev = JSON.stringify(FRONTEND_MILESTONES) === JSON.stringify(EXPECTED_DEV_MILESTONES);
-      const matchesProd = JSON.stringify(FRONTEND_MILESTONES) === JSON.stringify(EXPECTED_PRODUCTION_MILESTONES);
-      
+      const matchesDev =
+        JSON.stringify(FRONTEND_MILESTONES) ===
+        JSON.stringify(EXPECTED_DEV_MILESTONES);
+      const matchesProd =
+        JSON.stringify(FRONTEND_MILESTONES) ===
+        JSON.stringify(EXPECTED_PRODUCTION_MILESTONES);
+
       expect(matchesDev || matchesProd).toBe(true);
     });
 
@@ -111,7 +115,9 @@ describe('Milestone Constants Sync', () => {
     it('should have reasonable gaps between milestones', () => {
       // Check that production milestones have reasonable progression
       for (let i = 1; i < EXPECTED_PRODUCTION_MILESTONES.length; i++) {
-        const gap = EXPECTED_PRODUCTION_MILESTONES[i] - EXPECTED_PRODUCTION_MILESTONES[i - 1];
+        const gap =
+          EXPECTED_PRODUCTION_MILESTONES[i] -
+          EXPECTED_PRODUCTION_MILESTONES[i - 1];
         // Gap should be at least 1 day
         expect(gap).toBeGreaterThanOrEqual(86400);
         // Gap should not be more than 1 year (largest gap is 6 months to 1 year)
@@ -137,31 +143,32 @@ describe('Milestone Constants Sync', () => {
     it('should document expected backend values for manual verification', () => {
       // This test documents what the backend SHOULD have
       // Developers should manually verify functions/src/milestoneConstants.ts matches
-      
+
       const backendExpectation = {
         production: [
-          86400,    // 1 day
-          259200,   // 3 days
-          604800,   // 7 days
-          1209600,  // 14 days
-          2592000,  // 30 days
-          5184000,  // 60 days
-          7776000,  // 90 days
+          86400, // 1 day
+          259200, // 3 days
+          604800, // 7 days
+          1209600, // 14 days
+          2592000, // 30 days
+          5184000, // 60 days
+          7776000, // 90 days
           15552000, // 180 days
           31536000, // 365 days
         ],
         development: [
-          60,   // 1 minute
-          300,  // 5 minutes
+          60, // 1 minute
+          300, // 5 minutes
         ],
       };
 
       // If this test fails, check:
       // 1. functions/src/milestoneConstants.ts
       // 2. Ensure MILESTONE_SECONDS array matches these values
-      expect(backendExpectation.production).toEqual(EXPECTED_PRODUCTION_MILESTONES);
+      expect(backendExpectation.production).toEqual(
+        EXPECTED_PRODUCTION_MILESTONES
+      );
       expect(backendExpectation.development).toEqual(EXPECTED_DEV_MILESTONES);
     });
   });
 });
-

@@ -48,7 +48,7 @@ describe('Sound Utilities', () => {
     });
 
     it('should have correct structure for each sound', () => {
-      SOUND_OPTIONS.forEach(sound => {
+      SOUND_OPTIONS.forEach((sound) => {
         expect(sound).toHaveProperty('id');
         expect(sound).toHaveProperty('name');
         expect(sound).toHaveProperty('description');
@@ -61,13 +61,13 @@ describe('Sound Utilities', () => {
     });
 
     it('should have unique IDs', () => {
-      const ids = SOUND_OPTIONS.map(s => s.id);
+      const ids = SOUND_OPTIONS.map((s) => s.id);
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
     });
 
     it('should include all expected sound types', () => {
-      const ids = SOUND_OPTIONS.map(s => s.id);
+      const ids = SOUND_OPTIONS.map((s) => s.id);
       expect(ids).toContain('chime');
       expect(ids).toContain('bell');
       expect(ids).toContain('beep');
@@ -94,7 +94,9 @@ describe('Sound Utilities', () => {
       playSound('chime', 100);
 
       expect(oscillatorMock.connect).toHaveBeenCalled();
-      expect(gainNodeMock.connect).toHaveBeenCalledWith(audioContextMock.destination);
+      expect(gainNodeMock.connect).toHaveBeenCalledWith(
+        audioContextMock.destination
+      );
     });
 
     it('should start and stop oscillator', () => {
@@ -208,4 +210,3 @@ describe('Sound Utilities', () => {
     });
   });
 });
-

@@ -9,7 +9,11 @@ import { Settings } from '../types/settings';
 import { playNotification } from '../utils/audio';
 import { notifySessionComplete } from '../utils/notifications';
 import { celebrateCompletion } from '../utils/confetti';
-import { usePersistedState, clearPersistedState, hasPersistedState } from './usePersistedState';
+import {
+  usePersistedState,
+  clearPersistedState,
+  hasPersistedState,
+} from './usePersistedState';
 
 interface UseTimerReturn {
   time: number;
@@ -40,7 +44,7 @@ const getDefaultState = (workDuration: number): PersistedTimerState => ({
 const validateTimerState = (value: unknown): value is PersistedTimerState => {
   if (!value || typeof value !== 'object') return false;
   const state = value as Record<string, unknown>;
-  
+
   return (
     typeof state.time === 'number' &&
     typeof state.isActive === 'boolean' &&
@@ -65,32 +69,32 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
   );
 
   const { time, isActive, sessionType, completedSessions } = state;
-  
+
   // Track elapsed time while tab was closed
   const [elapsedWhileAway, setElapsedWhileAway] = useState(0);
-  
+
   // Track if we need to switch session due to timer completion while away
   const [shouldSwitchSession, setShouldSwitchSession] = useState(false);
-  
+
   // Track the start time for accurate timer calculation (persists across renders)
   const timerStartTimeRef = useRef<number | null>(null);
   const timerStartValueRef = useRef<number | null>(null);
-  
+
   // Check if there's resumable state on mount (only show once)
   const [showResume, setShowResume] = useState(() => {
     const hasSaved = hasPersistedState(TIMER_STATE_KEY);
     return hasSaved;
   });
-  
+
   // Calculate elapsed time if timer was active when tab closed
   useEffect(() => {
     if (state.isActive && state.timestamp) {
       const elapsed = Math.floor((Date.now() - state.timestamp) / 1000);
-      
+
       // Only calculate if significant time passed (>2 seconds)
       if (elapsed > 2) {
         const newTime = state.time - elapsed;
-        
+
         if (newTime <= 0) {
           // Timer would have completed while away
           console.log(`Timer completed while away (${Math.abs(newTime)}s ago)`);
@@ -98,7 +102,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
         } else {
           // Update time to reflect elapsed duration
           setElapsedWhileAway(elapsed);
-          setState(prev => ({
+          setState((prev) => ({
             ...prev,
             time: newTime,
             isActive: false, // Pause it so user can see and resume
@@ -112,24 +116,27 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
-  
+
   // Only show resume prompt if state exists, timer is not active, and not default state
-  const hasResumableState = showResume && !isActive && (time !== workDuration || completedSessions !== 0);
+  const hasResumableState =
+    showResume &&
+    !isActive &&
+    (time !== workDuration || completedSessions !== 0);
 
   // Update timer immediately if settings change and timer is in initial state
   useEffect(() => {
     // Only run when workDuration changes (from settings update)
     // Check if timer is in initial state: not active, work session, no completed sessions
     // AND time is at full duration (meaning never started, not paused mid-session)
-    const isInitialState = 
-      !isActive && 
-      sessionType === 'work' && 
+    const isInitialState =
+      !isActive &&
+      sessionType === 'work' &&
       completedSessions === 0 &&
-      (time % 60 === 0); // Time is at a "round" minute (300s, 600s), not mid-session (256s)
-    
+      time % 60 === 0; // Time is at a "round" minute (300s, 600s), not mid-session (256s)
+
     // Only update if in pristine initial state
     if (isInitialState && time !== workDuration) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         time: workDuration,
         timestamp: Date.now(),
@@ -142,17 +149,20 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     // Check if current completed sessions exceeds the new sessions limit
     // This can happen when user reduces the sessions count
     // For example: currently on session 3 of 4, but user changes to 2 sessions
-    
-    if (completedSessions > 0 && completedSessions % sessionsUntilLongBreak === 0) {
+
+    if (
+      completedSessions > 0 &&
+      completedSessions % sessionsUntilLongBreak === 0
+    ) {
       // Current session count is exactly at a long break point with new settings
       // This is fine, don't need to adjust
       return;
     }
-    
+
     // If we've completed more sessions than the new limit allows before long break,
     // we should reset to avoid confusing states like "Session 3 of 2"
     if (completedSessions >= sessionsUntilLongBreak && sessionType === 'work') {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         completedSessions: 0,
         timestamp: Date.now(),
@@ -162,7 +172,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
 
   const start = useCallback(() => {
     setShowResume(false); // Dismiss resume prompt when starting
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isActive: true,
       timestamp: Date.now(),
@@ -170,7 +180,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
   }, [setState]);
 
   const pause = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isActive: false,
       timestamp: Date.now(),
@@ -194,13 +204,14 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
   const skipBreak = useCallback(() => {
     // Only allow skipping during break sessions
     if (sessionType === 'work') return;
-    
+
     // Manually transition to work session without notification
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       sessionType: 'work',
       time: workDuration,
-      completedSessions: prev.sessionType === 'longBreak' ? 0 : prev.completedSessions,
+      completedSessions:
+        prev.sessionType === 'longBreak' ? 0 : prev.completedSessions,
       isActive: false,
       timestamp: Date.now(),
     }));
@@ -208,16 +219,16 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
 
   const switchToNextSession = useCallback(() => {
     playNotification(settings.soundType, settings.volume);
-    
+
     // Show desktop notification if enabled
     if (settings.notificationsEnabled) {
       notifySessionComplete(sessionType);
     }
-    
+
     // Celebrate completion with confetti! 🎉
     celebrateCompletion(sessionType);
-    
-    setState(prev => {
+
+    setState((prev) => {
       if (prev.sessionType === 'work') {
         const newCompletedSessions = prev.completedSessions + 1;
 
@@ -247,17 +258,28 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
           ...prev,
           sessionType: 'work',
           time: workDuration,
-          completedSessions: prev.sessionType === 'longBreak' ? 0 : prev.completedSessions,
+          completedSessions:
+            prev.sessionType === 'longBreak' ? 0 : prev.completedSessions,
           isActive: false,
           timestamp: Date.now(),
         };
       }
     });
-    
+
     // Clear persisted state when timer completes (optional - keeps history)
     // Uncomment if you want to clear state on session completion:
     // clearPersistedState(TIMER_STATE_KEY);
-  }, [setState, workDuration, shortBreakDuration, longBreakDuration, sessionsUntilLongBreak, settings.notificationsEnabled, settings.soundType, settings.volume, sessionType]);
+  }, [
+    setState,
+    workDuration,
+    shortBreakDuration,
+    longBreakDuration,
+    sessionsUntilLongBreak,
+    settings.notificationsEnabled,
+    settings.soundType,
+    settings.volume,
+    sessionType,
+  ]);
 
   // Handle session switch if timer completed while away
   useEffect(() => {
@@ -288,12 +310,20 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
       // Use timestamp-based calculation to handle browser throttling
       // This ensures timer accuracy even when tab is in background/minimized
       interval = window.setInterval(() => {
-        if (timerStartTimeRef.current !== null && timerStartValueRef.current !== null) {
+        if (
+          timerStartTimeRef.current !== null &&
+          timerStartValueRef.current !== null
+        ) {
           const now = Date.now();
-          const elapsedSeconds = Math.floor((now - timerStartTimeRef.current) / 1000);
-          const newTime = Math.max(0, timerStartValueRef.current - elapsedSeconds);
+          const elapsedSeconds = Math.floor(
+            (now - timerStartTimeRef.current) / 1000
+          );
+          const newTime = Math.max(
+            0,
+            timerStartValueRef.current - elapsedSeconds
+          );
 
-          setState(prev => ({
+          setState((prev) => ({
             ...prev,
             time: newTime,
             timestamp: now,
@@ -332,4 +362,3 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     skipBreak,
   };
 };
-

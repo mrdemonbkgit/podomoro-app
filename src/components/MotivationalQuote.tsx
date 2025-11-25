@@ -7,14 +7,16 @@ interface MotivationalQuoteProps {
 }
 
 export const MotivationalQuote = ({ sessionType }: MotivationalQuoteProps) => {
-  const [quote, setQuote] = useState<Quote>(() => getRandomQuote(sessionType === 'work'));
+  const [quote, setQuote] = useState<Quote>(() =>
+    getRandomQuote(sessionType === 'work')
+  );
   const [isVisible, setIsVisible] = useState(true);
 
   // Update quote when session type changes
   useEffect(() => {
     // Fade out
     setIsVisible(false);
-    
+
     // Wait for fade out, then update quote and fade in
     const timer = setTimeout(() => {
       setQuote(getRandomQuote(sessionType === 'work'));
@@ -25,7 +27,7 @@ export const MotivationalQuote = ({ sessionType }: MotivationalQuoteProps) => {
   }, [sessionType]);
 
   return (
-    <div 
+    <div
       className={`transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       role="status"
       aria-live="polite"
@@ -36,4 +38,3 @@ export const MotivationalQuote = ({ sessionType }: MotivationalQuoteProps) => {
     </div>
   );
 };
-

@@ -12,14 +12,18 @@ describe('Notification Utilities', () => {
     originalNotification = global.Notification;
 
     // Mock Notification API
-    (global.Notification as any) = vi.fn().mockImplementation((title, options) => ({
-      title,
-      ...options,
-      close: vi.fn(),
-    }));
+    (global.Notification as any) = vi
+      .fn()
+      .mockImplementation((title, options) => ({
+        title,
+        ...options,
+        close: vi.fn(),
+      }));
 
     global.Notification.permission = 'granted';
-    global.Notification.requestPermission = vi.fn().mockResolvedValue('granted');
+    global.Notification.requestPermission = vi
+      .fn()
+      .mockResolvedValue('granted');
   });
 
   afterEach(() => {
@@ -37,19 +41,19 @@ describe('Notification Utilities', () => {
   describe('getNotificationPermission', () => {
     it('should return current permission when supported', () => {
       global.Notification.permission = 'granted';
-      
+
       expect(getNotificationPermission()).toBe('granted');
     });
 
     it('should handle denied permission', () => {
       global.Notification.permission = 'denied';
-      
+
       expect(getNotificationPermission()).toBe('denied');
     });
 
     it('should handle default permission', () => {
       global.Notification.permission = 'default';
-      
+
       expect(getNotificationPermission()).toBe('default');
     });
   });

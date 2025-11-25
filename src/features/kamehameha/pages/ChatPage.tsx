@@ -3,14 +3,17 @@
  * Phase 4: Full chat interface with AI therapist
  */
 
-import {useState, useEffect, useRef} from 'react';
-import {Link} from 'react-router-dom';
-import {useAuth} from '../../auth/context/AuthContext';
-import {sendMessage, subscribeToChatMessages} from '../services/aiChatService';
-import type {ChatMessage} from '../types/kamehameha.types';
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../auth/context/AuthContext';
+import {
+  sendMessage,
+  subscribeToChatMessages,
+} from '../services/aiChatService';
+import type { ChatMessage } from '../types/kamehameha.types';
 
 export function ChatPage() {
-  const {user} = useAuth();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,7 +35,7 @@ export function ChatPage() {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   // Auto-resize textarea
@@ -84,13 +87,25 @@ export function ChatPage() {
               to="/kamehameha"
               className="text-white/60 hover:text-white transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
               </svg>
             </Link>
             <div>
               <h1 className="text-xl font-bold text-white">AI Therapist</h1>
-              <p className="text-xs text-white/60">Compassionate support, 24/7</p>
+              <p className="text-xs text-white/60">
+                Compassionate support, 24/7
+              </p>
             </div>
           </div>
 
@@ -104,7 +119,9 @@ export function ChatPage() {
             }`}
           >
             <span className="text-xl">🚨</span>
-            <span className="hidden sm:inline">{isEmergency ? 'Emergency ON' : 'Emergency'}</span>
+            <span className="hidden sm:inline">
+              {isEmergency ? 'Emergency ON' : 'Emergency'}
+            </span>
           </button>
         </div>
       </div>
@@ -114,9 +131,13 @@ export function ChatPage() {
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">💜</div>
-            <h2 className="text-2xl font-bold text-white mb-2">Welcome to Your AI Therapist</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Welcome to Your AI Therapist
+            </h2>
             <p className="text-white/60 max-w-md mx-auto">
-              I'm here to provide compassionate support for your recovery journey. Share what's on your mind, and I'll listen without judgment.
+              I'm here to provide compassionate support for your recovery
+              journey. Share what's on your mind, and I'll listen without
+              judgment.
             </p>
           </div>
         ) : (
@@ -134,11 +155,20 @@ export function ChatPage() {
                   }`}
                 >
                   {message.isEmergency && message.role === 'user' && (
-                    <div className="text-xs font-semibold text-red-300 mb-1">🚨 EMERGENCY</div>
+                    <div className="text-xs font-semibold text-red-300 mb-1">
+                      🚨 EMERGENCY
+                    </div>
                   )}
-                  <div className="whitespace-pre-wrap break-words">{message.content}</div>
-                  <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/60' : 'text-white/40'}`}>
-                    {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
+                  <div className="whitespace-pre-wrap break-words">
+                    {message.content}
+                  </div>
+                  <div
+                    className={`text-xs mt-1 ${message.role === 'user' ? 'text-white/60' : 'text-white/40'}`}
+                  >
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
                   </div>
                 </div>
               </div>
@@ -148,11 +178,22 @@ export function ChatPage() {
                 <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
-                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
-                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+                      <div
+                        className="w-2 h-2 bg-white/60 rounded-full animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 bg-white/60 rounded-full animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 bg-white/60 rounded-full animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
                     </div>
-                    <span className="text-sm text-white/60">AI is thinking...</span>
+                    <span className="text-sm text-white/60">
+                      AI is thinking...
+                    </span>
                   </div>
                 </div>
               </div>
@@ -185,7 +226,11 @@ export function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isEmergency ? "I'm here for you. What's happening right now?" : "Type your message..."}
+              placeholder={
+                isEmergency
+                  ? "I'm here for you. What's happening right now?"
+                  : 'Type your message...'
+              }
               disabled={loading}
               className="flex-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none min-h-[52px] max-h-32 disabled:opacity-50"
               rows={1}
@@ -198,19 +243,29 @@ export function ChatPage() {
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
                 </svg>
               )}
             </button>
           </div>
 
           <p className="text-xs text-white/40 mt-2 text-center">
-            Press Enter to send • Shift+Enter for new line • {2000 - input.length} characters remaining
+            Press Enter to send • Shift+Enter for new line •{' '}
+            {2000 - input.length} characters remaining
           </p>
         </div>
       </div>
     </div>
   );
 }
-

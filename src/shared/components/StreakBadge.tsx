@@ -1,6 +1,6 @@
 /**
  * StreakBadge - Top bar streak display
- * 
+ *
  * Shows main streak in top-right corner on all pages when user is authenticated.
  * Updates every second. Non-interactive display only.
  */
@@ -41,17 +41,17 @@ export function StreakBadge({ display, isVisible }: StreakBadgeProps) {
                   <span className="text-purple-300">d</span>
                 </>
               )}
-              
+
               {(display.days > 0 || display.hours > 0) && (
                 <>
                   <span className="tabular-nums">{display.hours}</span>
                   <span className="text-purple-300">h</span>
                 </>
               )}
-              
+
               <span className="tabular-nums">{display.minutes}</span>
               <span className="text-purple-300">m</span>
-              
+
               <span className="tabular-nums">{display.seconds}</span>
               <span className="text-purple-300">s</span>
             </div>
@@ -68,4 +68,3 @@ export function StreakBadge({ display, isVisible }: StreakBadgeProps) {
     </AnimatePresence>
   );
 }
-

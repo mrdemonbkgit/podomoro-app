@@ -1,13 +1,17 @@
 /**
  * BadgeGallery Component
- * 
+ *
  * Displays all earned and locked badges in a beautiful grid layout
  * Phase 5.1: Only shows PMO journey badges (no discipline badges)
  */
 
 import { motion } from 'framer-motion';
 import type { Badge } from '../types/kamehameha.types';
-import { MILESTONE_CONFIGS, MILESTONE_SECONDS, formatMilestoneTime } from '../constants/milestones';
+import {
+  MILESTONE_CONFIGS,
+  MILESTONE_SECONDS,
+  formatMilestoneTime,
+} from '../constants/milestones';
 
 interface BadgeGalleryProps {
   badges: Badge[];
@@ -36,7 +40,9 @@ export function BadgeGallery({ badges, loading = false }: BadgeGalleryProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500 dark:text-gray-400">Loading badges...</div>
+        <div className="text-gray-500 dark:text-gray-400">
+          Loading badges...
+        </div>
       </div>
     );
   }
@@ -93,7 +99,9 @@ function BadgeCard({ badge, config, index }: BadgeCardProps) {
       <div className="font-semibold text-sm mb-1">{config.name}</div>
 
       {/* Milestone time */}
-      <div className="text-xs opacity-80">{formatMilestoneTime(config.seconds)}</div>
+      <div className="text-xs opacity-80">
+        {formatMilestoneTime(config.seconds)}
+      </div>
 
       {/* Earned date */}
       {isEarned && badge && (
@@ -111,4 +119,3 @@ function BadgeCard({ badge, config, index }: BadgeCardProps) {
     </motion.div>
   );
 }
-

@@ -1,6 +1,6 @@
 /**
  * CelebrationModal Component
- * 
+ *
  * Shows a beautiful celebration modal with confetti when user earns a new badge
  */
 
@@ -22,7 +22,12 @@ export function CelebrationModal({ badge, onClose }: CelebrationModalProps) {
     // Trigger confetti animation
     const duration = TIMEOUTS.TOAST_DURATION_MS;
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+    const defaults = {
+      startVelocity: 30,
+      spread: 360,
+      ticks: 60,
+      zIndex: 9999,
+    };
 
     function randomInRange(min: number, max: number) {
       return Math.random() * (max - min) + min;
@@ -142,4 +147,3 @@ export function CelebrationModal({ badge, onClose }: CelebrationModalProps) {
     </AnimatePresence>
   );
 }
-

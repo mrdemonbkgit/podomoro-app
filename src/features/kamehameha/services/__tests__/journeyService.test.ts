@@ -1,12 +1,19 @@
 /**
  * Tests for journey service
- * 
+ *
  * Note: These tests use Vitest mocks for Firestore operations.
  * For integration tests with real Firestore, see integration test suite.
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { testUser, testJourney, testEndedJourney, createTestJourney, testRelapseViolation, NOW } from '../../../../test/fixtures/kamehameha';
+import {
+  testUser,
+  testJourney,
+  testEndedJourney,
+  createTestJourney,
+  testRelapseViolation,
+  NOW,
+} from '../../../../test/fixtures/kamehameha';
 
 // Mock Firestore
 vi.mock('firebase/firestore', () => ({
@@ -65,14 +72,18 @@ describe('journeyService', () => {
     test('calls Firestore with correct collection path', async () => {
       const mockDocRef = { id: 'journey-456' };
       vi.mocked(firestore.addDoc).mockResolvedValue(mockDocRef as any);
-      vi.mocked(firestore.collection).mockReturnValue('journeys-collection' as any);
+      vi.mocked(firestore.collection).mockReturnValue(
+        'journeys-collection' as any
+      );
 
       await createJourney(testUser.uid);
 
       // Check collection was called with correct path
       const collectionCalls = vi.mocked(firestore.collection).mock.calls;
-      expect(collectionCalls[0][1]).toBe(`users/${testUser.uid}/kamehameha_journeys`);
-      
+      expect(collectionCalls[0][1]).toBe(
+        `users/${testUser.uid}/kamehameha_journeys`
+      );
+
       // Check addDoc was called with correct data
       expect(firestore.addDoc).toHaveBeenCalledWith(
         'journeys-collection',
@@ -86,15 +97,22 @@ describe('journeyService', () => {
     });
 
     test('handles Firestore errors gracefully', async () => {
-      vi.mocked(firestore.addDoc).mockRejectedValue(new Error('Firestore error'));
+      vi.mocked(firestore.addDoc).mockRejectedValue(
+        new Error('Firestore error')
+      );
 
-      await expect(createJourney(testUser.uid)).rejects.toThrow('Firestore error');
+      await expect(createJourney(testUser.uid)).rejects.toThrow(
+        'Firestore error'
+      );
     });
   });
 
   describe('endJourney', () => {
     test('ends journey with correct fields', async () => {
-      const mockDoc = { exists: () => true, data: () => ({ achievementsCount: 3 }) };
+      const mockDoc = {
+        exists: () => true,
+        data: () => ({ achievementsCount: 3 }),
+      };
       vi.mocked(firestore.getDoc).mockResolvedValue(mockDoc as any);
       vi.mocked(firestore.updateDoc).mockResolvedValue(undefined as any);
 
@@ -112,7 +130,10 @@ describe('journeyService', () => {
     });
 
     test('preserves achievementsCount when ending', async () => {
-      const mockDoc = { exists: () => true, data: () => ({ achievementsCount: 5 }) };
+      const mockDoc = {
+        exists: () => true,
+        data: () => ({ achievementsCount: 5 }),
+      };
       vi.mocked(firestore.getDoc).mockResolvedValue(mockDoc as any);
       vi.mocked(firestore.updateDoc).mockResolvedValue(undefined as any);
 
@@ -132,7 +153,9 @@ describe('journeyService', () => {
 
       // Check doc was called with correct path
       const docCalls = vi.mocked(firestore.doc).mock.calls;
-      expect(docCalls[0][1]).toBe(`users/${testUser.uid}/kamehameha_journeys/${testJourney.id}`);
+      expect(docCalls[0][1]).toBe(
+        `users/${testUser.uid}/kamehameha_journeys/${testJourney.id}`
+      );
     });
   });
 
@@ -140,19 +163,21 @@ describe('journeyService', () => {
     test('returns active journey when exists', async () => {
       const mockSnapshot = {
         empty: false,
-        docs: [{
-          id: testJourney.id,
-          data: () => ({
-            startDate: testJourney.startDate,
-            endDate: null,
-            endReason: 'active',
-            finalSeconds: 0,
-            achievementsCount: 2,
-            violationsCount: 0,
-            createdAt: testJourney.createdAt,
-            updatedAt: testJourney.updatedAt,
-          }),
-        }],
+        docs: [
+          {
+            id: testJourney.id,
+            data: () => ({
+              startDate: testJourney.startDate,
+              endDate: null,
+              endReason: 'active',
+              finalSeconds: 0,
+              achievementsCount: 2,
+              violationsCount: 0,
+              createdAt: testJourney.createdAt,
+              updatedAt: testJourney.updatedAt,
+            }),
+          },
+        ],
       };
 
       vi.mocked(firestore.getDocs).mockResolvedValue(mockSnapshot as any);
@@ -211,8 +236,10 @@ describe('journeyService', () => {
     test('respects limit parameter', async () => {
       vi.mocked(firestore.query).mockReturnValue('mock-query' as any);
       vi.mocked(firestore.limit).mockReturnValue('limit-query' as any);
-      
-      const mockSnapshot = { docs: [{ id: testJourney.id, data: () => testJourney }] };
+
+      const mockSnapshot = {
+        docs: [{ id: testJourney.id, data: () => testJourney }],
+      };
       vi.mocked(firestore.getDocs).mockResolvedValue(mockSnapshot as any);
 
       await getJourneyHistory(testUser.uid, 10);
@@ -222,7 +249,7 @@ describe('journeyService', () => {
 
     test('orders by startDate descending', async () => {
       vi.mocked(firestore.orderBy).mockReturnValue('orderby-clause' as any);
-      
+
       const mockSnapshot = { docs: [] };
       vi.mocked(firestore.getDocs).mockResolvedValue(mockSnapshot as any);
 
@@ -263,7 +290,9 @@ describe('journeyService', () => {
 
       // Check doc was called with correct path
       const docCalls = vi.mocked(firestore.doc).mock.calls;
-      expect(docCalls[0][1]).toBe(`users/${testUser.uid}/kamehameha_journeys/${testJourney.id}`);
+      expect(docCalls[0][1]).toBe(
+        `users/${testUser.uid}/kamehameha_journeys/${testJourney.id}`
+      );
     });
   });
 
@@ -289,7 +318,9 @@ describe('journeyService', () => {
 
       // Check doc was called with correct path
       const docCalls = vi.mocked(firestore.doc).mock.calls;
-      expect(docCalls[0][1]).toBe(`users/${testUser.uid}/kamehameha_journeys/${testJourney.id}`);
+      expect(docCalls[0][1]).toBe(
+        `users/${testUser.uid}/kamehameha_journeys/${testJourney.id}`
+      );
     });
   });
 
@@ -303,7 +334,10 @@ describe('journeyService', () => {
 
       vi.mocked(firestore.getDocs).mockResolvedValue(mockSnapshot as any);
 
-      const violations = await getJourneyViolations(testUser.uid, testJourney.id);
+      const violations = await getJourneyViolations(
+        testUser.uid,
+        testJourney.id
+      );
 
       expect(violations).toHaveLength(1);
       expect(violations[0].id).toBe(testRelapseViolation.id);
@@ -319,18 +353,44 @@ describe('journeyService', () => {
 
       await getJourneyViolations(testUser.uid, testJourney.id);
 
-      expect(firestore.where).toHaveBeenCalledWith('journeyId', '==', testJourney.id);
-      expect(firestore.where).toHaveBeenCalledWith('streakType', '==', 'discipline');
+      expect(firestore.where).toHaveBeenCalledWith(
+        'journeyId',
+        '==',
+        testJourney.id
+      );
+      expect(firestore.where).toHaveBeenCalledWith(
+        'streakType',
+        '==',
+        'discipline'
+      );
       expect(firestore.orderBy).toHaveBeenCalledWith('timestamp', 'desc');
     });
 
     test('falls back to client-side filtering on query error', async () => {
       // First getDocs call fails (missing index)
       // Second call gets all relapses for client-side filtering
-      const mockViolation1 = { ...testRelapseViolation, id: '1', journeyId: testJourney.id, streakType: 'discipline', timestamp: NOW - 1000 };
-      const mockViolation2 = { ...testRelapseViolation, id: '2', journeyId: 'other-journey', streakType: 'discipline', timestamp: NOW - 2000 };
-      const mockViolation3 = { ...testRelapseViolation, id: '3', journeyId: testJourney.id, streakType: 'main', timestamp: NOW - 3000 };
-      
+      const mockViolation1 = {
+        ...testRelapseViolation,
+        id: '1',
+        journeyId: testJourney.id,
+        streakType: 'discipline',
+        timestamp: NOW - 1000,
+      };
+      const mockViolation2 = {
+        ...testRelapseViolation,
+        id: '2',
+        journeyId: 'other-journey',
+        streakType: 'discipline',
+        timestamp: NOW - 2000,
+      };
+      const mockViolation3 = {
+        ...testRelapseViolation,
+        id: '3',
+        journeyId: testJourney.id,
+        streakType: 'main',
+        timestamp: NOW - 3000,
+      };
+
       vi.mocked(firestore.getDocs)
         .mockRejectedValueOnce(new Error('Missing index'))
         .mockResolvedValueOnce({
@@ -341,7 +401,10 @@ describe('journeyService', () => {
           ],
         } as any);
 
-      const violations = await getJourneyViolations(testUser.uid, testJourney.id);
+      const violations = await getJourneyViolations(
+        testUser.uid,
+        testJourney.id
+      );
 
       // Should only return violations matching both journeyId AND streakType === 'discipline'
       expect(violations).toHaveLength(1);
@@ -358,15 +421,16 @@ describe('journeyService', () => {
       };
 
       const mockSnapshot = {
-        docs: [
-          { id: testJourney.id, data: () => ({ startDate: NOW - 1000 }) },
-        ],
+        docs: [{ id: testJourney.id, data: () => ({ startDate: NOW - 1000 }) }],
       };
 
       vi.mocked(firestore.getDoc).mockResolvedValue(mockJourneyDoc as any);
       vi.mocked(firestore.getDocs).mockResolvedValue(mockSnapshot as any);
 
-      const journeyNumber = await getJourneyNumber(testUser.uid, testJourney.id);
+      const journeyNumber = await getJourneyNumber(
+        testUser.uid,
+        testJourney.id
+      );
 
       expect(journeyNumber).toBe(1);
     });
@@ -388,7 +452,10 @@ describe('journeyService', () => {
       vi.mocked(firestore.getDoc).mockResolvedValue(mockJourneyDoc as any);
       vi.mocked(firestore.getDocs).mockResolvedValue(mockSnapshot as any);
 
-      const journeyNumber = await getJourneyNumber(testUser.uid, testJourney.id);
+      const journeyNumber = await getJourneyNumber(
+        testUser.uid,
+        testJourney.id
+      );
 
       expect(journeyNumber).toBe(3);
     });
@@ -397,7 +464,10 @@ describe('journeyService', () => {
       const mockJourneyDoc = { exists: () => false };
       vi.mocked(firestore.getDoc).mockResolvedValue(mockJourneyDoc as any);
 
-      const journeyNumber = await getJourneyNumber(testUser.uid, 'nonexistent-id');
+      const journeyNumber = await getJourneyNumber(
+        testUser.uid,
+        'nonexistent-id'
+      );
 
       expect(journeyNumber).toBe(0);
     });
@@ -411,7 +481,10 @@ describe('journeyService', () => {
       vi.mocked(firestore.getDoc).mockResolvedValue(mockJourneyDoc as any);
       vi.mocked(firestore.getDocs).mockRejectedValue(new Error('Query error'));
 
-      const journeyNumber = await getJourneyNumber(testUser.uid, testJourney.id);
+      const journeyNumber = await getJourneyNumber(
+        testUser.uid,
+        testJourney.id
+      );
 
       expect(journeyNumber).toBe(1);
     });
@@ -431,9 +504,12 @@ describe('journeyService', () => {
 
       await getJourneyNumber(testUser.uid, testJourney.id);
 
-      expect(firestore.where).toHaveBeenCalledWith('startDate', '<=', NOW - 1000);
+      expect(firestore.where).toHaveBeenCalledWith(
+        'startDate',
+        '<=',
+        NOW - 1000
+      );
       expect(firestore.orderBy).toHaveBeenCalledWith('startDate', 'asc');
     });
   });
 });
-

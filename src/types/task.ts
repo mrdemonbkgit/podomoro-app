@@ -11,4 +11,3 @@ export const DEFAULT_TASKS: Task[] = [
 ];
 
 export const MAX_TASKS = 3;
-

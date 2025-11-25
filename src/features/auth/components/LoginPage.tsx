@@ -54,19 +54,15 @@ export function LoginPage() {
           {/* Logo/Icon */}
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">🔥</div>
-            <h1 className="text-4xl font-bold text-white mb-2">
-              ZenFocus
-            </h1>
-            <p className="text-purple-200 text-lg">
-              Kamehameha Recovery Tool
-            </p>
+            <h1 className="text-4xl font-bold text-white mb-2">ZenFocus</h1>
+            <p className="text-purple-200 text-lg">Kamehameha Recovery Tool</p>
           </div>
 
           {/* Description */}
           <div className="text-center mb-8">
             <p className="text-white/80 text-sm leading-relaxed">
-              Track your progress, build streaks, and get AI-powered support
-              on your recovery journey.
+              Track your progress, build streaks, and get AI-powered support on
+              your recovery journey.
             </p>
           </div>
 
@@ -150,4 +146,3 @@ export function LoginPage() {
     </div>
   );
 }
-

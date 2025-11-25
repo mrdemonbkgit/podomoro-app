@@ -1,6 +1,6 @@
 /**
  * useJourneyInfo Hook
- * 
+ *
  * Provides information about the current journey for display in the dashboard
  * Phase 5.1 - Journey System
  */
@@ -8,7 +8,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/context/AuthContext';
 import { logger } from '../../../utils/logger';
-import { getJourneyNumber, getJourneyViolations } from '../services/journeyService';
+import {
+  getJourneyNumber,
+  getJourneyViolations,
+} from '../services/journeyService';
 
 interface UseJourneyInfoReturn {
   /** Journey number (1-indexed, e.g., Journey #5) */
@@ -23,7 +26,7 @@ interface UseJourneyInfoReturn {
 
 /**
  * Hook to load journey information for display
- * 
+ *
  * @param journeyId - Current journey ID
  * @returns Journey info (number, violations count, loading, error)
  */
@@ -44,19 +47,22 @@ export function useJourneyInfo(journeyId: string | null): UseJourneyInfoReturn {
       try {
         setLoading(true);
         setError(null);
-        
+
         logger.debug('Loading journey info for:', journeyId);
-        
+
         // Load journey number and violations in parallel
         const [number, violations] = await Promise.all([
           getJourneyNumber(user!.uid, journeyId!),
-          getJourneyViolations(user!.uid, journeyId!)
+          getJourneyViolations(user!.uid, journeyId!),
         ]);
-        
+
         setJourneyNumber(number);
         setViolationsCount(violations.length);
-        
-        logger.debug('Journey info loaded:', { number, violations: violations.length });
+
+        logger.debug('Journey info loaded:', {
+          number,
+          violations: violations.length,
+        });
       } catch (err) {
         console.error('Failed to load journey info:', err);
         setError('Failed to load journey info');
@@ -78,4 +84,3 @@ export function useJourneyInfo(journeyId: string | null): UseJourneyInfoReturn {
     error,
   };
 }
-

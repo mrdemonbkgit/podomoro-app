@@ -1,6 +1,6 @@
 /**
  * StreaksContext - Global streak data provider
- * 
+ *
  * Ensures only ONE instance of useStreaks runs, preventing duplicate writes
  */
 
@@ -16,7 +16,7 @@ interface StreaksProviderProps {
 
 export function StreaksProvider({ children }: StreaksProviderProps) {
   const streaksData = useStreaks();
-  
+
   return (
     <StreaksContext.Provider value={streaksData}>
       {children}
@@ -26,11 +26,10 @@ export function StreaksProvider({ children }: StreaksProviderProps) {
 
 export function useStreaksContext(): UseStreaksReturn {
   const context = useContext(StreaksContext);
-  
+
   if (!context) {
     throw new Error('useStreaksContext must be used within a StreaksProvider');
   }
-  
+
   return context;
 }
-

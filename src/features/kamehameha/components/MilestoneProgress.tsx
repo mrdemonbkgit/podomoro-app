@@ -1,12 +1,15 @@
 /**
  * MilestoneProgress Component
- * 
+ *
  * Shows progress bar towards the next milestone
  * Phase 5.1: Only shows PMO journey milestones (no discipline)
  */
 
 import { motion } from 'framer-motion';
-import { getMilestoneProgress, getTimeToNextMilestone } from '../constants/milestones';
+import {
+  getMilestoneProgress,
+  getTimeToNextMilestone,
+} from '../constants/milestones';
 
 interface MilestoneProgressProps {
   /** Current streak duration in seconds */
@@ -20,8 +23,10 @@ export function MilestoneProgress({ currentSeconds }: MilestoneProgressProps) {
   // If at max milestone, show completion message
   if (!progressData.next) {
     return (
-      <div className="bg-gradient-to-r from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 
-                      rounded-xl p-6 text-white text-center">
+      <div
+        className="bg-gradient-to-r from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-600 
+                      rounded-xl p-6 text-white text-center"
+      >
         <div className="text-3xl mb-2">🏆</div>
         <div className="font-bold text-lg">Maximum Level Reached!</div>
         <div className="text-sm opacity-90 mt-1">
@@ -42,9 +47,7 @@ export function MilestoneProgress({ currentSeconds }: MilestoneProgressProps) {
             Next Milestone
           </h3>
         </div>
-        <div className="text-4xl">
-          {progressData.next.emoji}
-        </div>
+        <div className="text-4xl">{progressData.next.emoji}</div>
       </div>
 
       {/* Badge name */}
@@ -93,15 +96,14 @@ function getMotivationalMessage(progressPercent: number): string {
   if (progressPercent === 0) {
     return "Every journey begins with a single step. You've got this! 💪";
   } else if (progressPercent < 25) {
-    return "Great start! Keep building momentum. 🚀";
+    return 'Great start! Keep building momentum. 🚀';
   } else if (progressPercent < 50) {
     return "You're making progress! Stay strong. 💪";
   } else if (progressPercent < 75) {
     return "Halfway there! You're doing amazing. ⭐";
   } else if (progressPercent < 95) {
-    return "Almost there! Keep pushing forward. 🔥";
+    return 'Almost there! Keep pushing forward. 🔥';
   } else {
-    return "So close! The next milestone is within reach! 🏆";
+    return 'So close! The next milestone is within reach! 🏆';
   }
 }
-
