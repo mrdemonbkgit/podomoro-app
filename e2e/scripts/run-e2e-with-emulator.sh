@@ -38,17 +38,24 @@ cleanup() {
   if [ -n "$DEV_SERVER_PID" ]; then
     echo -e "Stopping dev server (PID: $DEV_SERVER_PID)..."
     kill $DEV_SERVER_PID 2>/dev/null || true
+    # Kill entire process group
+    pkill -P $DEV_SERVER_PID 2>/dev/null || true
   fi
 
   if [ -n "$EMULATOR_PID" ]; then
     echo -e "Stopping Firebase emulator (PID: $EMULATOR_PID)..."
     kill $EMULATOR_PID 2>/dev/null || true
+    # Kill entire process group (Java processes)
+    pkill -P $EMULATOR_PID 2>/dev/null || true
   fi
 
-  # Kill any remaining processes on the ports
-  lsof -ti:5173 | xargs kill -9 2>/dev/null || true
-  lsof -ti:8080 | xargs kill -9 2>/dev/null || true
-  lsof -ti:9099 | xargs kill -9 2>/dev/null || true
+  # Kill any remaining processes on the ports (use ss for faster check in WSL)
+  for port in 5173 8080 9099 4000; do
+    pid=$(ss -tlnp 2>/dev/null | grep ":$port " | grep -oP 'pid=\K[0-9]+' | head -1)
+    if [ -n "$pid" ]; then
+      kill -9 $pid 2>/dev/null || true
+    fi
+  done
 
   # Restore production rules if needed
   npm run emulator:restore 2>/dev/null || true
@@ -59,18 +66,25 @@ cleanup() {
 # Set trap for cleanup on exit
 trap cleanup EXIT INT TERM
 
-# Check if ports are available
-check_port() {
-  if lsof -Pi :$1 -sTCP:LISTEN -t >/dev/null 2>&1; then
+# Fast port check using ss (much faster than lsof in WSL)
+check_port_available() {
+  if ss -tln 2>/dev/null | grep -q ":$1 "; then
     echo -e "${RED}Error: Port $1 is already in use${NC}"
-    exit 1
+    return 1
   fi
+  return 0
+}
+
+# Fast port ready check using nc (netcat)
+check_port_ready() {
+  nc -z localhost $1 2>/dev/null
+  return $?
 }
 
 echo -e "\n${YELLOW}Step 1: Checking ports...${NC}"
-check_port 5173  # Vite dev server
-check_port 8080  # Firestore emulator
-check_port 9099  # Auth emulator
+check_port_available 5173 || exit 1  # Vite dev server
+check_port_available 8080 || exit 1  # Firestore emulator
+check_port_available 9099 || exit 1  # Auth emulator
 
 echo -e "${GREEN}All ports available${NC}"
 
@@ -78,19 +92,33 @@ echo -e "${GREEN}All ports available${NC}"
 echo -e "\n${YELLOW}Step 2: Swapping to dev Firestore rules...${NC}"
 npm run emulator:swap
 
-# Start Firebase emulator in background
+# Start Firebase emulator in background (without UI for faster startup)
 echo -e "\n${YELLOW}Step 3: Starting Firebase emulator...${NC}"
-firebase emulators:start --only firestore,auth &
+firebase emulators:start --only firestore,auth --ui=false &
 EMULATOR_PID=$!
 
-# Wait for emulator to be ready by checking the ports
+# Wait for emulator to be ready by checking the ports with nc (faster than lsof)
 echo -e "Waiting for emulator to start..."
-MAX_WAIT=120
+MAX_WAIT=60
 WAITED=0
+AUTH_READY=false
+FIRESTORE_READY=false
+
 while [ $WAITED -lt $MAX_WAIT ]; do
-  # Check if both auth (9099) and firestore (8080) ports are listening
-  if lsof -Pi :9099 -sTCP:LISTEN -t >/dev/null 2>&1 && lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo -e "${GREEN}Firebase emulator ports are ready${NC}"
+  # Check auth port (9099)
+  if [ "$AUTH_READY" = false ] && check_port_ready 9099; then
+    echo -e "${GREEN}  ✓ Auth emulator ready (port 9099)${NC}"
+    AUTH_READY=true
+  fi
+
+  # Check firestore port (8080)
+  if [ "$FIRESTORE_READY" = false ] && check_port_ready 8080; then
+    echo -e "${GREEN}  ✓ Firestore emulator ready (port 8080)${NC}"
+    FIRESTORE_READY=true
+  fi
+
+  # Both ready
+  if [ "$AUTH_READY" = true ] && [ "$FIRESTORE_READY" = true ]; then
     break
   fi
 
@@ -100,9 +128,13 @@ while [ $WAITED -lt $MAX_WAIT ]; do
     exit 1
   fi
 
-  sleep 2
-  WAITED=$((WAITED + 2))
-  echo -e "  Still waiting... (${WAITED}s)"
+  sleep 1
+  WAITED=$((WAITED + 1))
+
+  # Only print every 5 seconds to reduce noise
+  if [ $((WAITED % 5)) -eq 0 ]; then
+    echo -e "  Still waiting... (${WAITED}s)"
+  fi
 done
 
 if [ $WAITED -ge $MAX_WAIT ]; then
@@ -110,11 +142,10 @@ if [ $WAITED -ge $MAX_WAIT ]; then
   exit 1
 fi
 
-# Give emulator a few more seconds to fully initialize
-echo -e "Emulator ports ready, waiting for full initialization..."
-sleep 5
+# Brief pause for emulator to fully initialize
+sleep 2
 
-echo -e "${GREEN}Firebase emulator started${NC}"
+echo -e "${GREEN}Firebase emulator started in ${WAITED}s${NC}"
 
 # Start dev server with emulator flag
 echo -e "\n${YELLOW}Step 4: Starting dev server with emulator...${NC}"
@@ -123,18 +154,33 @@ DEV_SERVER_PID=$!
 
 # Wait for dev server to be ready
 echo -e "Waiting for dev server to start..."
-sleep 5
+MAX_WAIT=30
+WAITED=0
+while [ $WAITED -lt $MAX_WAIT ]; do
+  if check_port_ready 5173; then
+    echo -e "${GREEN}  ✓ Dev server ready (port 5173)${NC}"
+    break
+  fi
 
-# Check if dev server is running
-if ! kill -0 $DEV_SERVER_PID 2>/dev/null; then
-  echo -e "${RED}Error: Dev server failed to start${NC}"
+  # Check if dev server is still running
+  if ! kill -0 $DEV_SERVER_PID 2>/dev/null; then
+    echo -e "${RED}Error: Dev server failed to start${NC}"
+    exit 1
+  fi
+
+  sleep 1
+  WAITED=$((WAITED + 1))
+done
+
+if [ $WAITED -ge $MAX_WAIT ]; then
+  echo -e "${RED}Error: Dev server failed to start within ${MAX_WAIT}s${NC}"
   exit 1
 fi
 
-echo -e "${GREEN}Dev server started${NC}"
+echo -e "${GREEN}Dev server started in ${WAITED}s${NC}"
 
-# Wait a bit more for everything to stabilize
-sleep 3
+# Brief stabilization pause
+sleep 2
 
 # Run E2E tests
 echo -e "\n${YELLOW}Step 5: Running E2E tests...${NC}"
