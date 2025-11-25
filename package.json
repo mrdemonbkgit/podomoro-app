@@ -23,8 +23,8 @@
     "emulator": "node scripts/swap-rules.cjs dev && firebase emulators:start; node scripts/swap-rules.cjs prod",
     "emulator:swap": "node scripts/swap-rules.cjs dev",
     "emulator:restore": "node scripts/swap-rules.cjs prod",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.test.ts\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"*.test.ts\"",
     "ci": "npm run typecheck && npm run lint && npm run test && npm run build"
   },
   "lint-staged": {

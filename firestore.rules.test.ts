@@ -1,36 +1,51 @@
 /**
  * Firestore Security Rules Tests
- * 
+ *
  * Tests Firebase security rules to ensure:
  * - Users can only access their own data
  * - Unauthenticated access is denied
  * - No dev backdoor in production
  * - Subcollections inherit proper permissions
- * 
+ *
  * Phase 5: Production security rules testing (CRITICAL)
- * 
+ *
  * ⚠️ IMPORTANT: These tests verify PRODUCTION rules (firestore.rules)
  * - NO dev-test-user exception
  * - Strict authentication required
- * 
+ *
  * ⚠️ PREREQUISITES:
  * These tests require the Firebase emulator to be running.
- * 
+ *
  * To run these tests:
  * 1. Start emulator: `firebase emulators:start`
  * 2. In another terminal: `npm test -- firestore.rules.test.ts --run`
- * 
+ *
  * The emulator must be running on 127.0.0.1:8080 (default Firestore emulator port)
  */
 
-import { describe, test, expect, beforeAll, beforeEach, afterAll } from 'vitest';
+import {
+  describe,
+  test,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterAll,
+} from 'vitest';
 import {
   assertFails,
   assertSucceeds,
   initializeTestEnvironment,
   RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+} from 'firebase/firestore';
 import fs from 'fs';
 import path from 'path';
 
@@ -202,7 +217,10 @@ describe('Firestore Security Rules', () => {
 
     test('user can write to own kamehameha_journeys collection', async () => {
       const db = testEnv.authenticatedContext(USER_1).firestore();
-      const journeyDoc = doc(db, `users/${USER_1}/kamehameha_journeys/journey-1`);
+      const journeyDoc = doc(
+        db,
+        `users/${USER_1}/kamehameha_journeys/journey-1`
+      );
 
       await assertSucceeds(
         setDoc(journeyDoc, {
@@ -244,7 +262,10 @@ describe('Firestore Security Rules', () => {
 
     test('user CANNOT write to other user kamehameha subcollections', async () => {
       const db = testEnv.authenticatedContext(USER_1).firestore();
-      const otherJourneyDoc = doc(db, `users/${USER_2}/kamehameha_journeys/journey-1`);
+      const otherJourneyDoc = doc(
+        db,
+        `users/${USER_2}/kamehameha_journeys/journey-1`
+      );
 
       await assertFails(
         setDoc(otherJourneyDoc, {
@@ -262,7 +283,10 @@ describe('Firestore Security Rules', () => {
 
     test('unauthenticated user CANNOT write kamehameha subcollections', async () => {
       const db = testEnv.unauthenticatedContext().firestore();
-      const journeyDoc = doc(db, `users/${USER_1}/kamehameha_journeys/journey-1`);
+      const journeyDoc = doc(
+        db,
+        `users/${USER_1}/kamehameha_journeys/journey-1`
+      );
 
       await assertFails(
         setDoc(journeyDoc, {
@@ -293,7 +317,10 @@ describe('Firestore Security Rules', () => {
 
     test('unauthenticated user CANNOT access dev-test-user subcollections', async () => {
       const db = testEnv.unauthenticatedContext().firestore();
-      const devStreaksDoc = doc(db, `users/${DEV_TEST_USER}/kamehameha/streaks`);
+      const devStreaksDoc = doc(
+        db,
+        `users/${DEV_TEST_USER}/kamehameha/streaks`
+      );
 
       // No backdoor for subcollections either
       await assertFails(getDoc(devStreaksDoc));
@@ -361,9 +388,12 @@ describe('Firestore Security Rules', () => {
 
     test('deeply nested subcollections inherit permissions', async () => {
       const db = testEnv.authenticatedContext(USER_1).firestore();
-      
+
       // Create a deeply nested path
-      const deepDoc = doc(db, `users/${USER_1}/kamehameha_chatHistory/message-1`);
+      const deepDoc = doc(
+        db,
+        `users/${USER_1}/kamehameha_chatHistory/message-1`
+      );
 
       await assertSucceeds(
         setDoc(deepDoc, {
@@ -376,7 +406,7 @@ describe('Firestore Security Rules', () => {
       await assertSucceeds(getDoc(deepDoc));
     });
 
-    // Note: Path traversal test removed - Firestore SDK rejects paths with ".." 
+    // Note: Path traversal test removed - Firestore SDK rejects paths with ".."
     // with invalid-argument error before rules are evaluated, which is the correct behavior
   });
 
@@ -388,9 +418,9 @@ describe('Firestore Security Rules', () => {
     test('collection group queries require proper authentication', async () => {
       // Note: Current rules don't explicitly define collection group rules
       // This test documents expected behavior if we add them later
-      
+
       const db = testEnv.authenticatedContext(USER_1).firestore();
-      
+
       // This would fail with current rules as collection group queries
       // need explicit allow rules
       // Documented for future implementation
@@ -398,4 +428,3 @@ describe('Firestore Security Rules', () => {
     });
   });
 });
-
