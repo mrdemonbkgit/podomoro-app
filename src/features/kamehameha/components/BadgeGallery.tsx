@@ -7,7 +7,7 @@
 
 import { motion } from 'framer-motion';
 import type { Badge } from '../types/kamehameha.types';
-import { MILESTONE_CONFIGS, formatMilestoneTime } from '../constants/milestones';
+import { MILESTONE_CONFIGS, MILESTONE_SECONDS, formatMilestoneTime } from '../constants/milestones';
 
 interface BadgeGalleryProps {
   badges: Badge[];
@@ -15,19 +15,23 @@ interface BadgeGalleryProps {
 }
 
 export function BadgeGallery({ badges, loading = false }: BadgeGalleryProps) {
-  // Get all possible badges (earned + locked)
-  const allPossibleBadges = Object.entries(MILESTONE_CONFIGS).map(([seconds, config]) => {
-    // Check if this badge has been earned
-    const earnedBadge = badges.find(
-      (b) => b.milestoneSeconds === Number(seconds)
-    );
+  // Get all possible badges (earned + locked) - only for current environment
+  // In production: shows day-based badges (1 day, 3 days, etc.)
+  // In development: shows minute-based badges (1 min, 5 min)
+  const allPossibleBadges = Object.entries(MILESTONE_CONFIGS)
+    .filter(([seconds]) => MILESTONE_SECONDS.includes(Number(seconds)))
+    .map(([seconds, config]) => {
+      // Check if this badge has been earned
+      const earnedBadge = badges.find(
+        (b) => b.milestoneSeconds === Number(seconds)
+      );
 
-    return {
-      seconds: Number(seconds),
-      config,
-      badge: earnedBadge,
-    };
-  });
+      return {
+        seconds: Number(seconds),
+        config,
+        badge: earnedBadge,
+      };
+    });
 
   if (loading) {
     return (
