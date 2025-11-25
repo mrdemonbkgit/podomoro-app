@@ -3,6 +3,9 @@ dist
 build
 functions/lib
 
+# Auto-generated files
+src/buildInfo.ts
+
 # Dependencies
 node_modules
 
