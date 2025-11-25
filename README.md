@@ -239,17 +239,69 @@ See **[CHANGELOG.md](CHANGELOG.md)** for detailed version history and changes.
   - See [docs/kamehameha/OVERVIEW.md](docs/kamehameha/OVERVIEW.md) for details
   - Track progress at [docs/kamehameha/PROGRESS.md](docs/kamehameha/PROGRESS.md)
 
-## Testing with AI Assistant (MCP Integration)
+## Testing
+
+### Unit Tests
+
+Run unit tests with Vitest:
+```bash
+npm run test           # Run once
+npm run test:watch     # Watch mode
+npm run test:coverage  # With coverage
+```
+
+### E2E Tests (Playwright)
+
+The project includes 70 comprehensive E2E tests covering Timer, Auth, and Kamehameha features.
+
+```bash
+# Run E2E tests (headless)
+npm run test:e2e
+
+# Run with UI mode (interactive)
+npm run test:e2e:ui
+
+# Run with visible browser
+npm run test:e2e:headed
+
+# Debug mode
+npm run test:e2e:debug
+
+# View test report
+npm run test:e2e:report
+```
+
+#### Running with Firebase Emulator
+
+For authenticated tests (Kamehameha features), you need the Firebase emulator:
+
+**Native/Linux:**
+```bash
+npm run test:e2e:full
+```
+
+**WSL with Windows Emulator:**
+1. Start emulator on Windows: `firebase emulators:start --only firestore,auth`
+2. Set up firewall (PowerShell Admin, one-time):
+   ```powershell
+   New-NetFirewallRule -DisplayName "Firebase Auth" -Direction Inbound -LocalPort 9099 -Protocol TCP -Action Allow
+   New-NetFirewallRule -DisplayName "Firebase Firestore" -Direction Inbound -LocalPort 8080 -Protocol TCP -Action Allow
+   ```
+3. Start dev server with Windows host:
+   ```bash
+   VITE_USE_FIREBASE_EMULATOR=true VITE_EMULATOR_HOST=<windows-ip> npm run dev
+   ```
+4. Run tests: `FIREBASE_EMULATOR=true npx playwright test`
+
+### Testing with AI Assistant (MCP Integration)
 
 This project includes Chrome DevTools MCP setup for AI-assisted testing and debugging.
-
-### Quick Start
 
 1. **Launch Chrome with debugging:**
    ```bash
    # Windows PowerShell
    .\launch-chrome-debug.ps1
-   
+
    # Or double-click
    launch-chrome-debug.bat
    ```
@@ -263,12 +315,6 @@ This project includes Chrome DevTools MCP setup for AI-assisted testing and debu
    - "Take screenshots of the app"
    - "Check for console errors"
    - See `MCP_TESTING_WORKFLOW.md` for complete workflow
-
-### Test Reports
-
-Automated test reports with screenshots:
-- `TEST_REPORT_FEATURE_2.1.md` - Customizable Timer Durations
-- More reports added as features are tested
 
 ## License
 
