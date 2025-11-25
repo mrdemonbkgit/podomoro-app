@@ -36,10 +36,12 @@ if (
   import.meta.env.DEV &&
   import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true'
 ) {
-  connectAuthEmulator(auth, 'http://localhost:9099');
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  connectFunctionsEmulator(functions, 'localhost', 5001);
-  console.log('🔥 Firebase: Connected to emulators');
+  // Use VITE_EMULATOR_HOST for WSL environments where emulator runs on Windows
+  const emulatorHost = import.meta.env.VITE_EMULATOR_HOST || 'localhost';
+  connectAuthEmulator(auth, `http://${emulatorHost}:9099`);
+  connectFirestoreEmulator(db, emulatorHost, 8080);
+  connectFunctionsEmulator(functions, emulatorHost, 5001);
+  console.log(`🔥 Firebase: Connected to emulators at ${emulatorHost}`);
 }
 
 export default app;
