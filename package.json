@@ -25,7 +25,13 @@
     "emulator:restore": "node scripts/swap-rules.cjs prod",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.test.ts\"",
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"*.test.ts\"",
-    "ci": "npm run typecheck && npm run lint && npm run format:check && npm run scan:console && npm run scan:paths && npm run test && npm run build"
+    "ci": "npm run typecheck && npm run lint && npm run format:check && npm run scan:console && npm run scan:paths && npm run test && npm run build",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:full": "bash e2e/scripts/run-e2e-with-emulator.sh"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -45,6 +51,7 @@
   "devDependencies": {
     "@eslint/js": "^9.38.0",
     "@firebase/rules-unit-testing": "^5.0.0",
+    "@playwright/test": "^1.57.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",

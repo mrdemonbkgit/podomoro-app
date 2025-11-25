@@ -107,6 +107,7 @@ export function LoginPage() {
             <button
               onClick={handleDevSignIn}
               disabled={isSigningIn}
+              data-testid="dev-login-button"
               className="mt-4 w-full bg-yellow-500/20 hover:bg-yellow-500/30 border-2 border-yellow-500/50 text-yellow-200 font-semibold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="text-xl">🧪</span>

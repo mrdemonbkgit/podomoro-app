@@ -42,3 +42,9 @@ firebase-debug.log
 firestore-debug.log
 ui-debug.log
 firestore.rules.prod.bak
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
