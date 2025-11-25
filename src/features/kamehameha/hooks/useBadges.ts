@@ -34,7 +34,13 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
       return;
     }
 
-    logger.debug('useBadges: Listening for ALL badges (permanent records)');
+    // Reset tracking when journey changes to avoid stale celebrations
+    seenBadgeIds.current.clear();
+    isInitialLoad.current = true;
+    logger.debug(
+      'useBadges: Listening for ALL badges (permanent records), journeyId:',
+      currentJourneyId
+    );
 
     const badgesRef = collection(db, 'users', user.uid, 'kamehameha_badges');
 
@@ -111,19 +117,7 @@ export function useBadges(currentJourneyId: string | null): UseBadgesReturn {
     );
 
     return () => unsubscribe();
-  }, [user?.uid]);
-
-  // Reset seen badges when journey changes to prevent memory leaks
-  useEffect(() => {
-    if (currentJourneyId) {
-      logger.debug(
-        'useBadges: Journey changed, clearing seen badges set for new journey:',
-        currentJourneyId
-      );
-      seenBadgeIds.current.clear();
-      isInitialLoad.current = true;
-    }
-  }, [currentJourneyId]);
+  }, [user?.uid, currentJourneyId]); // Re-subscribe when journey changes to capture correct journeyId
 
   const dismissCelebration = () => {
     setCelebrationBadge(null);

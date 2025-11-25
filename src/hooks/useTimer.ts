@@ -124,6 +124,9 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
     (time !== workDuration || completedSessions !== 0);
 
   // Update timer immediately if settings change and timer is in initial state
+  // NOTE: This effect intentionally only depends on workDuration. It should only run
+  // when settings change, not when timer state changes. The isInitialState check
+  // reads current values but shouldn't trigger re-runs.
   useEffect(() => {
     // Only run when workDuration changes (from settings update)
     // Check if timer is in initial state: not active, work session, no completed sessions
@@ -142,6 +145,7 @@ export const useTimer = ({ settings }: UseTimerProps): UseTimerReturn => {
         timestamp: Date.now(),
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workDuration]); // Only depends on workDuration - runs when settings change
 
   // Handle sessions until long break changes

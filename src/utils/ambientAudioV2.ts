@@ -310,7 +310,7 @@ class AmbientAudioEngineV2 {
       if (activeSound.oscillator) {
         try {
           activeSound.oscillator.stop();
-        } catch (e) {
+        } catch {
           // Already stopped
         }
       }
@@ -318,7 +318,7 @@ class AmbientAudioEngineV2 {
       if (activeSound.noiseSource) {
         try {
           activeSound.noiseSource.stop();
-        } catch (e) {
+        } catch {
           // Already stopped
         }
       }
