@@ -22,6 +22,12 @@
 - ✅ Milestone Badges & Gamification System
 - ✅ Zero console errors
 
+**Latest Updates (November 25, 2025 - Morning):**
+- 🔍 Critical bug scan uncovered three blockers:
+  1. `functions/src/index.ts` now sends the freshly saved user prompt twice to OpenAI because the chat history already contains the just-persisted message.
+  2. `functions/src/contextBuilder.ts` still expects `'full_pmo'/'rule_violation'`, so GPT never sees full PMO relapses coming from the frontend (`fullPMO/ruleViolation`).
+  3. `JourneyHistoryPage.tsx` always formats `journey.finalSeconds`, which stays `0` until a journey ends—active journeys therefore appear to have zero duration.
+
 **Latest Updates (October 27, 2025 - Night):**
 - 🌟 **PHASE 5 FULLY DEPLOYED!** Frontend + Backend both LIVE in production!
 - 🚀 **Frontend Deployed to Vercel** (133 commits pushed)
